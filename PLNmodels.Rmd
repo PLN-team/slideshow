@@ -1,0 +1,972 @@
+---
+title: "PLNmodels"
+subtitle: "A collection of Poisson lognormal models <br/> for multivariate analysis of count data"
+author: "J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRA - Applied Mathematics and Informatics Division</small> <br /> <small>Last update `r format(Sys.time(), '%d %B, %Y')`</small>"
+date: "<br/>https://jchiquet.github.io/PLNmodels"
+output:
+  xaringan::moon_reader:
+    chakra: libs/remark-latest.min.js
+    css: ["pln.css", default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse) # data manipulation
+library(corrplot)  # plot of covariance/correlation matrices
+```
+
+```{r, load_refs, echo=FALSE, cache=FALSE, message=FALSE, warning=FALSE}
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           cite.style = 'alphabetic', 
+           style = "markdown",
+           hyperlink = FALSE, 
+           dashed = FALSE)
+myBib <- ReadBib("./PLNreferences.bib", check = FALSE)
+```
+
+class: inverse, center, middle
+
+# Getting Started
+
+---
+# Requirements
+
+## Package PLNmodels
+
+You can install the last stable release of **PLNmodels** from the CRAN. The development version is available from GitHub.
+
+```{r install, eval=FALSE, tidy=FALSE}
+install.packages("PLNmodels")
+devtools::install_github("jchiquet/PLNmodels")
+```
+
+## Dependencies
+
+Make sure the following CRAN packages are installed:
+
+```{r packages dependencies, eval=FALSE, tidy=FALSE}
+required_CRAN <- c("R6", "glassoFast", "Matrix", "Rcpp", "RcppArmadillo",
+                   "nloptr", "igraph", "grid", "gridExtra", "dplyr",
+                   "tidyr", "purrr", "ggplot2", "corrplot", "magrittr", "rlang")
+
+not_installed_CRAN <- setdiff(required_CRAN, rownames(installed.packages()))
+if (length(not_installed_CRAN) > 0) install.packages(not_installed_CRAN)
+```
+
+---
+
+# First steps
+
+## Loading the package
+
+Check that the installation process succeeded
+
+```{r loading package}
+library(PLNmodels)
+packageVersion("PLNmodels")
+```
+
+## Finding help and documentation
+
+The [PLNmodels website](https://jchiquet.github.io/PLNmodels/) contains
+
+- the standard package documentation 
+- a set of comprehensive vignettes for the top-level functions
+
+all formatted with [**pkgdown**](https://pkgdown.r-lib.org)
+
+
+And do not forget `?`/`??` in the `R` console.
+
+---
+
+class: inverse, center, middle
+
+# 'Oaks powdery mildew' <br/> A motivating companion data set <br/> .small[See `r Citet(myBib, "JAL16")`]
+
+
+---
+
+# Generic form of data sets
+  
+Routinely gathered in ecology/microbiology/genomics 
+
+## Data tables
+
+  - .important[Abundances]: read counts of species/transcripts $j$ in sample $i$
+  - .important[Covariates]: value of environmental variable $k$ in sample $i$
+  - .important[Offsets]: sampling effort for species/transcripts $j$ in sample $i$
+
+## Need for multivariate analysis
+
+  - exhibit .important[patterns of diversity] <br/>
+      $\rightsquigarrow$ summarize the information  (PCA, clustering, $\dots$)
+  - understand .important[between-species interactions] <br />
+      $\rightsquigarrow$ 'network' inference (variable/covariance selection)
+  - correct for technical and .important[confounding effects] <br/>
+      $\rightsquigarrow$ account for covariables and sampling effort
+
+$\rightsquigarrow$ need a generic framework to _model dependences between count variables_
+
+---
+
+# 'oaks' data set overview
+
+The `oaks` variable is loaded by the function `data()` (try `?oaks` to get additional details).
+```{r load oaks}
+data("oaks")
+```
+
+It consists in a special data frames ready to play with, typical from ecological data sets
+
+<small>
+```{r oaks struct}
+str(oaks, max.level = 1)
+```
+</small>
+---
+
+# Abundance table (I)
+
+```{r glimpse Abundance}
+oaks$Abundance %>% as_tibble() %>% 
+  dplyr::select(1:10) %>% 
+  head() %>% DT::datatable(fillContainer = FALSE)
+```
+
+---
+
+# Abundance table (II)
+
+```{r glance Abundances, fig.height=6}
+log(1 + oaks$Abundance) %>% 
+  corrplot::corrplot(is.corr = FALSE,
+    addgrid.col = NA,  tl.cex = .5,  cl.pos = "n")
+```
+
+---
+
+# Covariates and offsets
+
+Characterize the samples and the sampling, most important being
+
+- `tree`: Tree status with respect to the pathogen (susceptible, intermediate or resistant)
+- `distTOground`: Distance of the sampled leaf to the base of the ground
+- `readsTOTfun`: Total number of ITS1 reads for that leaf
+- `readsTOTbac`: Total number of 16S reads for that leaf
+
+```{r covariates summary}
+summary(oaks$tree)
+summary(oaks$distTOground)
+```
+
+$\rightsquigarrow$ `readsTOTfun` and `readsTOTbac` are candidate for modeling sampling effort as offsets
+
+
+---
+
+class: inverse, center, middle
+
+# Multivariate Poisson lognormal models <br/> statistical framework
+
+---
+
+# Models for multivariate count data
+
+## If we were in a Gaussian world...
+
+The .important[general linear model] `r Citep(myBib, "MKB79")` would be appropriate! For each sample $i = 1,\dots,n$, 
+
+$$\underbrace{\mathbf{Y}_i}_{\text{abundances}} =  \underbrace{\mathbf{x}_i^\top \boldsymbol\Theta}_{\text{covariates}} + \underbrace{\mathbf{o}_i}_{\text{sampling effort}} + \boldsymbol\varepsilon_i, \quad \boldsymbol\varepsilon_i \sim \mathcal{N}(\mathbf{0}_p, \underbrace{\boldsymbol\Sigma}_{\text{between-species dependencies}})$$
+
+null covariance $\Leftrightarrow$ independence $\rightsquigarrow$ uncorrelated species/transcripts do not interact
+
+$\rightsquigarrow$ This model gives birth to Principal Component Analysis,  Discriminant Analysis, Gaussian Graphical Models, Gaussian Mixture models and many others $\dots$
+
+
+## With count data...
+
+There is no generic model for multivariate counts
+
+  - Data transformation (log, $\sqrt{}$) : quick and dirty
+  - Non-Gaussian multivariate distributions `r Citep(myBib, "IYA16")`: do not scale to data dimension yet
+  - .important[Latent variable models]: interaction occur in a latent (unobserved) layer
+
+---
+
+# The Poisson Lognormal model (PLN)
+
+The PLN model `r Citep(myBib, "AiH89")` is a .important[multivariate generalized linear model], where 
+
+- the counts $\mathbf{Y}_i$ are the response variables
+- the main effect is due to a linear combination of the covariates $\mathbf{x}_i$
+- a vector of offsets $\mathbf{o}_i$ can be specified for each sample.
+
+$$
+\mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta},\boldsymbol\Sigma), \\
+$$
+
+.pull-left[The unkwown parameters are 
+- $\boldsymbol\Theta$, the regression parameters
+- $\boldsymbol\Sigma$, the variance-covariance matrix
+]
+
+.pull-right[
+PLN has some expected properties
+- over-dispersion
+- covariance with arbitrary signs
+]
+
+
+When all individuals $i=1,\dots,n$ are together, the data matrices required are
+  - the $n\times p$ matrix of counts  $\mathbf{Y}$
+  - the $n\times d$ matrix of design  $\mathbf{X}$
+  - the $n\times p$ matrix of offsets $\mathbf{O}$
+
+---
+# Geometrical view
+
+```{r PLN geometry, echo=FALSE, message=FALSE, fig.width=12, fig.height=8}
+library(gridExtra)
+set.seed(20171110)
+x <- rnorm(100)
+y <- rnorm(100)
+b <- data.frame(x = x + y, y = y) / 1
+mu <- 0
+##
+data.perfect <- as.data.frame((b + matrix(rep(mu, each = length(x)), ncol = 2)))
+p.latent <- ggplot(data.perfect, aes(x, y)) + geom_point() + ggtitle(expression(Latent~Space~(Z)))
+.rpois <- function(lambda) {
+  unlist(lapply(exp(lambda), function(x) {rpois(1, x)}))
+}
+observation <- as.data.frame(lapply(data.perfect, .rpois))
+mapped.parameter <- as.data.frame(lapply(data.perfect, exp))
+## segment between mapped and observed data
+segment.data <- cbind(mapped.parameter, observation)
+names(segment.data) <- c("x", "y", "xend", "yend")
+## Mapped parameters
+p.mapped <- ggplot(mapped.parameter, aes(x, y)) + geom_point(col = "red") + ggtitle(expression(Observation~Space~(exp(Z))))
+## Observations only
+obs <- group_by(observation, x, y)
+obs <- dplyr::summarize(obs, count = n())
+p.observation.only <- ggplot(obs, aes(x, y)) +
+  geom_point(aes(size = count)) +
+  ggtitle(Observation~Space~(Y)~+'noise') +
+  theme(legend.position = c(.95, .95), legend.justification = c(1, 1),
+        legend.background = element_rect(color = "transparent"),
+        legend.box.background = element_blank())
+## Observations and latent parameters
+p.observation.mixed <- p.observation.only +
+  geom_point(data = mapped.parameter, color = "red", alpha = 0.5) +
+  geom_segment(data = segment.data, aes(xend = xend, yend = yend), color = "black", alpha = 0.2) +
+  ggtitle(Observation~Space~(Y==P(exp(Z)))~+'noise')
+  grid.arrange(p.latent + labs(x = "species 1", y = "species 2"),
+               p.mapped  + labs(x = "species 1", y = "species 2"),
+               p.observation.mixed + labs(x = "species 1", y = "species 2"),
+               p.observation.only + labs(x = "species 1", y = "species 2"),
+               ncol = 2)
+```
+
+---
+# .small[Inference: latent model but intractable EM]
+  
+## Aim of the inference
+
+  - estimate $\theta = (\boldsymbol\Theta, \boldsymbol\Sigma)$ 
+  - predict the $\mathbf{Z}_i$
+
+## Maximum likelihood
+
+PLN is an incomplete data model: try EM
+$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_p [\log p_\theta(\mathbf{Y}, \mathbf{Z}) \,|\, \mathbf{Y}] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$ 
+
+EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$, but there is no close form!
+
+## Solutions
+
+  - `r Citep(myBib, "AiH89")` resort on numerical integration; `r Citep(myBib, "Kar05")` Monte-Carlo integration
+  - Several heuristics, not always well motivated, found in the literature...
+  - .important[Variational approach] `r Citep(myBib, "WaJ08")`: use a proxy of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$.
+
+---
+# Variational approach: principle
+
+.important[See the outstanding Stéphane Robin's Lecture]
+
+## Idea
+
+  - Find a proxy of the conditional distribution $p(\mathbf{Z}\,|\,\mathbf{Y})$:
+
+$$q(\mathbf{Z}) \approx p_\theta(\mathbf{Z} | \mathbf{Y}).$$
+  - Choose a convenient class of distribution $\mathcal{Q}$ and minimize a divergence
+
+$$q(\mathbf{Z})^\star  \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right).$$
+
+## Popular choice
+
+The Küllback-Leibler divergence .small[(error averaged wrt the approximated distribution)]
+
+$$KL\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right) = \mathbb{E}_q\left[\log \frac{q(z)}{p(z)}\right] = \int_{\mathcal{Z}} q(z) \log \frac{q(z)}{p(z)} \mathrm{d}z.$$
+
+---
+# Variational approach: PLN
+
+## Class of distribution: diagonal multivariate Gaussian
+
+$$\mathcal{Q} = \Big\{q: \quad q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \quad q_i(\mathbf{Z}_i) = \mathcal{N}(\mathbf{Z}_i; \mathbf{m}_i, \mathbf{s}_i \circ \mathbf{s}_i) \Big\}$$
+
+Maximize the ELBO (Evidence Lower BOund):
+
+$$J(\theta, q) = \log p_\theta(\mathbf{Y}) - KL[q_\theta (\mathbf{Z}) ||  p_\theta(\mathbf{Z} | \mathbf{Y})]  = \mathbb{E}_{q} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q(\mathbf{Z})]$$
+
+## Variational EM
+
+  - VE step: find the optimal $q$ (here, $\{(\mathbf{m}_i, \mathbf{s}_i)\}_{i=1,\dots,n} = \{\mathbf{M}, \mathbf{S}\}$): 
+$$q^h = \arg \max J(\theta^h, q) = \arg\min_{q \in \mathcal{Q}} KL[q(\mathbf{Z}) \,||\, p_{\theta^h}(\mathbf{Z}\,|\,\mathbf{Y})]$$
+  - M step: update $\hat{\theta}^h$
+$$\theta^h = \arg\max J(\theta, q^h) = \arg\max_{\theta} \mathbb{E}_{q} [\log p_{\theta}(\mathbf{Y}, \mathbf{Z})]$$
+
+---
+# .small[Application to the optimization of PLN models]
+  
+## Property of PLN variational approximation
+
+The ELBO $J(\theta, q)$ is bi-concave, i.e.
+  - concave wrt $q = (\mathbf{M}, \mathbf{S})$ for given $\theta$ 
+  - convace wrt $\theta = (\boldsymbol\Sigma, \boldsymbol\Theta)$ for given $q$ 
+but .important[not jointly concave] in general.
+
+## Optimization
+
+Gradient ascent for the complete set of parameters<sup>1</sup> $(\mathbf{M}, \mathbf{S}, \boldsymbol\Sigma, \boldsymbol\Theta)$
+
+  - **algorithm**: conservative convex separable approximations `r Citet(myBib, "Svan02")` <br/>
+  - **implementation**: `NLopt` nonlinear-optimization library `r Citet(myBib, "nlopt")` <br/>
+  - **initialization**: LM after log-trasnformation applied independently on each variables + concatenation of the regression coefficients + Pearson residuals
+
+.footnote[[1] Alternating between variational and model parameters is useless here <br/>
+          [2] Optimizing on $\mathbf{S}$ such as $\mathbf{S} \circ \mathbf{S} = \mathbf{S}^2$ is the variance avoids positive constraints ]
+
+---
+
+class: inverse, center, middle
+
+# Multivariate Poisson Regression with PLN
+
+---
+
+# The PLN function
+
+The `PLN` function works in the same way as `lm`: 
+
+```{r, eval = FALSE}
+PLN(formula = , # mandatory
+    data    = , # highly recommended
+    subset    , # optional  
+    weights   , # optional 
+    control     # optional, mostly for advanced users
+    )
+```
+
+- `data` specifies where to look for the variables
+- `formula` specifies the relationship between variables in `data`
+
+  ( $\rightsquigarrow$ _It builds matrices_ $\mathbf{Y},\mathbf{X},\mathbf{O}$)
+
+- `subset` is used for subsampling the observations, it should be a .important[full length] boolean vector, not a vector of indices / sample names
+- `weights` is used to weighting the observations, 
+- `control` is (mainly) used for tuning the optimization and should typically not be changed.
+---
+
+# Simple PLN models on oaks data
+
+The simplest model we can imagine only has an intercept term:
+
+```{r oaks PLN, cache = TRUE, results = FALSE}
+M00_oaks <- PLN(Abundance ~ 1, oaks)
+```
+
+`M00_oaks` is a particular `R` object with class `PLNfit` that comes with a couple methods, helpfully listed when you print the object :
+
+```{r oaks PLN print}
+M00_oaks
+```
+
+---
+
+# Accessing parameters
+
+```{r simple PLN coeff}
+coef(M00_oaks) %>% head() %>% t() %>% knitr::kable(format = "html")
+```
+
+.pull-left[
+```{r simple PLN covariance, fig.height=5}
+sigma(M00_oaks) %>% 
+  corrplot(is.corr=FALSE, tl.cex = .5)
+```
+]
+
+.pull-right[
+```{r simple PLN correlation, fig.height=5}
+sigma(M00_oaks) %>% cov2cor() %>% 
+  corrplot(tl.cex = .5)
+```
+]
+
+---
+#  Adding Offsets and covariates
+
+## Offset: .small[modeling sampling effort]
+
+The predefined offset uses the total sum of reads, accounting for technologies specific to fungi and bacteria:
+
+```{r simple PLN offsets, cache = TRUE, results = FALSE}
+M01_oaks <- PLN(Abundance ~ 1 + offset(log(Offset)) , oaks)
+```
+
+## Covariates: .small[tree and orientation effects ('ANOVA'-like) ]
+
+The `tree` status is a natural candidate for explaining a part of the variance.
+
+- We chose to describe the tree effect in the regression coefficient (mean)
+- A possibly spurious effect regarding the interactions  between species (covariance).
+
+```{r PLN covariate oaks, cache = TRUE, results = FALSE}
+M11_oaks <- PLN(Abundance ~ 0 + tree + offset(log(Offset)), oaks)
+```
+
+What about adding more covariates in the model, e.g. the orientation?
+
+```{r PLN regroup oaks modalities, cache = TRUE, results = FALSE}
+M21_oaks <- PLN(Abundance ~  0 + tree + orientation + offset(log(Offset)), oaks)
+```
+
+---
+#  Adding Offsets and covariates (II)
+
+There is a clear gain in introducing the tree covariate in the model:
+
+```{r PLN covariate oaks results}
+rbind(M00 = M00_oaks$criteria, M01 = M01_oaks$criteria,
+      M11 = M11_oaks$criteria, M21 = M21_oaks$criteria) %>% 
+  knitr::kable(format = "html")
+```
+
+Looking at the coefficients $\mathbf{\Theta}$ associated with `tree` bring additional insights:
+
+```{r oaks matrix plot, fig.width=14, fig.height=2, echo = FALSE}
+coef(M11_oaks) %>% t() %>% corrplot(method = "color", is.corr = FALSE, tl.cex = 1, cl.pos = "n")
+```
+
+---
+
+class: inverse, center, middle
+
+# Dimension reduction and vizualisation with PLNPCA <br/> .small[See `r Citet(myBib, "PLNPCA")`]
+
+---
+# Poisson Lognormal model for PCA
+
+The PLN-PCA `r Citep(myBib, "PLNPCA")` model implemented in *PLNmodels* can viewed as a PLN model with an additional rank constraint on the covariance matrix $\boldsymbol\Sigma$ such that $\mathrm{rank}(\boldsymbol\Sigma)= q$:
+
+$$\begin{array}{rcl}
+  \text{latent space } &   \mathbf{Z}_i \sim \mathcal{N}(\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta,\boldsymbol\Sigma), & \boldsymbol\Sigma = \mathbf{B}\mathbf{B}^\top, \quad \mathbf{B}\in\mathcal{M}_{pq} \\
+  \text{observation space } &  Y_{ij} | Z_{ij} \quad \text{indep.} & Y_{ij} | Z_{ij} \sim \mathcal{P}\left(\exp\{Z_{ij}\}\right),
+\end{array}$$
+
+The dimension $q$ of the latent space corresponds to the number of axes in the PCA or, in other words, to the rank of $\boldsymbol\Sigma = \mathbf{B}\mathbf{B}^\intercal$.
+
+
+The unkwown parameters are  $\boldsymbol\Theta$ and $\mathbf{B}$, the matrix of .important[_rescaled loadings_]
+
+### Features
+
+  - **Optimization**: _"Similar"_ variational framework (with different gradients)
+  - **Model selection**: variational BIC/ICL
+      - $\tilde{\text{BIC}}_q = J(\theta, q) - \frac12 \log(n) \left(p (d + q) - q(q-1)/2\right)$
+      - $\tilde{\text{ICL}}_q = \tilde{\text{BIC}}_q - \mathcal{H}(q)$
+  - **Vizualization:** PCA on the expected latent position $\mathbb{E}_{q}(\mathbf{Z}_i) -\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta  = \mathbf{M}\hat{\mathbf{B}}^\top$
+
+---
+# A PCA analysis of the oaks data set
+
+Let us fit PLNPCA on our best model up to now (with TSS as offsets):
+
+```{r PLNPCA offset, cache = TRUE, results = FALSE}
+PCA_offset <- 
+  PLNPCA(Abundance ~ 1 + offset(log(Offset)), data = oaks, 
+         ranks = 1:30, control_main = list(cores = 10))
+```
+
+
+The ouput is of class (`PLNPCAfamily`). It a collection of `R` objects:
+
+```{r print PLNPCA offset}
+PCA_offset
+```
+
+`PLNPCAfamily` has three methods: `plot`, `getModel`, `getBestModel`<sup>1</sup> 
+
+.footnote[[1] Additional help can be found with `?PLNPCAfamily`, `?getBestModel.PLNPCAfamily`, `?plot.PLNPCAfamily`]
+
+---
+# PCA analysis: model selection (I)
+
+The plot function gives you hints about the "right" rank/subspace size of your data
+
+```{r plot PLNPCA offset, fig.width = 12, fig.height=6}
+plot(PCA_offset)
+```
+
+---
+# PCA analysis: model selection (II)
+
+To extract a particular model from the collection, use `getBestModel`:
+
+```{r extract PLNPCA offset}
+PCA_offset_BIC <- getBestModel(PCA_offset, "BIC")
+```
+
+
+The extracted object has class `PLNPCAfit`. It inherits from the `PLNfit` class but with additional methods due to its `PCA` nature: when printing `PCA_offset_BIC`, we get
+
+```{r print PLNPCAfit, echo = FALSE}
+PCA_offset_BIC
+```
+
+---
+# PCA analysis: model exploration
+
+Inheritance allows you to rely on the same methods as with `PLN`:
+
+.pull-left[
+```{r PLN covariance M01}
+corrplot(
+  cov2cor(sigma(M01_oaks)),
+  tl.cex = .5)
+```
+]
+
+.pull-right[
+```{r PLNPCA covariance}
+corrplot(
+  cov2cor(sigma(PCA_offset_BIC)),
+  tl.cex = .5)
+```
+]
+
+---
+# PCA: vizualisation 
+
+<small>
+```{r PCA offset vizu tree, fig.width=6, fig.height=6, fig.align="center"}
+factoextra::fviz_pca_biplot(
+  PCA_offset_BIC, select.var = list(contrib = 10), addEllipses = TRUE, habillage = oaks$tree,
+  title = "Biplot (10 most contributing species)"
+  ) + labs(col = "tree status") + scale_color_viridis_d()
+```
+</small>
+
+---
+# PCA: removing covariate effects
+
+To hopefully find some hidden effects in the data, we can try to remove confounding ones:
+
+```{r PCA covariate tree, cache = TRUE, results = FALSE, warning=FALSE, message=FALSE}
+PCA_tree <- PLNPCA(Abundance ~ 0 + tree + offset(log(Offset)), 
+                   data = oaks, ranks = 1:30, control_main = list(cores = 10))
+```
+
+```{r PCA covariate tree plot, echo = FALSE, fig.align="center", fig.width=6, fig.height=6}
+PCA_tree %>% getBestModel("BIC") %>% 
+factoextra::fviz_pca_biplot(
+  select.var = list(contrib = 10), col.ind = oaks$distTOground,
+  title = "Biplot (10 most contributing species)"
+  ) + labs(col = "distance (cm)") + scale_color_viridis_c()
+```
+
+---
+
+class: inverse, center, middle
+
+# Discriminant Analysis for counts with PLNLDA
+
+---
+
+# Poisson Discriminant Analysis
+
+PLN-LDA assumes a discrete structure with $K$ groups: the different parameters ${\boldsymbol\mu}_k \in\mathbb{R}^p$ corresponds to the group-specific main effects and the variance matrix $\boldsymbol{\Sigma}$ is shared among groups
+
+$$\begin{array}{rcl}
+  \text{latent space } &   \mathbf{Z}_i \sim \mathcal{N}(\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta + {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}},\boldsymbol\Sigma) \\
+  \text{observation space } &  \mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right),
+\end{array}$$
+
+
+The unkwown parameters are 
+- $\boldsymbol\Theta$, the matrix of regression parameters
+- $\mathbf{U} = (\mu_1, \dots, \mu_K)$, the matrix containing the $K$ vectors of group means
+- $\boldsymbol{\Sigma}$, the variance-covariance matrix
+
+---
+# Geometrical view
+
+```{r PLN_geom_lda_no_offset, echo=FALSE, message=FALSE, fig.width=12, fig.height=8}
+set.seed(20171110)
+x <- rnorm(100)
+y <- rnorm(100)
+b <- data.frame(x = x, y = x+y) / 1
+group <- sample(LETTERS[1:2], 100, replace = TRUE)
+mu <- 0
+mean.depth <- rbinom(n = 100, size = 1000, prob = 0.05)
+data.perfect <- as.data.frame((b + matrix(rep(mu, each = length(x)), ncol = 2))) %>%
+  mutate(group = group,
+         x = if_else(group == "A", x+2, x),
+         y = if_else(group == "A", y-2, y))
+p.latent <- ggplot(data.perfect, aes(x, y, color = group)) + geom_point() + ggtitle(expression(Latent~Space~(Z))) +
+  geom_abline(slope = 2, intercept = -3, color = "grey60", linetype = 2) +
+  geom_abline(slope = -3, intercept = 1, color = "grey60") +
+  # coord_equal() +
+  theme(legend.position = "none")
+.rpois <- function(lambda) {
+  unlist(lapply(lambda, function(x) {rpois(1, x)}))
+}
+mapped.parameter <- data.perfect %>% mutate_if(is.numeric, exp) # %>%
+  # mutate(total.depth = x+y,
+  #        x = mean.depth * x / total.depth,
+  #        y = mean.depth * y / total.depth)
+observation <- mapped.parameter %>% mutate_if(is.numeric, .rpois)
+## segment between mapped and observed data
+segment.data <- cbind(mapped.parameter %>% select(x, y),
+                      observation %>% select(x, y, group))
+names(segment.data)[1:4] <- c("x", "y", "xend", "yend")
+## Mapped parameters
+p.mapped <- ggplot(mapped.parameter, aes(x, y)) + geom_point(aes(col = group)) + ggtitle(expression(Observation~Space~(exp(Z)))) + theme(legend.position = "none")
+## Observations only
+obs <- group_by(observation, x, y, group)
+obs <- dplyr::summarize(obs, count = n())
+p.observation.only <- ggplot(obs, aes(x, y, color = group)) +
+  geom_point(aes(size = count)) +
+  ggtitle(Observation~Space~(Y)~+'noise') +
+  theme(legend.position = "none",
+        legend.justification = c(1, 1),
+        legend.background = element_rect(fill = "transparent"),
+        legend.box.background = element_blank())
+## Observations and latent parameters
+p.observation.mixed <- p.observation.only +
+  geom_point(data = mapped.parameter, aes(color = group), alpha = 0.5) +
+  geom_segment(data = segment.data, aes(xend = xend, yend = yend), color = "grey60", alpha = 0.2) +
+  ggtitle(Observation~Space~+'noise'~(Y==P(exp(Z))))
+grid.arrange(p.latent + labs(x = "species 1", y = "species 2"),
+             p.mapped  + labs(x = "species 1", y = "species 2"),
+             p.observation.mixed + labs(x = "species 1", y = "species 2"),
+             p.observation.only + labs(x = "species 1", y = "species 2"),
+             ncol = 2)
+```
+
+---
+# PLNLDA: principles
+
+## Inference
+
+1. Adjust a "standard" PLN with $\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{1}_{\{i\in k\}})$,  $\boldsymbol\Theta \rightarrow (\boldsymbol\Theta, \mathbf{U})$
+
+2. Use estimate $\boldsymbol\Sigma, \mathbf{U}$ and $\boldsymbol\Theta$ and $\tilde{\mathbf{Z}}_i$ to compute
+$$\hat{\boldsymbol\Sigma}_{\text{between}} = \frac1{K-1} \sum_k n_k (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet) (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet)^\intercal$$
+  - Compute first $K-1$ eigenvectors of $\hat{\boldsymbol\Sigma}^{-1} \hat{\boldsymbol\Sigma}_{\text{between}} = \mathbf{P}^\top \Lambda \mathbf{P}$ (discriminant axes)
+
+## Features
+
+  - **Graphical representation**:  $\tilde{\mathbf{Z}} \mathbf{P} \Lambda^{1/2}$, the coordinates along the discriminant axes
+  - **Prediction**: For each group, 
+    - Compute (variational) likelihood $p_k = P(\mathbf{Y}_{\text{new}} | \hat{\boldsymbol\Sigma}, \hat{\boldsymbol\Theta}, \hat{\boldsymbol\mu}_k)$
+    - Assign $i$ to group with highest posterior probability $\pi_k \propto \frac{n_k p_k}{n}$
+  
+---
+
+# LDA of the oaks data set
+
+Let us try a PLN-LDA on the `site` variable (`grouping` is a factor of group (or classification) to be considered)
+
+```{r PLNLDA oaks, cache = TRUE, results = FALSE}
+myLDA_tree <- 
+  PLNLDA(Abundance ~ 1 + offset(log(Offset)), grouping = tree, data = oaks)
+```
+
+no need for model selection!
+
+<small>
+```{r LDA printing, echo = FALSE}
+myLDA_tree
+```
+</small>
+
+---
+# LDA for oaks: covariance model
+
+PLN-LDA can account for various model of the covariance (spherical, diagonal, full)
+
+```{r PLNLDA oaks covariance, results = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
+LDA_oaks1 <- PLNLDA(Abundance ~ 1 + offset(log(Offset)), 
+  data = oaks, grouping = tree, control = list(covariance = "full"))
+
+LDA_oaks2 <- PLNLDA(Abundance ~ 1 + offset(log(Offset)), 
+  data = oaks, grouping = tree, control = list(covariance = "diagonal"))
+```
+
+.pull-left[
+```{r plot oaks1, echo = FALSE, fig.height = 6}
+plot(LDA_oaks1, map = "individual", nb_axes = 1, main = "fully parametrized")
+```
+]
+
+.pull-right[
+```{r plot oaks2, echo = FALSE, fig.height = 6}
+plot(LDA_oaks2, map = "individual", nb_axes = 1, main = "diagonal")
+```
+]
+
+---
+# LDA for oaks: prediction
+
+If abundance data for new data are avalaible, their group can be predicted using the `predict` function. We illustrate this on our sample<sup>1</sup> and compare predicted seasons to actual ones
+
+```{r predict PLNLDA season}
+predictions <- predict(LDA_oaks1, newdata = oaks, type = "response")
+table(predictions, oaks$tree)
+```
+
+.footnote[
+[1] Predicting the tree of samples used to train the model is bad practice in general and prone to overfitting, we do it for illustrative purposes only. 
+]
+
+---
+
+class: center, middle, inverse
+
+# Sparse structure estimation with PLNnetwork <br/> .small[See `r Citet(myBib, "PLNnetwork")`]
+
+---
+
+# Sparse precision for multivariate counts
+
+The PLN-network model add a sparsity constraint on the precision matrix ${\boldsymbol\Sigma}^{-1}\triangleq \boldsymbol\Omega$:
+
+$$\begin{array}{rcl}
+  \text{latent space } &   \mathbf{Z}_i \sim \mathcal{N}\left({\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta},\boldsymbol\Omega^{-1}\right) &  \|\boldsymbol\Omega\|_1 < c \\
+    \text{observation space } &  \mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right)
+  \end{array}$$
+
+
+$\rightsquigarrow$ The $\ell_1$-penalty induces selection of direct relations (an underlying network)
+
+## .small[Variational approximation]
+  
+$$J(\theta, q)  - \lambda  \| \boldsymbol\Omega\|_{1,\text{off}} = \mathbb{E}_{q} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q(\mathbf{Z})] - \lambda  \|\boldsymbol\Omega\|_{1, \text{off}}$$
+
+Still bi-concave in $(\boldsymbol\Omega, \boldsymbol\Theta)$ and $(\mathbf{M}, \mathbf{S})$.  
+
+Solving in  $\boldsymbol\Omega$ leads to
+
+$$\hat{\boldsymbol\Omega} = \arg\max_{\boldsymbol\Omega} \frac{n}{2} \left(\log | \boldsymbol\Omega | - \text{trace}(\hat{\boldsymbol\Sigma} \boldsymbol\Omega)\right) - \lambda \|\boldsymbol\Omega\|_{1, \text{off}}: \quad \text{graphical-Lasso problem}$$
+with $\hat{\boldsymbol\Sigma} = n^{-1}(\mathbf{M}^\top \mathbf{M} + \mathrm{diag}(\bar{\mathbf{S}}^2)$.
+
+---
+# Network inference on the oaks data set
+
+We try the inference of a collections of networks, accounting for the tree effect.
+
+Models are indexed by the sparsity level (or penalty). (E)BIC or similar information criteria can help choosing the right amount.
+
+.pull-left[
+```{r PLNnetwork tree, cache = TRUE, results = FALSE}
+networks_oaks_tree <- 
+  PLNnetwork(
+    Abundance ~ 0 + tree + 
+           offset(log(Offset)),
+    data = oaks
+  )
+```
+]
+
+.pull-right[
+```{r plot network family site, fig.width = 7, fig.height = 7, echo = FALSE, caption = "with tree correction"}
+plot(networks_oaks_tree)
+```
+]
+
+---
+# PLNnetwork: field access
+
+Let us plot the estimated correlation matrix, after regularization of its inverse, and the corresponding network of partial correlation.
+
+.pull-left[
+```{r plot network site, fig.width = 7, fig.height = 7, caption = "with site correction", echo = FALSE}
+net2 <- getBestModel(networks_oaks_tree)
+corrplot(cov2cor(sigma(net2)), cl.pos = "n",
+  is.corr = FALSE, method = 'color')
+```
+]
+
+.pull-right[
+```{r plot net site, fig.width = 8, fig.height = 8, caption = "with site correction", echo = FALSE}
+plot(net2)
+```
+]
+
+---
+# PLNnetwork: stability selection
+
+An alternative to model selection criteria is the stability selection  - or StARS in the context of network.
+
+- Basically, it uses resampling to estimate robustness of each edges in the network.
+- we keep the value of the penalty that guarantees a given level of robustness in the whole network
+
+.important[Careful!]: its is computationally expensive.
+
+--
+
+In `getBestModel`, when "StARS" is requested, stabiltiy selection is performed if needed:
+
+```{r stability selection, cache = TRUE, eval = FALSE}
+net3 <- getBestModel(networks_oaks_tree, "StARS") 
+```
+
+---
+# Conclusion
+
+## Summary
+
+  - PLN = generic model for multivariate count data analysis
+  - Allows for covariates
+  - Flexible modeling of the covariance structure
+  - Efficient VEM algorithm
+
+<br />
+
+## Extensions
+
+- Other covariance structures (spatial, time series, ...)
+- Mixture model in the latent space
+- Confidence interval and tests for the regular PLN
+- Other optimization approaches
+     - Exact (composite likelihood, MCMC) starting from the variational solution
+     - Stochastic (ADAM, RMSProp, etc: tools from ML optimization) for large scale problems
+
+---
+
+class: center, middle, inverse
+
+# Some comments on data normalization
+
+---
+# Abundance data 'normalization'
+
+## Some peculiarities
+
+- Data is noisy and the total number of counts per sample $N_i$ is variable
+- $N_i$ is constrained by the technology (ex: DNA sequencer) $\rightarrow$ relative counts
+
+.important[Normalization] aims to correct systematic **uncontrollable** biases such as those induced by sequencing process.
+<br />
+
+## How to do so that abundances among different samples are comparable ?
+
+- Transformation with possible imputation of zeros
+- Rarefaction or normalization prior to the analysis
+- Inclusion of an offset (covariable with a fixed coefficient of $1$) in the model
+
+---
+# How to calculate this offset ? (I)
+
+## First idea
+
+`Total Sum Scaling` : uses the total number of counts per sample $N_j$
+
+
+## Methods from RNA-Seq differential analysis
+
+Assumption: a majority of transcripts is not differentially expressed
+
+Aim : minimizing effect of (very) majority sequences
+
+- Relative Log Expression (`RLE`, Anders and Huber 2010, _DESeq2_)
+- Trimmed Mean of M-values (Robinson and Oshlack 2010, _edgeR_)
+
+---
+# How to calculate this offset ? (II)
+
+## Methods specifically developped for metagenomics data
+Adressing the 'zero-inflation' due to the physical absence or under-sampling of the microbes
+
+- Geometric Mean of Pairwise Ratio method (`GMPR`, Chen et al. 2018)
+
+
+- Cumulative Sum Scaling (`CSS`, Paulson et al. 2013) (_metagenomeSeq_)
+
+To reduce the influence of OTU highly sampled due to technological sequencing biases, i.e. by being over-represented in the TSS in a sparse environment.
+
+`CSS` selects a scaling factor that is a fixed quantile of OTUs counts.
+
+## User-supplied offsets
+
+---
+# Some details
+
+$c_{ki}$: the count of the $k$th OTU $(k = 1, \ldots, q)$ in the $i$th $(i = 1, \ldots, n)$ sample
+
+## Relative Log Expression
+Calculates the size factor $s_i$, which estimates the (relative) library size of a given sample, based on
+
+- Step 1: Compute a pseudo-reference sample as the geometric means for all OTUs across samples (less sensitive to extreme value than standard mean)
+$\mu_{k}^{GM} = (c_{k1}c_{k2}\ldots c_{kn})^{1/n}, k=1,\ldots,q$
+
+- Step 2: For a given sample,
+$s_i= \text{median}_k\{c_{ki}/\mu_k^{GM}\},i=1,\ldots,n$
+
+
+## Geometric Mean of Pairwise Ratio method
+
+- Step 1: Pairwise comparisons
+ $r_{ij} = \underset{k \in \{1, \ldots, p\}|c_{ki}.c_{kj} \ne 0}{\text{Median}} \{ \frac{c_{ki}}{c_{kj}} \}$
+- Step 2: Combine pairwise results
+$s_i= \left(\prod_{j=1}^n r_{ij}\right)^{1/n},i=1,\ldots,n$
+
+---
+# In practice
+
+## _PLNmodels_
+
+```{r offset, eval = FALSE}
+prepare_data(counts, covariates, offset = "TSS", ...)
+compute_offset(counts, offset = c("TSS", "GMPR", "RLE", "CSS", "none"), ...)
+# Specify the use of offset in the formula
+PCA_offset <- PLNPCA(Abundance ~ 1 + offset(log(Offset)), oaks, ranks = 1:8)
+```
+
+A normalization is .important[necessary] and has often a great impact on downstream analysis.
+
+## How to choose ?
+
+There is .important[no magic recipe] : the 'correct' normalization method to use depends on which assumptions are valid for the biological experiment.
+
+- same / different amount of mRNA / cell
+- majority of genes / OTUs is invariant between conditions 
+- absence of high count genes / OTUs, similar sampling effort
+- existence of controls
+
+---
+# References
+
+```{r, 'refs', results='asis', echo=FALSE}
+PrintBibliography(myBib)
+```
+
