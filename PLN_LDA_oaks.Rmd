@@ -1,0 +1,118 @@
+
+---
+
+# Poisson Discriminant Analysis
+
+ - a PLN model with a discrete known structure with $K$ groups
+ - group specific main effect ${\boldsymbol\mu}_k \in\mathbb{R}^p$, covariance matrix $\boldsymbol{\Sigma}$ is shared among groups
+
+$$\begin{array}{rcl}
+  \text{latent space } &   \mathbf{Z}_i \sim \mathcal{N}(\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta + {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}},\boldsymbol\Sigma) \\
+  \text{observation space } &  \mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right).
+\end{array}$$
+
+<!-- The unkwown parameters are  -->
+<!-- - $\boldsymbol\Theta$, the matrix of regression parameters -->
+<!-- - $\mathbf{U} = (\mu_1, \dots, \mu_K)$, the matrix containing the $K$ vectors of group means -->
+<!-- - $\boldsymbol{\Sigma}$, the variance-covariance matrix -->
+
+### Goal of LDA
+
+Find the linear combinations $\mathbf{Z}\mathbf{u}, \mathbf{u}\in\mathbb{R}^p$ maximizing separation between groups
+
+```{r PLN_geom_lda_no_offset, echo=FALSE, message=FALSE, fig.width=6, fig.height=4, fig.align='center'}
+set.seed(20171110)
+x <- rnorm(100)
+y <- rnorm(100)
+b <- data.frame(x = x, y = x+y) / 1
+group <- sample(LETTERS[1:2], 100, replace = TRUE)
+mu <- 0
+mean.depth <- rbinom(n = 100, size = 1000, prob = 0.05)
+data.perfect <- as.data.frame((b + matrix(rep(mu, each = length(x)), ncol = 2))) %>%
+  mutate(group = group,
+         x = if_else(group == "A", x+2, x),
+         y = if_else(group == "A", y-2, y))
+p.latent <- ggplot(data.perfect, aes(x, y, color = group)) + geom_point() + ggtitle(expression(Latent~Space~(Z))) +
+  geom_abline(slope = 2, intercept = -3, color = "grey60", linetype = 2) +
+  geom_abline(slope = -3, intercept = 1, color = "grey60") +
+  # coord_equal() +
+  theme(legend.position = "none")
+
+p.latent + labs(x = "species 1", y = "species 2")
+```
+
+---
+# Poisson discimminant analysis: solution
+
+## Inference
+
+1. Adjust a "standard" PLN with $\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{1}_{\{i\in k\}})$,  $\boldsymbol\Theta \rightarrow (\boldsymbol\Theta, \mathbf{U})$
+
+2. Use estimate $\boldsymbol\Sigma, \mathbf{U}$ and $\boldsymbol\Theta$ and $\tilde{\mathbf{Z}}_i$ to compute
+$$\hat{\boldsymbol\Sigma}_{\text{between}} = \frac1{K-1} \sum_k n_k (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet) (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet)^\intercal$$
+  - Compute first $K-1$ eigenvectors of $\hat{\boldsymbol\Sigma}^{-1} \hat{\boldsymbol\Sigma}_{\text{between}} = \mathbf{P}^\top \Lambda \mathbf{P}$ (discriminant axes)
+
+## Features
+
+  - **Graphical representation**:  $\mathbb{E}_q [\mathbf{Z}] \mathbf{P} \Lambda^{1/2}$, the coordinates along the discriminant axes
+  - **Prediction**: For each group, 
+    - Compute (variational) likelihood $p_k = P(\mathbf{Y}_{\text{new}} | \hat{\boldsymbol\Sigma}, \hat{\boldsymbol\Theta}, \hat{\boldsymbol\mu}_k)$
+    - Assign $i$ to group with highest posterior probability $\pi_k \propto \frac{n_k p_k}{n}$
+  
+---
+
+# LDA of the oaks data set
+
+Let us try a PLN-LDA on the `site` variable (`grouping` is a factor of group (or classification) to be considered)
+
+```{r PLNLDA oaks, cache = TRUE, results = FALSE}
+myLDA_tree <- 
+  PLNLDA(Abundance ~ 1 + offset(log(Offset)), grouping = tree, data = oaks)
+```
+
+no need for model selection!
+
+<small>
+```{r LDA printing, echo = FALSE}
+myLDA_tree
+```
+</small>
+
+---
+# LDA for oaks: covariance model
+
+PLN-LDA can account for various model of the covariance (spherical, diagonal, full)
+
+```{r PLNLDA oaks covariance, results = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
+LDA_oaks1 <- PLNLDA(Abundance ~ 1 + offset(log(Offset)), 
+  data = oaks, grouping = tree, control = list(covariance = "full"))
+
+LDA_oaks2 <- PLNLDA(Abundance ~ 1 + offset(log(Offset)), 
+  data = oaks, grouping = tree, control = list(covariance = "diagonal"))
+```
+
+.pull-left[
+```{r plot oaks1, echo = FALSE, fig.height = 6}
+plot(LDA_oaks1, map = "individual", nb_axes = 1, main = "fully parametrized")
+```
+]
+
+.pull-right[
+```{r plot oaks2, echo = FALSE, fig.height = 6}
+plot(LDA_oaks2, map = "individual", nb_axes = 1, main = "diagonal")
+```
+]
+
+---
+# LDA for oaks: prediction
+
+If abundance data for new data are avalaible, their group can be predicted using the `predict` function. We illustrate this on our sample<sup>1</sup> and compare predicted seasons to actual ones
+
+```{r predict PLNLDA season}
+predictions <- predict(LDA_oaks1, newdata = oaks, type = "response")
+table(predictions, oaks$tree)
+```
+
+.footnote[
+[1] Predicting the tree of samples used to train the model is bad practice in general and prone to overfitting, we do it for illustrative purposes only. 
+]

@@ -1,0 +1,126 @@
+
+---
+
+# The PLN function
+
+The `PLN` function works in the same way as `lm`: 
+
+```{r, eval = FALSE}
+PLN(formula = , # mandatory
+    data    = , # highly recommended
+    subset    , # optional  
+    weights   , # optional 
+    control     # optional, mostly for advanced users
+    )
+```
+
+- `data` specifies where to look for the variables
+- `formula` specifies the relationship between variables in `data`
+
+  ( $\rightsquigarrow$ _It builds matrices_ $\mathbf{Y},\mathbf{X},\mathbf{O}$)
+
+- `subset` is used for subsampling the observations, it should be a .important[full length] boolean vector, not a vector of indices / sample names
+- `weights` is used to weighting the observations, 
+- `control` is (mainly) used for tuning the optimization and should typically not be changed.
+---
+
+# Simple PLN models on oaks data
+
+The simplest model we can imagine only has an intercept term:
+
+```{r oaks PLN, cache = TRUE, results = FALSE}
+M00_oaks <- PLN(Abundance ~ 1, oaks)
+```
+
+`M00_oaks` is a particular `R` object with class `PLNfit` that comes with a couple methods, helpfully listed when you print the object :
+
+```{r oaks PLN print}
+M00_oaks
+```
+
+---
+
+# Accessing parameters
+
+```{r simple PLN coeff}
+coef(M00_oaks) %>% head() %>% t() %>% knitr::kable(format = "html")
+```
+
+.pull-left[
+```{r simple PLN covariance, fig.height=5}
+sigma(M00_oaks) %>% 
+  corrplot(is.corr=FALSE, tl.cex = .5)
+```
+]
+
+.pull-right[
+```{r simple PLN correlation, fig.height=5}
+sigma(M00_oaks) %>% cov2cor() %>% 
+  corrplot(tl.cex = .5)
+```
+]
+
+---
+#  Adding Offsets and covariates
+
+## Offset: .small[modeling sampling effort]
+
+The predefined offset uses the total sum of reads, accounting for technologies specific to fungi and bacteria:
+
+```{r simple PLN offsets, cache = TRUE, results = FALSE}
+M01_oaks <- PLN(Abundance ~ 1 + offset(log(Offset)) , oaks)
+```
+
+## Covariates: .small[tree and orientation effects ('ANOVA'-like) ]
+
+The `tree` status is a natural candidate for explaining a part of the variance.
+
+- We chose to describe the tree effect in the regression coefficient (mean)
+- A possibly spurious effect regarding the interactions  between species (covariance).
+
+```{r PLN covariate oaks, cache = TRUE, results = FALSE}
+M11_oaks <- PLN(Abundance ~ 0 + tree + offset(log(Offset)), oaks)
+```
+
+What about adding more covariates in the model, e.g. the orientation?
+
+```{r PLN regroup oaks modalities, cache = TRUE, results = FALSE}
+M21_oaks <- PLN(Abundance ~  0 + tree + orientation + offset(log(Offset)), oaks)
+```
+
+---
+#  Adding Offsets and covariates (II)
+
+There is a clear gain in introducing the tree covariate in the model:
+
+```{r PLN covariate oaks results}
+rbind(M00 = M00_oaks$criteria, M01 = M01_oaks$criteria,
+      M11 = M11_oaks$criteria, M21 = M21_oaks$criteria) %>% 
+  knitr::kable(format = "html")
+```
+
+Looking at the coefficients $\mathbf{\Theta}$ associated with `tree` bring additional insights:
+
+```{r oaks matrix plot, fig.width=14, fig.height=2, echo = FALSE}
+coef(M11_oaks) %>% t() %>% corrplot(method = "color", is.corr = FALSE, tl.cex = 1, cl.pos = "n")
+```
+
+---
+
+# Residuals correlations
+
+For models with offsets and tree effect in the mean:
+
+.pull-left[
+```{r simple PLN covariance M01, fig.height=5}
+sigma(M01_oaks) %>% cov2cor() %>% 
+  corrplot(is.corr=FALSE, tl.cex = .5)
+```
+]
+
+.pull-right[
+```{r simple PLN correlation M11, fig.height=5}
+sigma(M11_oaks) %>% cov2cor() %>% 
+  corrplot(tl.cex = .5)
+```
+]

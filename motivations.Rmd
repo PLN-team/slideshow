@@ -1,0 +1,79 @@
+
+---
+
+# Generic form of data sets
+  
+Routinely gathered in ecology/microbiology/genomics 
+
+### Data tables
+
+  - .important[Abundances]: read counts of species/transcripts $j$ in sample $i$
+  - .important[Covariates]: value of environmental variable $k$ in sample $i$
+  - .important[Offsets]: sampling effort for species/transcripts $j$ in sample $i$
+
+### Need a framework to model _dependencies between counts_ 
+
+  - understand .important[environmental effects] <br/>
+      $\rightsquigarrow$ explanatory models (multivariate regression, classification)
+  - exhibit .important[patterns of diversity] <br/>
+      $\rightsquigarrow$ summarize the information (clustering, dimension reduction)
+  - understand .important[between-species interactions] <br />
+      $\rightsquigarrow$ 'network' inference (variable/covariance selection)
+  - correct for technical and .important[confounding effects] <br/>
+      $\rightsquigarrow$ account for covariables and sampling effort
+
+---
+
+# 'oaks' data set overview
+
+The `oaks` variable is loaded by the function `data()` (try `?oaks` to get additional details).
+```{r load oaks}
+data("oaks")
+```
+
+It consists in a special data frames ready to play with, typical from ecological data sets
+
+<small>
+```{r oaks struct}
+str(oaks, max.level = 1)
+```
+</small>
+
+---
+
+# Covariates and offsets
+
+Characterize the samples and the sampling, most important being
+
+- `tree`: Tree status with respect to the pathogen (susceptible, intermediate or resistant)
+- `distTOground`: Distance of the sampled leaf to the base of the ground
+- `readsTOTfun`: Total number of ITS1 reads for that leaf
+- `readsTOTbac`: Total number of 16S reads for that leaf
+
+```{r covariates summary}
+summary(oaks$tree)
+summary(oaks$distTOground)
+```
+
+$\rightsquigarrow$ `readsTOTfun` and `readsTOTbac` are candidate for modeling sampling effort as offsets
+
+---
+
+# Abundance table (I)
+
+```{r glimpse Abundance}
+oaks$Abundance %>% as_tibble() %>% 
+  dplyr::select(1:10) %>% 
+  head() %>% DT::datatable(fillContainer = FALSE)
+```
+
+---
+
+# Abundance table (II)
+
+```{r glance Abundances, fig.height=6}
+log(1 + oaks$Abundance) %>% 
+  corrplot::corrplot(is.corr = FALSE,
+    addgrid.col = NA,  tl.cex = .5,  cl.pos = "n")
+```
+

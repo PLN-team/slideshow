@@ -21,6 +21,10 @@
   font-size: 70%;
 }
 
+.normal {
+  font-size: 100%;
+}
+
 /* Footnote */
 
 .footnote {
