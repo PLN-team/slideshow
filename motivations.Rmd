@@ -24,17 +24,17 @@ Routinely gathered in ecology/microbiology/genomics
 
 ---
 
-# 'oaks' data set overview
+# Oaks powdery mildew data set overview
 
-The `oaks` variable is loaded by the function `data()` (try `?oaks` to get additional details).
-```{r load oaks}
-data("oaks")
-```
+- .important[Microbial communities] sampled on the surface of $n = 116$ oak leaves
+- Communities sequenced and cleaned resulting in $p=114$ OTUs (66 bacteria, 48 fungi).
+- Study .important[effects of the pathogen] _E.Aphiltoïdes_ wrt communities
 
-It consists in a special data frames ready to play with, typical from ecological data sets
+The `oaks` variable consists in a special data frame ready to play with, typical from ecological data sets (try `?oaks` to get additional details).
 
 <small>
-```{r oaks struct}
+```{r load oaks}
+data("oaks")
 str(oaks, max.level = 1)
 ```
 </small>
@@ -47,6 +47,7 @@ Characterize the samples and the sampling, most important being
 
 - `tree`: Tree status with respect to the pathogen (susceptible, intermediate or resistant)
 - `distTOground`: Distance of the sampled leaf to the base of the ground
+- `orientation`: Orientation of the branch (South-West SW or North-East NE)
 - `readsTOTfun`: Total number of ITS1 reads for that leaf
 - `readsTOTbac`: Total number of 16S reads for that leaf
 

@@ -86,7 +86,7 @@ class: inverse, center, middle
 
 ---
 
-# Natural extensions towards multivariate analysis
+# .small[Natural extensions towards multivariate analysis]
 
   - .important[Classification]: maximize separation between groups with means 
 
@@ -137,7 +137,7 @@ class: inverse, center, middle
 
 class: center, middle, inverse
 
-# Sparse structure estimationfor counts  <br/> .small[See `r Citet(myBib, "PLNnetwork")`]
+# Sparse structure estimation for counts  <br/> .small[See `r Citet(myBib, "PLNnetwork")`]
 
 ```{r PLN_network_oaks, child='PLN_network_oaks.Rmd'}
 ```
@@ -149,21 +149,20 @@ class: center, middle, inverse
 ## Summary
 
   - PLN = generic model for multivariate count data analysis
-  - Allows for covariates
-  - Flexible modeling of the covariance structure
+  - Flexible modeling of the covariance structure, allows for covariates
   - Efficient V-EM algorithm
-
-<br />
 
 ## Extensions
 
 - Other variants
+      - zero inflation (data with _a lot_ of zeros)
       - covariance structures (spatial, time series, ...)
       - Variable selection ($\ell_1$-penalty on the regression coefficients)
 - Other optimization approaches
-     - Exact (composite likelihood, MCMC) starting from the variational solution
-     - Stochastic (ADAM, RMSProp, etc: tools from ML optimization) for large scale problems
-- Confidence interval and tests for the regular PLN
+     - large scale problem: ELBO + SG variant/GPU
+     - Composite likelihood, starting from the variational solution
+     - .important[log-likelihood] (MCMC, Stochastic gradient)
+- Pave the way for Confidence interval and tests for regular PLN
 
 
 ---

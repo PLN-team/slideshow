@@ -43,7 +43,8 @@ $$\begin{array}{rrcll}
   - **Optimization**: _"Similar"_ variational framework (with different gradients)
   - **Model selection**: variational BIC/ICL, need restart and smoothing
       - $\tilde{\text{BIC}}_K = J(\theta, K) - \frac12 \log(n) \mathrm{\#param}$
-      - $\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}(K)$
+      - $\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}_{\mathcal{N}}(K) - \mathcal{H}_{\mathcal{M}}(K)$ (two layers)
+
 ---
 # Clustering of the oaks samples
 

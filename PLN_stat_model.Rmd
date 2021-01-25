@@ -176,3 +176,42 @@ Gradient ascent for the complete set of parameters<sup>1</sup> $(\mathbf{M}, \ma
 
 .footnote[[1] Alternating between variational and model parameters is useless here <br/>
           [2] Optimizing on $\mathbf{S}$ such as $\mathbf{S} \circ \mathbf{S} = \mathbf{S}^2$ is the variance avoids positive constraints ]
+
+---
+# Properties of the variational estimators
+
+.important[VEM stationary point is not a log-likelihood stationary point]
+
+## Simulations settings
+
+- number of samples $n \in \{50, 100, 500, 1000, 10000\}$
+- number of species/genes $p \in \{20, 200\}$
+- number of covariates $d \in \{2, 5, 10\}$
+- sampling effort $TSS \in \{\text{low}, \text{medium}, \text{high}\}$ ($\approx 10^4$, $10^5$ and $10^6$)
+- noise level $\sigma^2 \in \{0.2, 0.5, 1, 2\}$
+- $\boldsymbol\Sigma$ as $\sigma_{jk} = \sigma^2 \rho^{|j-k|}$, with $\rho = 0.2$
+- $\mathbf{\Theta}$ with entries sampled from $\mathcal{N}(0,1/d)$
+
+## Striking conclusion
+
+- asymptotically .important[unbiased]
+- variance (using naïve approach with Hessian-based Fisher information matrix) .important[underestimated]
+
+$\rightsquigarrow$ No trusted confidence intervals can be easily derived with this approach
+
+---
+
+# Bias
+
+![Bias](slides_files/PLN_bias.png)
+
+---
+
+# Root mean square error
+
+![RMSE](slides_files/PLN_rmse.png)
+---
+
+# Coverage
+
+![Coverage](slides_files/PLN_confint.png)

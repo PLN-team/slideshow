@@ -1,7 +1,7 @@
 
 ---
 
-# Poisson Discriminant Analysis
+# Poisson Linear Discriminant Analysis
 
  - a PLN model with a discrete known structure with $K$ groups
  - group specific main effect ${\boldsymbol\mu}_k \in\mathbb{R}^p$, covariance matrix $\boldsymbol{\Sigma}$ is shared among groups
@@ -10,15 +10,9 @@ $$\begin{array}{rcl}
   \text{latent space } &   \mathbf{Z}_i \sim \mathcal{N}(\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta + {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}},\boldsymbol\Sigma) \\
   \text{observation space } &  \mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right).
 \end{array}$$
-
-<!-- The unkwown parameters are  -->
-<!-- - $\boldsymbol\Theta$, the matrix of regression parameters -->
-<!-- - $\mathbf{U} = (\mu_1, \dots, \mu_K)$, the matrix containing the $K$ vectors of group means -->
-<!-- - $\boldsymbol{\Sigma}$, the variance-covariance matrix -->
-
 ### Goal of LDA
 
-Find the linear combinations $\mathbf{Z}\mathbf{u}, \mathbf{u}\in\mathbb{R}^p$ maximizing separation between groups
+Find the linear combinations $\mathbf{Z}\mathbf{v}, \mathbf{v}\in\mathbb{R}^p$ maximizing separation between groups
 
 ```{r PLN_geom_lda_no_offset, echo=FALSE, message=FALSE, fig.width=6, fig.height=4, fig.align='center'}
 set.seed(20171110)
@@ -42,28 +36,30 @@ p.latent + labs(x = "species 1", y = "species 2")
 ```
 
 ---
-# Poisson discimminant analysis: solution
+# Poisson LDA: mimick the Gaussian case
 
-## Inference
+## Solution
 
-1. Adjust a "standard" PLN with $\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{1}_{\{i\in k\}})$,  $\boldsymbol\Theta \rightarrow (\boldsymbol\Theta, \mathbf{U})$
+1. Adjust a "standard" PLN with $\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{1}_{\{i\in k\}})$,  $\boldsymbol\Theta \rightarrow (\boldsymbol\Theta, \mathbf{U} = ({\boldsymbol\mu}_1, \dots, {\boldsymbol\mu}_K))$
 
 2. Use estimate $\boldsymbol\Sigma, \mathbf{U}$ and $\boldsymbol\Theta$ and $\tilde{\mathbf{Z}}_i$ to compute
 $$\hat{\boldsymbol\Sigma}_{\text{between}} = \frac1{K-1} \sum_k n_k (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet) (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet)^\intercal$$
-  - Compute first $K-1$ eigenvectors of $\hat{\boldsymbol\Sigma}^{-1} \hat{\boldsymbol\Sigma}_{\text{between}} = \mathbf{P}^\top \Lambda \mathbf{P}$ (discriminant axes)
 
-## Features
+3. Compute first $K-1$ eigenvectors of $\hat{\boldsymbol\Sigma}^{-1} \hat{\boldsymbol\Sigma}_{\text{between}} = \mathbf{P}^\top \Lambda \mathbf{P}$ (discriminant axes)
 
-  - **Graphical representation**:  $\mathbb{E}_q [\mathbf{Z}] \mathbf{P} \Lambda^{1/2}$, the coordinates along the discriminant axes
-  - **Prediction**: For each group, 
-    - Compute (variational) likelihood $p_k = P(\mathbf{Y}_{\text{new}} | \hat{\boldsymbol\Sigma}, \hat{\boldsymbol\Theta}, \hat{\boldsymbol\mu}_k)$
-    - Assign $i$ to group with highest posterior probability $\pi_k \propto \frac{n_k p_k}{n}$
+- **Graphical representation**:  
+  - Center the estimated latent position $\tilde{Z} = \mathbb{E}_q [\mathbf{Z}] - \mathbf{o}_i - \mathbf{x}_i^\top {\boldsymbol\Theta}$
+  - Represent $\tilde{Z}^\text{LDA} = \tilde{Z} \mathbf{P} \Lambda^{1/2}$ the coordinates along the discriminant axes
+
+- **Prediction**: For each group, 
+  - Compute (variational) likelihood $p_k = P(\mathbf{Y}_{\text{new}} | \hat{\boldsymbol\Sigma}, \hat{\boldsymbol\Theta}, \hat{\boldsymbol\mu}_k)$
+  - Assign $i$ to group with highest posterior probability $\pi_k \propto \frac{n_k p_k}{n}$
   
 ---
 
 # LDA of the oaks data set
 
-Let us try a PLN-LDA on the `site` variable (`grouping` is a factor of group (or classification) to be considered)
+Use the `tree` variable for grouping (`grouping` is a factor of group to be considered)
 
 ```{r PLNLDA oaks, cache = TRUE, results = FALSE}
 myLDA_tree <- 

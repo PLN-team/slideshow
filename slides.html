@@ -98,19 +98,18 @@ Routinely gathered in ecology/microbiology/genomics
 
 ---
 
-# 'oaks' data set overview
+# Oaks powdery mildew data set overview
 
-The `oaks` variable is loaded by the function `data()` (try `?oaks` to get additional details).
+- .important[Microbial communities] sampled on the surface of `\(n = 116\)` oak leaves
+- Communities sequenced and cleaned resulting in `\(p=114\)` OTUs (66 bacteria, 48 fungi).
+- Study .important[effects of the pathogen] _E.Aphiltoïdes_ wrt communities
 
-```r
-data("oaks")
-```
-
-It consists in a special data frames ready to play with, typical from ecological data sets
+The `oaks` variable consists in a special data frame ready to play with, typical from ecological data sets (try `?oaks` to get additional details).
 
 &lt;small&gt;
 
 ```r
+data("oaks")
 str(oaks, max.level = 1)
 ```
 
@@ -142,6 +141,7 @@ Characterize the samples and the sampling, most important being
 
 - `tree`: Tree status with respect to the pathogen (susceptible, intermediate or resistant)
 - `distTOground`: Distance of the sampled leaf to the base of the ground
+- `orientation`: Orientation of the branch (South-West SW or North-East NE)
 - `readsTOTfun`: Total number of ITS1 reads for that leaf
 - `readsTOTbac`: Total number of 16S reads for that leaf
 
@@ -177,8 +177,8 @@ oaks$Abundance %&gt;% as_tibble() %&gt;%
   head() %&gt;% DT::datatable(fillContainer = FALSE)
 ```
 
-<div id="htmlwidget-3d5f3aa9c9c03a9b6b83" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-3d5f3aa9c9c03a9b6b83">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-2e3cbd59f4b80be147bf" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2e3cbd59f4b80be147bf">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 
 ---
 
@@ -341,6 +341,45 @@ Gradient ascent for the complete set of parameters&lt;sup&gt;1&lt;/sup&gt; `\((\
 
 .footnote[[1] Alternating between variational and model parameters is useless here &lt;br/&gt;
           [2] Optimizing on `\(\mathbf{S}\)` such as `\(\mathbf{S} \circ \mathbf{S} = \mathbf{S}^2\)` is the variance avoids positive constraints ]
+
+---
+# Properties of the variational estimators
+
+.important[VEM stationary point is not a log-likelihood stationary point]
+
+## Simulations settings
+
+- number of samples `\(n \in \{50, 100, 500, 1000, 10000\}\)`
+- number of species/genes `\(p \in \{20, 200\}\)`
+- number of covariates `\(d \in \{2, 5, 10\}\)`
+- sampling effort `\(TSS \in \{\text{low}, \text{medium}, \text{high}\}\)` ($\approx 10^4$, `\(10^5\)` and `\(10^6\)`)
+- noise level `\(\sigma^2 \in \{0.2, 0.5, 1, 2\}\)`
+- `\(\boldsymbol\Sigma\)` as `\(\sigma_{jk} = \sigma^2 \rho^{|j-k|}\)`, with `\(\rho = 0.2\)`
+- `\(\mathbf{\Theta}\)` with entries sampled from `\(\mathcal{N}(0,1/d)\)`
+
+## Striking conclusion
+
+- asymptotically .important[unbiased]
+- variance (using naïve approach with Hessian-based Fisher information matrix) .important[underestimated]
+
+`\(\rightsquigarrow\)` No trusted confidence intervals can be easily derived with this approach
+
+---
+
+# Bias
+
+![Bias](slides_files/PLN_bias.png)
+
+---
+
+# Root mean square error
+
+![RMSE](slides_files/PLN_rmse.png)
+---
+
+# Coverage
+
+![Coverage](slides_files/PLN_confint.png)
 
 ---
 
@@ -576,7 +615,7 @@ sigma(M11_oaks) %&gt;% cov2cor() %&gt;%
 
 ---
 
-# Natural extensions towards multivariate analysis
+# .small[Natural extensions towards multivariate analysis]
 
   - .important[Classification]: maximize separation between groups with means 
 
@@ -606,7 +645,7 @@ class: inverse, center, middle
 
 ---
 
-# Poisson Discriminant Analysis
+# Poisson Linear Discriminant Analysis
 
  - a PLN model with a discrete known structure with `\(K\)` groups
  - group specific main effect `\({\boldsymbol\mu}_k \in\mathbb{R}^p\)`, covariance matrix `\(\boldsymbol{\Sigma}\)` is shared among groups
@@ -615,41 +654,37 @@ class: inverse, center, middle
   \text{latent space } &amp;   \mathbf{Z}_i \sim \mathcal{N}(\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta + {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}},\boldsymbol\Sigma) \\
   \text{observation space } &amp;  \mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right).
 \end{array}$$`
-
-&lt;!-- The unkwown parameters are  --&gt;
-&lt;!-- - `\(\boldsymbol\Theta\)`, the matrix of regression parameters --&gt;
-&lt;!-- - `\(\mathbf{U} = (\mu_1, \dots, \mu_K)\)`, the matrix containing the `\(K\)` vectors of group means --&gt;
-&lt;!-- - `\(\boldsymbol{\Sigma}\)`, the variance-covariance matrix --&gt;
-
 ### Goal of LDA
 
-Find the linear combinations `\(\mathbf{Z}\mathbf{u}, \mathbf{u}\in\mathbb{R}^p\)` maximizing separation between groups
+Find the linear combinations `\(\mathbf{Z}\mathbf{v}, \mathbf{v}\in\mathbb{R}^p\)` maximizing separation between groups
 
 &lt;img src="slides_files/figure-html/PLN_geom_lda_no_offset-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
-# Poisson discimminant analysis: solution
+# Poisson LDA: mimick the Gaussian case
 
-## Inference
+## Solution
 
-1. Adjust a "standard" PLN with `\(\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{1}_{\{i\in k\}})\)`,  `\(\boldsymbol\Theta \rightarrow (\boldsymbol\Theta, \mathbf{U})\)`
+1. Adjust a "standard" PLN with `\(\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{1}_{\{i\in k\}})\)`,  `\(\boldsymbol\Theta \rightarrow (\boldsymbol\Theta, \mathbf{U} = ({\boldsymbol\mu}_1, \dots, {\boldsymbol\mu}_K))\)`
 
 2. Use estimate `\(\boldsymbol\Sigma, \mathbf{U}\)` and `\(\boldsymbol\Theta\)` and `\(\tilde{\mathbf{Z}}_i\)` to compute
 `$$\hat{\boldsymbol\Sigma}_{\text{between}} = \frac1{K-1} \sum_k n_k (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet) (\hat{\boldsymbol\mu}_k - \hat{\boldsymbol\mu}_\bullet)^\intercal$$`
-  - Compute first `\(K-1\)` eigenvectors of `\(\hat{\boldsymbol\Sigma}^{-1} \hat{\boldsymbol\Sigma}_{\text{between}} = \mathbf{P}^\top \Lambda \mathbf{P}\)` (discriminant axes)
 
-## Features
+3. Compute first `\(K-1\)` eigenvectors of `\(\hat{\boldsymbol\Sigma}^{-1} \hat{\boldsymbol\Sigma}_{\text{between}} = \mathbf{P}^\top \Lambda \mathbf{P}\)` (discriminant axes)
 
-  - **Graphical representation**:  `\(\mathbb{E}_q [\mathbf{Z}] \mathbf{P} \Lambda^{1/2}\)`, the coordinates along the discriminant axes
-  - **Prediction**: For each group, 
-    - Compute (variational) likelihood `\(p_k = P(\mathbf{Y}_{\text{new}} | \hat{\boldsymbol\Sigma}, \hat{\boldsymbol\Theta}, \hat{\boldsymbol\mu}_k)\)`
-    - Assign `\(i\)` to group with highest posterior probability `\(\pi_k \propto \frac{n_k p_k}{n}\)`
+- **Graphical representation**:  
+  - Center the estimated latent position `\(\tilde{Z} = \mathbb{E}_q [\mathbf{Z}] - \mathbf{o}_i - \mathbf{x}_i^\top {\boldsymbol\Theta}\)`
+  - Represent `\(\tilde{Z}^\text{LDA} = \tilde{Z} \mathbf{P} \Lambda^{1/2}\)` the coordinates along the discriminant axes
+
+- **Prediction**: For each group, 
+  - Compute (variational) likelihood `\(p_k = P(\mathbf{Y}_{\text{new}} | \hat{\boldsymbol\Sigma}, \hat{\boldsymbol\Theta}, \hat{\boldsymbol\mu}_k)\)`
+  - Assign `\(i\)` to group with highest posterior probability `\(\pi_k \propto \frac{n_k p_k}{n}\)`
   
 ---
 
 # LDA of the oaks data set
 
-Let us try a PLN-LDA on the `site` variable (`grouping` is a factor of group (or classification) to be considered)
+Use the `tree` variable for grouping (`grouping` is a factor of group to be considered)
 
 
 ```r
@@ -776,7 +811,8 @@ When `\(p\)` is large, general forms of `\({\boldsymbol\Sigma}^{(k)}\)` lead to 
   - **Optimization**: _"Similar"_ variational framework (with different gradients)
   - **Model selection**: variational BIC/ICL, need restart and smoothing
       - `\(\tilde{\text{BIC}}_K = J(\theta, K) - \frac12 \log(n) \mathrm{\#param}\)`
-      - `\(\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}(K)\)`
+      - `\(\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}_{\mathcal{N}}(K) - \mathcal{H}_{\mathcal{M}}(K)\)` (two layers)
+
 ---
 # Clustering of the oaks samples
 
@@ -1077,9 +1113,33 @@ PCA_tree &lt;- PLNPCA(Abundance ~ 0 + tree + offset(log(Offset)),
 
 class: center, middle, inverse
 
-# Sparse structure estimationfor counts  &lt;br/&gt; .small[See Chiquet, Mariadassou, and Robin [CMR19]]
+# Sparse structure estimation for counts  &lt;br/&gt; .small[See Chiquet, Mariadassou, and Robin [CMR19]]
 
 
+
+---
+
+# .small[Background on Gaussian Graphical Models]
+  
+Suppose `\(\mathbf{Z} \sim \mathcal{N}(\mathbf{0}, {\boldsymbol\Omega}^{-1}=\boldsymbol\Sigma)\)`
+  
+### Conditional independence structure
+
+  `$$(i,j)  \notin  \mathcal{E}  \Leftrightarrow  Z_j  \perp  Z_k  | Z_{\backslash \{j,k\}} \Leftrightarrow {\boldsymbol\Omega}_{jk} = 0.$$`
+
+.pull-left[
+  `\(\mathcal{G}=(\mathcal{P},\mathcal{E})\)`![graph](slides_files/graph.png)
+]
+
+.pull-right[
+  `\(\boldsymbol\Omega\)`![sparisty](slides_files/Markovadjacency.png)
+  ]
+
+### Graphical-Lasso
+
+Network reconstruction is (roughly) a variable selection problem
+`$$\hat{{\boldsymbol\Omega}}_\lambda=\arg\max_{\boldsymbol\Omega     \in     \mathbb{S}_+}
+      \ell({\boldsymbol\Omega};\mathbf{Y})-\lambda \|{\boldsymbol\Omega}\|_{1}$$`
 
 ---
 
@@ -1109,11 +1169,14 @@ with `\(\hat{\boldsymbol\Sigma} = n^{-1}(\mathbf{M}^\top \mathbf{M} + \mathrm{di
 ---
 # Network inference on the oaks data set
 
-We try the inference of a collections of networks, accounting for the tree effect.
+- Infer a collections of networks indexed by the sparsity accounting for the tree effect.
 
-Models are indexed by the sparsity level (or penalty). (E)BIC or similar information criteria can help choosing the right amount.
-
+`$$\text{EBIC}_\gamma(\hat{\boldsymbol\Omega}_\lambda)  =   -2 \textrm{loglik} (\hat{\boldsymbol\Omega}) + \log(n) (|\mathcal{E}_\lambda| + p d) + \gamma \log {p(p+1)/2 \choose |\mathcal{E}_\lambda|},$$`
+       
 .pull-left[
+where `\(\mathcal{E}_\lambda\)` is the number of selected edge at `\(\lambda\)`.
+
+&lt;br /&gt;
 
 ```r
 networks_oaks_tree &lt;- 
@@ -1123,6 +1186,7 @@ networks_oaks_tree &lt;-
     data = oaks
   )
 ```
+
 ]
 
 .pull-right[
@@ -1147,19 +1211,40 @@ Let us plot the estimated correlation matrix, after regularization of its invers
 
 An alternative to model selection criteria is the stability selection  - or StARS in the context of network.
 
-- Basically, it uses resampling to estimate robustness of each edges in the network.
-- we keep the value of the penalty that guarantees a given level of robustness in the whole network
+1. Infers `\(B\)` networks `\({\boldsymbol\Omega}^{(b, \lambda)}\)` on subsamples of size `\(m\)` for varying `\(\lambda\)`.
 
-.important[Careful!]: its is computationally expensive.
+2. Frequency of inclusion of each edges `\(e = i\sim j\)` is estimated by `$$p_e^\lambda = \# \{b: \Omega^{(b, \lambda)}_{ij} \neq 0\}/B$$`
 
---
+3. Variance of inclusion of edge `\(e\)` is `\(v_e^\lambda = p_e^\lambda (1 - p_e^\lambda)\)`. 
 
-In `getBestModel`, when "StARS" is requested, stabiltiy selection is performed if needed:
+4. Network stability is `\(\textrm{stab}(\lambda) = 1 - 2\bar{v}^\lambda\)` where `\(\bar{v}^\lambda\)` is the average of the `\(v_e^\lambda\)`. 
+
+&lt;br /&gt;
+
+`\(\rightsquigarrow\)` StARS&lt;sup&gt;1&lt;/sup&gt;  selects the smallest `\(\lambda\)` (densest network) for which `\(\textrm{stab}(\lambda) \geq 1 - 2\beta\)`
+
+.footnote[Liu, Roeder, and Wasserman [LRW10] suggest using `\(2\beta = 0.05\)` and `\(m = \lfloor 10 \sqrt{n}\rfloor\)` based on theoretical results.]
+
+---
+# StARS
+
+In `getBestModel`, when "StARS" is requested, stabilitiy selection is performed if needed:
 
 
 ```r
-net3 &lt;- getBestModel(networks_oaks_tree, "StARS") 
+stability_selection(networks_oaks_tree, mc.cores = 10)
 ```
+
+
+
+
+.pull-left[
+![](slides_files/figure-html/plot network stars-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+![](slides_files/figure-html/plot net stars-1.png)&lt;!-- --&gt;
+]
 
 
 ---
@@ -1168,21 +1253,20 @@ net3 &lt;- getBestModel(networks_oaks_tree, "StARS")
 ## Summary
 
   - PLN = generic model for multivariate count data analysis
-  - Allows for covariates
-  - Flexible modeling of the covariance structure
+  - Flexible modeling of the covariance structure, allows for covariates
   - Efficient V-EM algorithm
-
-&lt;br /&gt;
 
 ## Extensions
 
 - Other variants
+      - zero inflation (data with _a lot_ of zeros)
       - covariance structures (spatial, time series, ...)
       - Variable selection ($\ell_1$-penalty on the regression coefficients)
 - Other optimization approaches
-     - Exact (composite likelihood, MCMC) starting from the variational solution
-     - Stochastic (ADAM, RMSProp, etc: tools from ML optimization) for large scale problems
-- Confidence interval and tests for the regular PLN
+     - large scale problem: ELBO + SG variant/GPU
+     - Composite likelihood, starting from the variational solution
+     - .important[log-likelihood] (MCMC, Stochastic gradient)
+- Pave the way for Confidence interval and tests for regular PLN
 
 
 ---
@@ -1216,6 +1300,11 @@ Johnson, S. G. (2011). _The NLopt nonlinear-optimization package_. URL:
 
 Karlis, D. (2005). "EM algorithm for mixed Poisson and other discrete
 distributions". In: _Astin bulletin_ 35.01, pp. 3-24.
+
+Liu, H., K. Roeder, and L. Wasserman (2010). "Stability Approach to
+Regularization Selection (StARS) for High Dimensional Graphical
+Models". In: _Proceedings of the 23rd International Conference on
+Neural Information Processing Systems - Volume 2_. USA, pp. 1432-1440.
 
 Mardia, K., J. Kent, and J. Bibby (1979). _Multivariate analysis_.
 Academic press.
