@@ -177,8 +177,8 @@ oaks$Abundance %&gt;% as_tibble() %&gt;%
   head() %&gt;% DT::datatable(fillContainer = FALSE)
 ```
 
-<div id="htmlwidget-64e3b31a633d583236b6" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-64e3b31a633d583236b6">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-eacfe2f7e9802a286eab" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-eacfe2f7e9802a286eab">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 
 ---
 
@@ -325,7 +325,7 @@ Maximize the ELBO (Evidence Lower BOund):
 ---
 # ELBO and gradients for PLN
 
-Let `\(\mathbf{A} = \exp\left(\mathbf{O} + \mathbf{M} + \frac12 \mathbf{S}^2\right)\)`
+Let `\(\mathbf{A} = \mathbb{E}_q[\exp(\mathbf{Z})] = \exp\left(\mathbf{O} + \mathbf{M} + \frac12 \mathbf{S}^2\right)\)`
 
 ### Variational bound
 

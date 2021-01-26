@@ -160,7 +160,7 @@ $$\theta^h = \arg\max J(\theta, q^h) = \arg\max_{\theta} \mathbb{E}_{q} [\log p_
 ---
 # ELBO and gradients for PLN
 
-Let $\mathbf{A} = \exp\left(\mathbf{O} + \mathbf{M} + \frac12 \mathbf{S}^2\right)$
+Let $\mathbf{A} = \mathbb{E}_q[\exp(\mathbf{Z})] = \exp\left(\mathbf{O} + \mathbf{M} + \frac12 \mathbf{S}^2\right)$
 
 ### Variational bound
 
