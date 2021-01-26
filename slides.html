@@ -177,8 +177,8 @@ oaks$Abundance %&gt;% as_tibble() %&gt;%
   head() %&gt;% DT::datatable(fillContainer = FALSE)
 ```
 
-<div id="htmlwidget-07e9ca57e2e8cae12888" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-07e9ca57e2e8cae12888">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-64e3b31a633d583236b6" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-64e3b31a633d583236b6">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 
 ---
 
@@ -645,25 +645,31 @@ sigma(M11_oaks) %&gt;% cov2cor() %&gt;%
 
 ---
 
-# .small[Natural extensions towards multivariate analysis]
+# Natural extensions
+
+### Various tasks of multivariate analysis
 
   - .important[Classification]: maximize separation between groups with means 
 
   `$$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$`
+
   - .important[Clustering]: mixture model in the latent space 
 
   `$$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$`
-  
+
+
   - .important[Dimension Reduction]: rank constraint matrix `\(\boldsymbol\Sigma\)`.
     
     `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{B}\mathbf{B}^\top), \quad \mathbf{B} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$`
-    
+
+
   - .important[Network inference]: sparsity constraint on inverse covariance.
   
   `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 &lt; c.$$`
-  
-  `\(\rightsquigarrow\)` A variant of the variational algorithm is required for each model
 
+### Challenge
+
+.important[A variant] of the variational algorithm is required for each model
 
 ---
 
@@ -819,7 +825,8 @@ The unkwown parameters are
 - `\({\boldsymbol\mu}_k\)`, the vector of means in group `\(k\)`
 - `\({\boldsymbol\Sigma}_k\)`, the variance-covariance matrix in group `\(k\)`
 - `\({\boldsymbol\pi}\)` the vector of mixture proportion
-- `\(C_i\)`, the group membership -- or cluster -- of sample `\(i\)`
+- `\(C_i\)`, the group membership of sample `\(i\)`
+  - Estimated by `\(\tau_{ik} = \hat{\mathbb{P}}(C_i = k|\mathbf{Y}_i)\)`, some additional variatonal parameters for the mixture
 
 ---
 # PLN mixture: additional details
@@ -838,10 +845,11 @@ When `\(p\)` is large, general forms of `\({\boldsymbol\Sigma}^{(k)}\)` lead to 
 
 ## Features
 
-  - **Optimization**: _"Similar"_ variational framework (with different gradients)
-  - **Model selection**: variational BIC/ICL, need restart and smoothing
-      - `\(\tilde{\text{BIC}}_K = J(\theta, K) - \frac12 \log(n) \mathrm{\#param}\)`
-      - `\(\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}_{\mathcal{N}}(K) - \mathcal{H}_{\mathcal{M}}(K)\)` (two layers)
+- **Optimization**: _"Similar"_ variational framework
+  - Weighted sum of PLN fits with .important[weights given by the posterior probabilities] `\(\tau_{ik}\)`
+- **Model selection**: variational BIC/ICL, need restart and smoothing
+  - `\(\tilde{\text{BIC}}_K = J(\theta, K) - \frac12 \log(n) \mathrm{\#param}\)`
+  - `\(\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}_{\mathcal{N}}(K) - \mathcal{H}_{\mathcal{M}}(K)\)` (two layers)
 
 ---
 # Clustering of the oaks samples
@@ -1293,9 +1301,9 @@ stability_selection(networks_oaks_tree, mc.cores = 10)
       - covariance structures (spatial, time series, ...)
       - Variable selection ($\ell_1$-penalty on the regression coefficients)
 - Other optimization approaches
-     - large scale problem: ELBO + SG variant/GPU
-     - Composite likelihood, starting from the variational solution
-     - .important[log-likelihood] (MCMC, Stochastic gradient)
+  - large scale problem: ELBO + SG variant/GPU
+  - Composite likelihood, starting from the variational solution
+  - .important[log-likelihood] (MCMC, Stochastic gradient)
 - Pave the way for Confidence interval and tests for regular PLN
 
 

@@ -86,25 +86,31 @@ class: inverse, center, middle
 
 ---
 
-# .small[Natural extensions towards multivariate analysis]
+# Natural extensions
+
+### Various tasks of multivariate analysis
 
   - .important[Classification]: maximize separation between groups with means 
 
   $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$
+
   - .important[Clustering]: mixture model in the latent space 
 
   $$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$
-  
+
+
   - .important[Dimension Reduction]: rank constraint matrix $\boldsymbol\Sigma$.
     
     $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{B}\mathbf{B}^\top), \quad \mathbf{B} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
-    
+
+
   - .important[Network inference]: sparsity constraint on inverse covariance.
   
   $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 < c.$$
-  
-  $\rightsquigarrow$ A variant of the variational algorithm is required for each model
 
+### Challenge
+
+.important[A variant] of the variational algorithm is required for each model
 
 ---
 
@@ -159,9 +165,9 @@ class: center, middle, inverse
       - covariance structures (spatial, time series, ...)
       - Variable selection ($\ell_1$-penalty on the regression coefficients)
 - Other optimization approaches
-     - large scale problem: ELBO + SG variant/GPU
-     - Composite likelihood, starting from the variational solution
-     - .important[log-likelihood] (MCMC, Stochastic gradient)
+  - large scale problem: ELBO + SG variant/GPU
+  - Composite likelihood, starting from the variational solution
+  - .important[log-likelihood] (MCMC, Stochastic gradient)
 - Pave the way for Confidence interval and tests for regular PLN
 
 

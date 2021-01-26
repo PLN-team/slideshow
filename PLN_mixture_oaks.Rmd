@@ -21,7 +21,8 @@ The unkwown parameters are
 - ${\boldsymbol\mu}_k$, the vector of means in group $k$
 - ${\boldsymbol\Sigma}_k$, the variance-covariance matrix in group $k$
 - ${\boldsymbol\pi}$ the vector of mixture proportion
-- $C_i$, the group membership -- or cluster -- of sample $i$
+- $C_i$, the group membership of sample $i$
+  - Estimated by $\tau_{ik} = \hat{\mathbb{P}}(C_i = k|\mathbf{Y}_i)$, some additional variatonal parameters for the mixture
 
 ---
 # PLN mixture: additional details
@@ -40,10 +41,11 @@ $$\begin{array}{rrcll}
 
 ## Features
 
-  - **Optimization**: _"Similar"_ variational framework (with different gradients)
-  - **Model selection**: variational BIC/ICL, need restart and smoothing
-      - $\tilde{\text{BIC}}_K = J(\theta, K) - \frac12 \log(n) \mathrm{\#param}$
-      - $\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}_{\mathcal{N}}(K) - \mathcal{H}_{\mathcal{M}}(K)$ (two layers)
+- **Optimization**: _"Similar"_ variational framework
+  - Weighted sum of PLN fits with .important[weights given by the posterior probabilities] $\tau_{ik}$
+- **Model selection**: variational BIC/ICL, need restart and smoothing
+  - $\tilde{\text{BIC}}_K = J(\theta, K) - \frac12 \log(n) \mathrm{\#param}$
+  - $\tilde{\text{ICL}}_K = \tilde{\text{BIC}}_K - \mathcal{H}_{\mathcal{N}}(K) - \mathcal{H}_{\mathcal{M}}(K)$ (two layers)
 
 ---
 # Clustering of the oaks samples
