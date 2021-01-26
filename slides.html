@@ -3,7 +3,7 @@
   <head>
     <title>PLNmodels</title>
     <meta charset="utf-8" />
-    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 25 January, 2021" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 26 January, 2021" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
@@ -24,7 +24,7 @@ class: center, middle, inverse, title-slide
 
 # PLNmodels
 ## A collection of Poisson lognormal models <br/> for multivariate analysis of count data
-### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 25 January, 2021</small>
+### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 26 January, 2021</small>
 ### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
 
 ---
@@ -177,8 +177,8 @@ oaks$Abundance %&gt;% as_tibble() %&gt;%
   head() %&gt;% DT::datatable(fillContainer = FALSE)
 ```
 
-<div id="htmlwidget-2e3cbd59f4b80be147bf" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2e3cbd59f4b80be147bf">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-07e9ca57e2e8cae12888" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-07e9ca57e2e8cae12888">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 
 ---
 
@@ -246,16 +246,17 @@ $$
 ]
 
 .pull-right[
-PLN has some expected properties
-- over-dispersion
-- covariance with arbitrary signs
+Stacking all individuals together, 
+  - `\(\mathbf{Y}\)` is the `\(n\times p\)` matrix of counts  
+  - `\(\mathbf{X}\)` is the `\(n\times d\)` matrix of design
+  - `\(\mathbf{O}\)` is the `\(n\times p\)` matrix of offsets
 ]
 
+### Properties: .small[.important[over-dispersion, arbitrary-signed covariances]]
 
-When all individuals `\(i=1,\dots,n\)` are together, the data matrices required are
-  - the `\(n\times p\)` matrix of counts  `\(\mathbf{Y}\)`
-  - the `\(n\times d\)` matrix of design  `\(\mathbf{X}\)`
-  - the `\(n\times p\)` matrix of offsets `\(\mathbf{O}\)`
+- mean: `\(\mathbb{E}(Y_{ij}) =  \exp \left( o_{ij} + \mathbf{x}_i^\top {\boldsymbol\Theta}_{\cdot j} + \sigma_{jj}/2\right) &gt;  0\)`
+- variance: `\(\mathbb{V}(Y_{ij}) = \mathbb{E}(Y_{ij}) + \mathbb{E}(Y_{ij})^2 \left( e^{\sigma_{jj}} - 1 \right) &gt; \mathbb{E}(Y_{ij})\)`
+- covariance: `\(\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).\)`
 
 ---
 # Geometrical view
@@ -263,32 +264,32 @@ When all individuals `\(i=1,\dots,n\)` are together, the data matrices required 
 ![](slides_files/figure-html/PLN geometry-1.png)&lt;!-- --&gt;
 
 ---
-# .small[Inference: latent model but intractable EM]
+# Inference: .small[latent model but intractable EM]
   
-## Aim of the inference
+Estimate `\(\theta = (\boldsymbol\Theta, \boldsymbol\Sigma)\)`, predict the `\(\mathbf{Z}_i\)`, while  the model marginal likelihood is
 
-  - estimate `\(\theta = (\boldsymbol\Theta, \boldsymbol\Sigma)\)` 
-  - predict the `\(\mathbf{Z}_i\)`
+`$$p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i$$`
 
-## Maximum likelihood
+### Maximum likelihood for incomplete data model: EM
 
-PLN is an incomplete data model: try EM
-`$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_p [\log p_\theta(\mathbf{Y}, \mathbf{Z}) \,|\, \mathbf{Y}] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$` 
+With `\(\mathcal{H}(p) = -\mathbb{E}_p(\log(p))\)` the entropy of `\(p\)`,
+
+`$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_{p_\theta(\mathbf{Z}\,|\,\mathbf{Y})} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$` 
 
 EM requires to evaluate (some moments of) `\(p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})\)`, but there is no close form!
 
-## Solutions
+### Solutions
 
   - [AH89] resort on numerical integration; [Kar05] Monte-Carlo integration
   - Several heuristics, not always well motivated, found in the literature...
   - .important[Variational approach] [WJ08]: use a proxy of `\(p_\theta(\mathbf{Z}\,|\,\mathbf{Y})\)`.
 
 ---
-# Variational approach: principle
+# Variational approximation
 
 .important[See the outstanding Stéphane Robin's Lecture]
 
-## Idea
+## Principle
 
   - Find a proxy of the conditional distribution `\(p(\mathbf{Z}\,|\,\mathbf{Y})\)`:
 
@@ -304,11 +305,11 @@ The Küllback-Leibler divergence .small[(error averaged wrt the approximated dis
 `$$KL\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right) = \mathbb{E}_q\left[\log \frac{q(z)}{p(z)}\right] = \int_{\mathcal{Z}} q(z) \log \frac{q(z)}{p(z)} \mathrm{d}z.$$`
 
 ---
-# Variational approach: PLN
+# Variational EM &amp; PLN
 
 ## Class of distribution: diagonal multivariate Gaussian
 
-`$$\mathcal{Q} = \Big\{q: \quad q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \quad q_i(\mathbf{Z}_i) = \mathcal{N}(\mathbf{Z}_i; \mathbf{m}_i, \mathbf{s}_i \circ \mathbf{s}_i) \Big\}$$`
+`$$\mathcal{Q} = \Big\{q: \quad q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \quad q_i(\mathbf{Z}_i) = \mathcal{N}\left(\mathbf{Z}_i; \mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i)\right), \mathbf{m}_i, \mathbf{s}_i\in\mathbb{R}_p \Big\}$$`
 
 Maximize the ELBO (Evidence Lower BOund):
 
@@ -322,6 +323,29 @@ Maximize the ELBO (Evidence Lower BOund):
 `$$\theta^h = \arg\max J(\theta, q^h) = \arg\max_{\theta} \mathbb{E}_{q} [\log p_{\theta}(\mathbf{Y}, \mathbf{Z})]$$`
 
 ---
+# ELBO and gradients for PLN
+
+Let `\(\mathbf{A} = \exp\left(\mathbf{O} + \mathbf{M} + \frac12 \mathbf{S}^2\right)\)`
+
+### Variational bound
+
+`$$\begin{array}{ll}
+J(\mathbf{Y}) &amp; = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\mathbf{O} + \mathbf{M}) - \mathbf{A} + \log(\mathbf{S})\right]\right) \mathbf{1}_{p} + \frac{n}2\log|{\boldsymbol\Omega}| \\
+&amp; - \frac12 \mathrm{trace}\left({\boldsymbol\Omega} \bigg[\left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right)^\intercal \left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right) + \mathrm{diag}(\mathbf{1}_n^\intercal\mathbf{S}^2)\bigg]\right) + \text{cst.}\\
+\end{array}$$`
+
+### M-step
+
+`$$\hat{{\boldsymbol\Theta}} = \left(\mathbf{X}^\top \mathbf{X}\right)^{-1} \mathbf{X} \mathbf{M}, \quad 
+   \hat{{\boldsymbol\Sigma}} = \frac{1}{n} \left(\mathbf{M}-\mathbf{X}\hat{{\boldsymbol\Theta}}\right)^\top \left(\mathbf{M}-\mathbf{X}\hat{\boldsymbol\Theta}\right) + \frac{1}{n} \mathrm{diag}(\mathbf{1}^\intercal\mathbf{S}^2)$$`
+
+### Variational E-step
+
+`$$\frac{\partial J(q)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}) \mathbf{\Omega}\right), \qquad \frac{\partial J(q)}{\partial \mathbf{S}} = \frac{1}{\mathbf{S}} - \mathbf{S} \circ \mathbf{A} - \mathbf{S} \mathrm{D}_{\boldsymbol\Omega} .$$`
+
+
+---
+
 # .small[Application to the optimization of PLN models]
   
 ## Property of PLN variational approximation
@@ -345,9 +369,15 @@ Gradient ascent for the complete set of parameters&lt;sup&gt;1&lt;/sup&gt; `\((\
 ---
 # Properties of the variational estimators
 
-.important[VEM stationary point is not a log-likelihood stationary point]
+## Classical M-estimation 
 
-## Simulations settings
+We can derive asymptotic behavior (like Hessian-based Fisher information matrix for the variance) ...
+
+... But VEM stationary point is .important[not a log-likelihood stationary point], see [WM15]
+
+&lt;br /&gt;
+
+## Numerical study
 
 - number of samples `\(n \in \{50, 100, 500, 1000, 10000\}\)`
 - number of species/genes `\(p \in \{20, 200\}\)`
@@ -357,29 +387,29 @@ Gradient ascent for the complete set of parameters&lt;sup&gt;1&lt;/sup&gt; `\((\
 - `\(\boldsymbol\Sigma\)` as `\(\sigma_{jk} = \sigma^2 \rho^{|j-k|}\)`, with `\(\rho = 0.2\)`
 - `\(\mathbf{\Theta}\)` with entries sampled from `\(\mathcal{N}(0,1/d)\)`
 
-## Striking conclusion
-
-- asymptotically .important[unbiased]
-- variance (using naïve approach with Hessian-based Fisher information matrix) .important[underestimated]
-
-`\(\rightsquigarrow\)` No trusted confidence intervals can be easily derived with this approach
-
 ---
 
-# Bias
+# Bias of `\(\hat{\boldsymbol\Theta}\)`
 
 ![Bias](slides_files/PLN_bias.png)
 
+`\(\rightsquigarrow\)` .important[asymptotically unbiased]
+
 ---
 
-# Root mean square error
+# Root mean square error of `\(\hat{\boldsymbol\Theta}\)`
 
 ![RMSE](slides_files/PLN_rmse.png)
+
+`\(\rightsquigarrow\)` .important[asymptotically unbiased]
+
 ---
 
-# Coverage
+# 95% confident interval - Coverage
 
 ![Coverage](slides_files/PLN_confint.png)
+
+.important[variance underestimated], no trusted confidence intervals can be derived out-of-the box
 
 ---
 
@@ -435,7 +465,7 @@ M00_oaks
 ## A multivariate Poisson Lognormal fit with full covariance model.
 ## ==================================================================
 ##  nb_param    loglik       BIC       ICL
-##      6669 -50932.83 -66783.67 -70867.64
+##      6669 -50893.08 -66743.93 -70854.94
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -468,12 +498,12 @@ coef(M00_oaks) %&gt;% head() %&gt;% t() %&gt;% knitr::kable(format = "html")
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.24894 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.07084 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -2.276925 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.717515 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -0.4412986 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.4977729 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.197219 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.089349 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -2.229673 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.729653 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.4558729 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4939436 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -555,30 +585,30 @@ rbind(M00 = M00_oaks$criteria, M01 = M01_oaks$criteria,
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M00 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6669 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50932.83 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66783.67 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70867.64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50893.08 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66743.93 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70854.94 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M01 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6669 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50831.26 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66682.11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70795.53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50833.95 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66684.80 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70802.40 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M11 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6897 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50117.81 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66510.56 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70231.48 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50126.83 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66519.58 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70228.53 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M21 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 7011 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50049.63 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66713.34 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70338.33 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50056.90 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66720.61 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70334.93 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -699,8 +729,8 @@ no need for model selection!
 ```
 ## Linear Discriminant Analysis for Poisson Lognormal distribution
 ## ==================================================================
-##  nb_param    loglik       BIC      ICL
-##       570 -50117.81 -51472.58 -55193.5
+##  nb_param    loglik      BIC       ICL
+##       570 -50126.83 -51481.6 -55190.54
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -891,8 +921,8 @@ myPLN_mix$components[[1]]
 ```
 ## A multivariate Poisson Lognormal fit with spherical covariance model.
 ## ==================================================================
-##  nb_param    loglik       BIC       ICL
-##       115 -20590.58 -20863.91 -22992.81
+##  nb_param    loglik      BIC       ICL
+##       115 -18399.77 -18673.1 -20775.65
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -937,10 +967,10 @@ table(myPLN_mix$memberships, oaks$tree)
 ```
 ##    
 ##     susceptible intermediate resistant
-##   1           0           37         0
-##   2           0            0        36
-##   3           6            1         3
-##   4          33            0         0
+##   1          33            0         0
+##   2           6            1         3
+##   3           0            0        36
+##   4           0           37         0
 ```
 &lt;/small&gt;
 
@@ -1040,8 +1070,8 @@ The extracted object has class `PLNPCAfit`. It inherits from the `PLNfit` class 
 ```
 ## Poisson Lognormal with rank constrained for PCA (rank = 29)
 ## ==================================================================
-##  nb_param    loglik       BIC       ICL
-##      3014 -45483.12 -52646.78 -49859.82
+##  nb_param    loglik      BIC       ICL
+##      3014 -45455.24 -52618.9 -49846.15
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -1316,6 +1346,10 @@ _SIAM journal on optimization_ 12.2, pp. 555-573.
 Wainwright, M. J. and M. I. Jordan (2008). "Graphical Models,
 Exponential Families, and Variational Inference". In: _Found. Trends
 Mach. Learn._ 1.1-2, pp. 1-305.
+
+Westling, T. and T. H. McCormick (2015). _Beyond prediction: A
+framework for inference with variational approximations in mixture
+models_. arXiv: 1510.08151 [stat.ME].
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="libs/remark-latest.min.js"></script>

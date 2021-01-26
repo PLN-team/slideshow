@@ -42,16 +42,17 @@ $$
 ]
 
 .pull-right[
-PLN has some expected properties
-- over-dispersion
-- covariance with arbitrary signs
+Stacking all individuals together, 
+  - $\mathbf{Y}$ is the $n\times p$ matrix of counts  
+  - $\mathbf{X}$ is the $n\times d$ matrix of design
+  - $\mathbf{O}$ is the $n\times p$ matrix of offsets
 ]
 
+### Properties: .small[.important[over-dispersion, arbitrary-signed covariances]]
 
-When all individuals $i=1,\dots,n$ are together, the data matrices required are
-  - the $n\times p$ matrix of counts  $\mathbf{Y}$
-  - the $n\times d$ matrix of design  $\mathbf{X}$
-  - the $n\times p$ matrix of offsets $\mathbf{O}$
+- mean: $\mathbb{E}(Y_{ij}) =  \exp \left( o_{ij} + \mathbf{x}_i^\top {\boldsymbol\Theta}_{\cdot j} + \sigma_{jj}/2\right) >  0$
+- variance: $\mathbb{V}(Y_{ij}) = \mathbb{E}(Y_{ij}) + \mathbb{E}(Y_{ij})^2 \left( e^{\sigma_{jj}} - 1 \right) > \mathbb{E}(Y_{ij})$
+- covariance: $\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).$
 
 ---
 # Geometrical view
@@ -98,32 +99,32 @@ p.observation.mixed <- p.observation.only +
 ```
 
 ---
-# .small[Inference: latent model but intractable EM]
+# Inference: .small[latent model but intractable EM]
   
-## Aim of the inference
+Estimate $\theta = (\boldsymbol\Theta, \boldsymbol\Sigma)$, predict the $\mathbf{Z}_i$, while  the model marginal likelihood is
 
-  - estimate $\theta = (\boldsymbol\Theta, \boldsymbol\Sigma)$ 
-  - predict the $\mathbf{Z}_i$
+$$p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i$$
 
-## Maximum likelihood
+### Maximum likelihood for incomplete data model: EM
 
-PLN is an incomplete data model: try EM
-$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_p [\log p_\theta(\mathbf{Y}, \mathbf{Z}) \,|\, \mathbf{Y}] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$ 
+With $\mathcal{H}(p) = -\mathbb{E}_p(\log(p))$ the entropy of $p$,
+
+$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_{p_\theta(\mathbf{Z}\,|\,\mathbf{Y})} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$ 
 
 EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$, but there is no close form!
 
-## Solutions
+### Solutions
 
   - `r Citep(myBib, "AiH89")` resort on numerical integration; `r Citep(myBib, "Kar05")` Monte-Carlo integration
   - Several heuristics, not always well motivated, found in the literature...
   - .important[Variational approach] `r Citep(myBib, "WaJ08")`: use a proxy of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$.
 
 ---
-# Variational approach: principle
+# Variational approximation
 
 .important[See the outstanding Stéphane Robin's Lecture]
 
-## Idea
+## Principle
 
   - Find a proxy of the conditional distribution $p(\mathbf{Z}\,|\,\mathbf{Y})$:
 
@@ -139,11 +140,11 @@ The Küllback-Leibler divergence .small[(error averaged wrt the approximated dis
 $$KL\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right) = \mathbb{E}_q\left[\log \frac{q(z)}{p(z)}\right] = \int_{\mathcal{Z}} q(z) \log \frac{q(z)}{p(z)} \mathrm{d}z.$$
 
 ---
-# Variational approach: PLN
+# Variational EM & PLN
 
 ## Class of distribution: diagonal multivariate Gaussian
 
-$$\mathcal{Q} = \Big\{q: \quad q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \quad q_i(\mathbf{Z}_i) = \mathcal{N}(\mathbf{Z}_i; \mathbf{m}_i, \mathbf{s}_i \circ \mathbf{s}_i) \Big\}$$
+$$\mathcal{Q} = \Big\{q: \quad q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \quad q_i(\mathbf{Z}_i) = \mathcal{N}\left(\mathbf{Z}_i; \mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i)\right), \mathbf{m}_i, \mathbf{s}_i\in\mathbb{R}_p \Big\}$$
 
 Maximize the ELBO (Evidence Lower BOund):
 
@@ -157,6 +158,29 @@ $$q^h = \arg \max J(\theta^h, q) = \arg\min_{q \in \mathcal{Q}} KL[q(\mathbf{Z})
 $$\theta^h = \arg\max J(\theta, q^h) = \arg\max_{\theta} \mathbb{E}_{q} [\log p_{\theta}(\mathbf{Y}, \mathbf{Z})]$$
 
 ---
+# ELBO and gradients for PLN
+
+Let $\mathbf{A} = \exp\left(\mathbf{O} + \mathbf{M} + \frac12 \mathbf{S}^2\right)$
+
+### Variational bound
+
+$$\begin{array}{ll}
+J(\mathbf{Y}) & = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\mathbf{O} + \mathbf{M}) - \mathbf{A} + \log(\mathbf{S})\right]\right) \mathbf{1}_{p} + \frac{n}2\log|{\boldsymbol\Omega}| \\
+& - \frac12 \mathrm{trace}\left({\boldsymbol\Omega} \bigg[\left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right)^\intercal \left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right) + \mathrm{diag}(\mathbf{1}_n^\intercal\mathbf{S}^2)\bigg]\right) + \text{cst.}\\
+\end{array}$$
+
+### M-step
+
+$$\hat{{\boldsymbol\Theta}} = \left(\mathbf{X}^\top \mathbf{X}\right)^{-1} \mathbf{X} \mathbf{M}, \quad 
+   \hat{{\boldsymbol\Sigma}} = \frac{1}{n} \left(\mathbf{M}-\mathbf{X}\hat{{\boldsymbol\Theta}}\right)^\top \left(\mathbf{M}-\mathbf{X}\hat{\boldsymbol\Theta}\right) + \frac{1}{n} \mathrm{diag}(\mathbf{1}^\intercal\mathbf{S}^2)$$
+
+### Variational E-step
+
+$$\frac{\partial J(q)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}) \mathbf{\Omega}\right), \qquad \frac{\partial J(q)}{\partial \mathbf{S}} = \frac{1}{\mathbf{S}} - \mathbf{S} \circ \mathbf{A} - \mathbf{S} \mathrm{D}_{\boldsymbol\Omega} .$$
+
+
+---
+
 # .small[Application to the optimization of PLN models]
   
 ## Property of PLN variational approximation
@@ -180,9 +204,15 @@ Gradient ascent for the complete set of parameters<sup>1</sup> $(\mathbf{M}, \ma
 ---
 # Properties of the variational estimators
 
-.important[VEM stationary point is not a log-likelihood stationary point]
+## Classical M-estimation 
 
-## Simulations settings
+We can derive asymptotic behavior (like Hessian-based Fisher information matrix for the variance) ...
+
+... But VEM stationary point is .important[not a log-likelihood stationary point], see `r Citep(myBib, 'Westling2015')`
+
+<br />
+
+## Numerical study
 
 - number of samples $n \in \{50, 100, 500, 1000, 10000\}$
 - number of species/genes $p \in \{20, 200\}$
@@ -192,26 +222,26 @@ Gradient ascent for the complete set of parameters<sup>1</sup> $(\mathbf{M}, \ma
 - $\boldsymbol\Sigma$ as $\sigma_{jk} = \sigma^2 \rho^{|j-k|}$, with $\rho = 0.2$
 - $\mathbf{\Theta}$ with entries sampled from $\mathcal{N}(0,1/d)$
 
-## Striking conclusion
-
-- asymptotically .important[unbiased]
-- variance (using naïve approach with Hessian-based Fisher information matrix) .important[underestimated]
-
-$\rightsquigarrow$ No trusted confidence intervals can be easily derived with this approach
-
 ---
 
-# Bias
+# Bias of $\hat{\boldsymbol\Theta}$
 
 ![Bias](slides_files/PLN_bias.png)
 
+$\rightsquigarrow$ .important[asymptotically unbiased]
+
 ---
 
-# Root mean square error
+# Root mean square error of $\hat{\boldsymbol\Theta}$
 
 ![RMSE](slides_files/PLN_rmse.png)
+
+$\rightsquigarrow$ .important[asymptotically unbiased]
+
 ---
 
-# Coverage
+# 95% confident interval - Coverage
 
 ![Coverage](slides_files/PLN_confint.png)
+
+.important[variance underestimated], no trusted confidence intervals can be derived out-of-the box
