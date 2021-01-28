@@ -3,7 +3,7 @@
   <head>
     <title>PLNmodels</title>
     <meta charset="utf-8" />
-    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 26 January, 2021" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 28 January, 2021" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
@@ -24,7 +24,7 @@ class: center, middle, inverse, title-slide
 
 # PLNmodels
 ## A collection of Poisson lognormal models <br/> for multivariate analysis of count data
-### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 26 January, 2021</small>
+### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 28 January, 2021</small>
 ### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
 
 ---
@@ -53,7 +53,7 @@ packageVersion("PLNmodels")
 ```
 
 ```
-## [1] '0.11.2.9017'
+## [1] '0.11.3.9000'
 ```
 
 ## Help and documentation
@@ -177,8 +177,8 @@ oaks$Abundance %&gt;% as_tibble() %&gt;%
   head() %&gt;% DT::datatable(fillContainer = FALSE)
 ```
 
-<div id="htmlwidget-eacfe2f7e9802a286eab" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-eacfe2f7e9802a286eab">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-7ec9161c57a36bf6ed61" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-7ec9161c57a36bf6ed61">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>b_OTU_1045<\/th>\n      <th>b_OTU_109<\/th>\n      <th>b_OTU_1093<\/th>\n      <th>b_OTU_11<\/th>\n      <th>b_OTU_112<\/th>\n      <th>b_OTU_1191<\/th>\n      <th>b_OTU_1200<\/th>\n      <th>b_OTU_123<\/th>\n      <th>b_OTU_13<\/th>\n      <th>b_OTU_1431<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 
 ---
 
@@ -465,7 +465,7 @@ M00_oaks
 ## A multivariate Poisson Lognormal fit with full covariance model.
 ## ==================================================================
 ##  nb_param    loglik       BIC       ICL
-##      6669 -50893.08 -66743.93 -70854.94
+##      6669 -50932.83 -66783.67 -70867.64
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -498,12 +498,12 @@ coef(M00_oaks) %&gt;% head() %&gt;% t() %&gt;% knitr::kable(format = "html")
 &lt;tbody&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.197219 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -1.089349 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -2.229673 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.729653 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -0.4558729 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.4939436 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.24894 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -1.07084 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -2.276925 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.717515 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.4412986 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4977729 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -585,30 +585,30 @@ rbind(M00 = M00_oaks$criteria, M01 = M01_oaks$criteria,
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M00 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6669 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50893.08 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66743.93 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70854.94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50932.83 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66783.67 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70867.64 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M01 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6669 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50833.95 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66684.80 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70802.40 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50831.26 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66682.11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70795.53 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M11 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6897 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50126.83 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66519.58 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70228.53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50117.81 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66510.56 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70231.48 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M21 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 7011 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50056.90 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66720.61 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70334.93 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -50049.63 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -66713.34 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -70338.33 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -735,8 +735,8 @@ no need for model selection!
 ```
 ## Linear Discriminant Analysis for Poisson Lognormal distribution
 ## ==================================================================
-##  nb_param    loglik      BIC       ICL
-##       570 -50126.83 -51481.6 -55190.54
+##  nb_param    loglik       BIC      ICL
+##       570 -50117.81 -51472.58 -55193.5
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -857,7 +857,7 @@ When `\(p\)` is large, general forms of `\({\boldsymbol\Sigma}^{(k)}\)` lead to 
 
 ```r
 PLN_mixtures &lt;- 
-  PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks,
+   PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks,
              clusters = 1:5, control_main = list(cores = 10))
 ```
 
@@ -875,8 +875,8 @@ PLN_mixtures
 ##  Task: Mixture Model 
 ## ========================================================
 ##  - Number of clusters considered: from 1 to 5 
-##  - Best model (regarding BIC): cluster = 4 
-##  - Best model (regarding ICL): cluster = 4
+##  - Best model (regarding BIC): cluster = 5 
+##  - Best model (regarding ICL): cluster = 5
 ```
 
 `PLNmixturesfamily` has three methods: `plot`, `getModel`, `getBestModel`&lt;sup&gt;1&lt;/sup&gt; 
@@ -903,7 +903,7 @@ To extract a particular model from the collection, use `getBestModel`:
 
 
 ```r
-myPLN_mix &lt;- getBestModel(PLN_mixtures, "BIC")
+myPLN_mix &lt;- getModel(PLN_mixtures, 3)
 ```
 
 The extracted object has class `PLNmixturefit`. It contains various information plus `\(K\)` components with class `PLNfit`.
@@ -915,7 +915,7 @@ myPLN_mix
 ```
 
 ```
-## Poisson Lognormal mixture model with 4 components.
+## Poisson Lognormal mixture model with 3 components.
 ## * check fields $posteriorProb, $memberships, $mixtureParam and $components
 ## * check methods $plot_clustering_data, $plot_clustering_pca
 ## * each $component[[i]] is a PLNfit with associated methods and fields
@@ -929,8 +929,8 @@ myPLN_mix$components[[1]]
 ```
 ## A multivariate Poisson Lognormal fit with spherical covariance model.
 ## ==================================================================
-##  nb_param    loglik      BIC       ICL
-##       115 -18399.77 -18673.1 -20775.65
+##  nb_param    loglik       BIC       ICL
+##       115 -23591.35 -23864.69 -25290.36
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -975,13 +975,53 @@ table(myPLN_mix$memberships, oaks$tree)
 ```
 ##    
 ##     susceptible intermediate resistant
-##   1          33            0         0
-##   2           6            1         3
-##   3           0            0        36
-##   4           0           37         0
+##   1          39            0         1
+##   2           0           38         0
+##   3           0            0        38
 ```
 &lt;/small&gt;
 
+
+---
+# Clustering on corrected data I
+
+
+```r
+PLN_mixtures_tree &lt;- 
+   PLNmixture(Abundance ~ 0 + tree + distTOground + offset(log(Offset)), data = oaks,
+             clusters = 1:5, control_main = list(cores = 10))
+```
+
+
+```r
+plot(PLN_mixtures_tree, criteria = c("loglik", "BIC"))
+```
+
+![](slides_files/figure-html/plot PLNmixtures cov offset-1.png)&lt;!-- --&gt;
+
+---
+# Clustering on corrected data II
+
+
+
+
+.pull-left[
+
+```r
+myPLN_mix_cov$plot_clustering_pca()
+```
+
+![](slides_files/figure-html/PLN clustering cov 1-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+
+```r
+myPLN_mix_cov$plot_clustering_data()
+```
+
+![](slides_files/figure-html/PLN clustering cov 2-1.png)&lt;!-- --&gt;
+]
 
 ---
 
@@ -1078,8 +1118,8 @@ The extracted object has class `PLNPCAfit`. It inherits from the `PLNfit` class 
 ```
 ## Poisson Lognormal with rank constrained for PCA (rank = 29)
 ## ==================================================================
-##  nb_param    loglik      BIC       ICL
-##      3014 -45455.24 -52618.9 -49846.15
+##  nb_param    loglik       BIC       ICL
+##      3014 -45483.12 -52646.78 -49859.82
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par

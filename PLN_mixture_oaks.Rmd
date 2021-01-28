@@ -52,7 +52,7 @@ $$\begin{array}{rrcll}
 
 ```{r PLNmixture oaks, cache = TRUE, results = FALSE}
 PLN_mixtures <- 
-  PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks,
+   PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks,
              clusters = 1:5, control_main = list(cores = 10))
 ```
 
@@ -82,7 +82,7 @@ plot(PLN_mixtures, criteria = c("loglik", "ICL", "BIC"))
 To extract a particular model from the collection, use `getBestModel`:
 
 ```{r extract PLNmixture offset}
-myPLN_mix <- getBestModel(PLN_mixtures, "BIC")
+myPLN_mix <- getModel(PLN_mixtures, 3)
 ```
 
 The extracted object has class `PLNmixturefit`. It contains various information plus $K$ components with class `PLNfit`.
@@ -137,3 +137,40 @@ table(myPLN_mix$memberships, oaks$tree)
 ```
 </small>
 
+
+---
+# Clustering on corrected data I
+
+```{r PLNmixture oaks tree, cache = TRUE, results = FALSE}
+PLN_mixtures_tree <- 
+   PLNmixture(Abundance ~ 0 + tree + distTOground + offset(log(Offset)), data = oaks,
+             clusters = 1:5, control_main = list(cores = 10))
+```
+
+```{r plot PLNmixtures cov offset, fig.width = 12, fig.height=6}
+plot(PLN_mixtures_tree, criteria = c("loglik", "BIC"))
+```
+
+---
+# Clustering on corrected data II
+
+```{r PLN clustering cov selec, echo = FALSE}
+myPLN_mix_cov <- getBestModel(PLN_mixtures_tree, "BIC")
+```
+
+
+.pull-left[
+```{r PLN clustering cov 1 fake, eval = FALSE}
+myPLN_mix_cov$plot_clustering_pca()
+```
+
+```{r PLN clustering cov 1, echo = FALSE}
+myPLN_mix_cov$plot_clustering_pca(main = 'clustering memberships in individual factor map')
+```
+]
+
+.pull-right[
+```{r PLN clustering cov 2}
+myPLN_mix_cov$plot_clustering_data()
+```
+]
