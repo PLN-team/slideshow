@@ -65,7 +65,7 @@ $\rightsquigarrow$ `readsTOTfun` and `readsTOTbac` are candidate for modeling sa
 ```{r glimpse Abundance}
 oaks$Abundance %>% as_tibble() %>% 
   dplyr::select(1:10) %>% 
-  head() %>% DT::datatable(fillContainer = FALSE)
+  head() %>% knitr::kable(format = "html")
 ```
 
 ---

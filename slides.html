@@ -3,19 +3,10 @@
   <head>
     <title>PLNmodels</title>
     <meta charset="utf-8" />
-    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 16 February, 2021" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 01 March, 2021" />
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
-    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
-    <script src="libs/jquery/jquery.min.js"></script>
-    <link href="libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
-    <script src="libs/datatables-binding/datatables.js"></script>
-    <link href="libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
-    <link href="libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
-    <script src="libs/dt-core/js/jquery.dataTables.min.js"></script>
-    <link href="libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
-    <script src="libs/crosstalk/js/crosstalk.min.js"></script>
     <link rel="stylesheet" href="pln.css" type="text/css" />
   </head>
   <body>
@@ -24,7 +15,7 @@ class: center, middle, inverse, title-slide
 
 # PLNmodels
 ## A collection of Poisson lognormal models <br/> for multivariate analysis of count data
-### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 16 February, 2021</small>
+### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 01 March, 2021</small>
 ### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
 
 ---
@@ -53,7 +44,7 @@ packageVersion("PLNmodels")
 ```
 
 ```
-## [1] '0.11.3.9330'
+## [1] '0.11.3.9350'
 ```
 
 ## Help and documentation
@@ -174,13 +165,99 @@ summary(oaks$distTOground)
 ```r
 oaks$Abundance %&gt;% as_tibble() %&gt;% 
   dplyr::select(1:10) %&gt;% 
-  head() %&gt;% DT::datatable(fillContainer = FALSE)
+  head() %&gt;% knitr::kable(format = "html")
 ```
 
-```{=html}
-&lt;div id="htmlwidget-062d51fe778292e94225" style="width:100%;height:auto;" class="datatables html-widget"&gt;&lt;/div&gt;
-&lt;script type="application/json" data-for="htmlwidget-062d51fe778292e94225"&gt;{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6"],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[6,0,2,1,4,77],[146,0,0,1,1,2],[1,1,0,1,1,20],[6,0,0,0,1,0],[6,0,0,4,0,20],[68,4,128,121,113,90],[0,1,0,1,0,57]],"container":"&lt;table class=\"display\"&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt; &lt;\/th&gt;\n      &lt;th&gt;b_OTU_1045&lt;\/th&gt;\n      &lt;th&gt;b_OTU_109&lt;\/th&gt;\n      &lt;th&gt;b_OTU_1093&lt;\/th&gt;\n      &lt;th&gt;b_OTU_11&lt;\/th&gt;\n      &lt;th&gt;b_OTU_112&lt;\/th&gt;\n      &lt;th&gt;b_OTU_1191&lt;\/th&gt;\n      &lt;th&gt;b_OTU_1200&lt;\/th&gt;\n      &lt;th&gt;b_OTU_123&lt;\/th&gt;\n      &lt;th&gt;b_OTU_13&lt;\/th&gt;\n      &lt;th&gt;b_OTU_1431&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9,10]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}&lt;/script&gt;
-```
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_1045 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_109 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_1093 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_11 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_112 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_1191 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_1200 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_123 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_13 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; b_OTU_1431 &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 146 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 128 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 121 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 113 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 77 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 90 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 57 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 
 ---
 
@@ -467,7 +544,7 @@ M00_oaks
 ## A multivariate Poisson Lognormal fit with full covariance model.
 ## ==================================================================
 ##  nb_param    loglik       BIC       ICL
-##      6669 -50932.83 -66783.67 -70867.64
+##      6669 -32333.38 -48184.23 -52268.19
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -587,30 +664,30 @@ rbind(M00 = M00_oaks$criteria, M01 = M01_oaks$criteria,
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M00 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6669 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50932.83 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66783.67 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70867.64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -32333.38 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -48184.23 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -52268.20 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M01 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6669 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50831.26 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66682.11 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70795.53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -32231.82 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -48082.66 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -52196.08 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M11 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 6897 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50117.81 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66510.56 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70231.48 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -31518.36 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -47911.12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -51632.03 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M21 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 7011 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -50049.63 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -66713.34 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -70338.33 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -31450.18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -48113.89 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -51738.89 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -737,8 +814,8 @@ no need for model selection!
 ```
 ## Linear Discriminant Analysis for Poisson Lognormal distribution
 ## ==================================================================
-##  nb_param    loglik       BIC      ICL
-##       570 -50117.81 -51472.58 -55193.5
+##  nb_param    loglik       BIC       ICL
+##       570 -31518.36 -32873.14 -36594.05
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -932,7 +1009,7 @@ myPLN_mix$components[[1]]
 ## A multivariate Poisson Lognormal fit with spherical covariance model.
 ## ==================================================================
 ##  nb_param    loglik       BIC       ICL
-##       115 -21480.02 -21753.35 -23742.86
+##       115 -15387.55 -15660.89 -17650.12
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
@@ -1121,7 +1198,7 @@ The extracted object has class `PLNPCAfit`. It inherits from the `PLNfit` class 
 ## Poisson Lognormal with rank constrained for PCA (rank = 29)
 ## ==================================================================
 ##  nb_param    loglik       BIC       ICL
-##      3014 -45483.12 -52646.78 -49859.82
+##      3014 -26883.67 -34047.33 -31260.38
 ## ==================================================================
 ## * Useful fields
 ##     $model_par, $latent, $var_par, $optim_par
