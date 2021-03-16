@@ -121,7 +121,7 @@ In `getBestModel`, when "StARS" is requested, stabilitiy selection is performed 
 
 ```{r stability selection fake, eval = FALSE}
 
-stability_selection(networks_oaks_tree, mc.cores = 10)
+stability_selection(networks_oaks_tree)
 ```
 
 ```{r stability selection, cache = TRUE, echo = FALSE, results='hide'}
@@ -131,7 +131,7 @@ networks_oaks_tree <-
            offset(log(Offset)),
     data = oaks
   )
-stability_selection(networks_oaks_tree, mc.cores = 10)
+stability_selection(networks_oaks_tree)
 ```
 
 

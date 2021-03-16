@@ -52,8 +52,7 @@ $$\begin{array}{rrcll}
 
 ```{r PLNmixture oaks, cache = TRUE, results = FALSE}
 PLN_mixtures <- 
-   PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks,
-             clusters = 1:5, control_main = list(cores = 10))
+   PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks, clusters = 1:5)
 ```
 
 The ouput is of class (`PLNmixturefamily`). It a collection of `R` objects:
@@ -73,7 +72,7 @@ PLN_mixtures
 The plot function gives you hints about the "right" rank/subspace size of your data
 
 ```{r plot PLNmixtures offset, fig.width = 12, fig.height=6}
-plot(PLN_mixtures, criteria = c("loglik", "ICL", "BIC"))
+plot(PLN_mixtures, criteria = c("loglik", "ICL", "BIC"), reverse = TRUE)
 ```
 
 ---
@@ -144,11 +143,11 @@ table(myPLN_mix$memberships, oaks$tree)
 ```{r PLNmixture oaks tree, cache = TRUE, results = FALSE}
 PLN_mixtures_tree <- 
    PLNmixture(Abundance ~ 0 + tree + distTOground + offset(log(Offset)), data = oaks,
-             clusters = 1:5, control_main = list(cores = 10))
+             clusters = 1:5)
 ```
 
 ```{r plot PLNmixtures cov offset, fig.width = 12, fig.height=6}
-plot(PLN_mixtures_tree, criteria = c("loglik", "BIC"))
+plot(PLN_mixtures_tree, criteria = c("loglik", "BIC"), reverse = TRUE)
 ```
 
 ---

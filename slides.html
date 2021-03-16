@@ -3,7 +3,8 @@
   <head>
     <title>PLNmodels</title>
     <meta charset="utf-8" />
-    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 01 March, 2021" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 16 March, 2021" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
@@ -15,7 +16,7 @@ class: center, middle, inverse, title-slide
 
 # PLNmodels
 ## A collection of Poisson lognormal models <br/> for multivariate analysis of count data
-### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 01 March, 2021</small>
+### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 16 March, 2021</small>
 ### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
 
 ---
@@ -44,8 +45,10 @@ packageVersion("PLNmodels")
 ```
 
 ```
-## [1] '0.11.3.9350'
+## [1] '0.11.4'
 ```
+
+
 
 ## Help and documentation
 
@@ -547,7 +550,7 @@ M00_oaks
 ##      6669 -32333.38 -48184.23 -52268.19
 ## ==================================================================
 ## * Useful fields
-##     $model_par, $latent, $var_par, $optim_par
+##     $model_par, $latent, $latent_pos, $var_par, $optim_par
 ##     $loglik, $BIC, $ICL, $loglik_vec, $nb_param, $criteria
 ## * Useful S3 methods
 ##     print(), coef(), sigma(), vcov(), fitted(), predict(), standard_error()
@@ -818,7 +821,7 @@ no need for model selection!
 ##       570 -31518.36 -32873.14 -36594.05
 ## ==================================================================
 ## * Useful fields
-##     $model_par, $latent, $var_par, $optim_par
+##     $model_par, $latent, $latent_pos, $var_par, $optim_par
 ##     $loglik, $BIC, $ICL, $loglik_vec, $nb_param, $criteria
 ## * Useful S3 methods
 ##     print(), coef(), sigma(), vcov(), fitted(), predict(), standard_error()
@@ -936,8 +939,7 @@ When `\(p\)` is large, general forms of `\({\boldsymbol\Sigma}^{(k)}\)` lead to 
 
 ```r
 PLN_mixtures &lt;- 
-   PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks,
-             clusters = 1:5, control_main = list(cores = 10))
+   PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks, clusters = 1:5)
 ```
 
 The ouput is of class (`PLNmixturefamily`). It a collection of `R` objects:
@@ -970,7 +972,7 @@ The plot function gives you hints about the "right" rank/subspace size of your d
 
 
 ```r
-plot(PLN_mixtures, criteria = c("loglik", "ICL", "BIC"))
+plot(PLN_mixtures, criteria = c("loglik", "ICL", "BIC"), reverse = TRUE)
 ```
 
 ![](slides_files/figure-html/plot PLNmixtures offset-1.png)&lt;!-- --&gt;
@@ -994,10 +996,14 @@ myPLN_mix
 ```
 
 ```
-## Poisson Lognormal mixture model with 3 components.
-## * check fields $posteriorProb, $memberships, $model_par, $mixtureParam
-## * check S3 methods plot, coef, predict, fitted, sigma
-## * each $component[[i]] is a PLNfit with associated methods and fields
+## Poisson Lognormal mixture model with 3 components and spherical covariances.
+## * Useful fields
+##     $posteriorProb, $memberships, $mixtureParam, $group_means
+##     $model_par, $latent, $latent_pos, $optim_par
+##     $loglik, $BIC, $ICL, $loglik_vec, $nb_param, $criteria
+##     $component[[i]] (a PLNfit with associated methods and fields)
+## * Useful S3 methods
+##     print(), coef(), sigma(), fitted(), predict()
 ```
 
 
@@ -1009,10 +1015,10 @@ myPLN_mix$components[[1]]
 ## A multivariate Poisson Lognormal fit with spherical covariance model.
 ## ==================================================================
 ##  nb_param    loglik       BIC       ICL
-##       115 -15387.55 -15660.89 -17650.12
+##       115 -14705.56 -14978.89 -16879.44
 ## ==================================================================
 ## * Useful fields
-##     $model_par, $latent, $var_par, $optim_par
+##     $model_par, $latent, $latent_pos, $var_par, $optim_par
 ##     $loglik, $BIC, $ICL, $loglik_vec, $nb_param, $criteria
 ## * Useful S3 methods
 ##     print(), coef(), sigma(), vcov(), fitted(), predict(), standard_error()
@@ -1054,9 +1060,9 @@ table(myPLN_mix$memberships, oaks$tree)
 ```
 ##    
 ##     susceptible intermediate resistant
-##   1           0           38         0
-##   2          39            0         1
-##   3           0            0        38
+##   1           0            0        39
+##   2          39            0         0
+##   3           0           38         0
 ```
 &lt;/small&gt;
 
@@ -1068,12 +1074,12 @@ table(myPLN_mix$memberships, oaks$tree)
 ```r
 PLN_mixtures_tree &lt;- 
    PLNmixture(Abundance ~ 0 + tree + distTOground + offset(log(Offset)), data = oaks,
-             clusters = 1:5, control_main = list(cores = 10))
+             clusters = 1:5)
 ```
 
 
 ```r
-plot(PLN_mixtures_tree, criteria = c("loglik", "BIC"))
+plot(PLN_mixtures_tree, criteria = c("loglik", "BIC"), reverse = TRUE)
 ```
 
 ![](slides_files/figure-html/plot PLNmixtures cov offset-1.png)&lt;!-- --&gt;
@@ -1141,8 +1147,7 @@ Let us fit PLNPCA on our best model up to now (with TSS as offsets):
 
 ```r
 PCA_offset &lt;- 
-  PLNPCA(Abundance ~ 1 + offset(log(Offset)), data = oaks, 
-         ranks = 1:30, control_main = list(cores = 10))
+  PLNPCA(Abundance ~ 1 + offset(log(Offset)), data = oaks, ranks = 1:30)
 ```
 
 
@@ -1175,7 +1180,7 @@ The plot function gives you hints about the "right" rank/subspace size of your d
 
 
 ```r
-plot(PCA_offset)
+plot(PCA_offset, reverse = TRUE)
 ```
 
 ![](slides_files/figure-html/plot PLNPCA offset-1.png)&lt;!-- --&gt;
@@ -1201,7 +1206,7 @@ The extracted object has class `PLNPCAfit`. It inherits from the `PLNfit` class 
 ##      3014 -26883.67 -34047.33 -31260.38
 ## ==================================================================
 ## * Useful fields
-##     $model_par, $latent, $var_par, $optim_par
+##     $model_par, $latent, $latent_pos, $var_par, $optim_par
 ##     $loglik, $BIC, $ICL, $loglik_vec, $nb_param, $criteria
 ## * Useful S3 methods
 ##     print(), coef(), sigma(), vcov(), fitted(), predict(), standard_error()
@@ -1261,7 +1266,7 @@ To hopefully find some hidden effects in the data, we can try to remove confound
 
 ```r
 PCA_tree &lt;- PLNPCA(Abundance ~ 0 + tree + offset(log(Offset)), 
-                   data = oaks, ranks = 1:30, control_main = list(cores = 10))
+                   data = oaks, ranks = 1:30)
 ```
 
 &lt;img src="slides_files/figure-html/PCA covariate tree plot-1.png" style="display: block; margin: auto;" /&gt;
@@ -1389,7 +1394,7 @@ In `getBestModel`, when "StARS" is requested, stabilitiy selection is performed 
 
 
 ```r
-stability_selection(networks_oaks_tree, mc.cores = 10)
+stability_selection(networks_oaks_tree)
 ```
 
 
@@ -1477,6 +1482,7 @@ Mach. Learn._ 1.1-2, pp. 1-305.
 Westling, T. and T. H. McCormick (2015). _Beyond prediction: A
 framework for inference with variational approximations in mixture
 models_. arXiv: 1510.08151 [stat.ME].
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="libs/remark-latest.min.js"></script>

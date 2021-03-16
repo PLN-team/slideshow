@@ -42,9 +42,14 @@ install.packages("PLNmodels")
 devtools::install_github("jchiquet/PLNmodels")
 ```
 
-```{r loading package}
+```{r loading package, message=FALSE}
 library(PLNmodels)
 packageVersion("PLNmodels")
+```
+
+```{r future, echo=FALSE}
+options(future.fork.enable = TRUE)
+future::plan("multicore", workers = 10)
 ```
 
 ## Help and documentation
