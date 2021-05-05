@@ -1,0 +1,111 @@
+
+---
+
+# Other tracks for optimization
+
+.important[Bastien Batardière's MsC internship] co-supervized with Joon Kwon and Laure Sansonnet
+
+## Use tools from deep-learning
+
+Keep on optimizing the variational criterion, by relying on
+
+- tools for automatic differentiation
+- stochastic-gradient descent variants
+- GPU
+
+$\rightsquigarrow$ first prove of concept with **Pytorch** for PLN/PLNPCA 
+
+## Alternate objective functions
+
+- Other variational approximations
+- Direct optimization of the log-likelihood via gradient approximation
+
+---
+
+# PLN model: alternate objectives (I)
+
+## Alternate formulation (inspired by PLN-PCA)
+
+$$\begin{align*}
+W_i&\sim \mathcal{N}(0,I_p),\text{ iid}, \quad i=1,\dots,n\\
+Z_i&=\mathbf{\Theta}\mathbf{x}_i+\mathbf{C} W_i,\quad i\in 1,\dots,n,\\
+Y_{ij}|Z_{ij}&\sim \mathcal{P}(\exp \left( o_{ij}+Z_{ij} \right)).
+\end{align*}$$
+
+## Variational approximation on $W$
+
+We now use $q(\mathbf{W}) \approx p_\theta(\mathbf{W} | \mathbf{Y})$, with $q(\mathbf{W}_i) \sim \mathcal{N}(\mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i))$
+
+We found
+
+$$
+\begin{gather*}
+J(\mathbf{Y}) = \mathbf{1}_n^\intercal \left( \mathbf{Y} \circ \left[\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top\right] - \mathbf{A} - \frac12 \left[\mathbf{M}^2 + \mathbf{S}^2 - \log(\mathbf{S}^2)\right] \right) \mathbf{1}_{p} + \text{cst.}\\
+\mathrm{with} \quad  \mathbf{A} = \exp(\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top + \mathbf{S}^2 (\mathbf{C}^2)^\top )
+\end{gather*}
+$$
+
+$\rightsquigarrow$ Direct gradient ascent on $(\mathbf{C}, \mathbf{\Theta}, \mathbf{M}, \mathbf{S})$
+
+---
+
+# PLN model: alternate objectives (II)
+
+## Target log-likelihood 
+
+Likelihood of an observation $Y_i$ $(i\in [n])$ writes:
+
+$$\log p_{\theta}(Y_i)=\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\quad \dots \quad  \right) \right]$$
+
+Function to minimize:
+$$F(\theta)=-\frac{1}{n}\sum_{i=1}^n\log p_{\theta}(Y_i).$$
+
+- Optimize log-likelihood directly
+
+- Statistical guarantees easiest to derive
+
+$\rightsquigarrow$ How?
+
+---
+# SGD + importance sampling
+
+## Gradient Descent
+ 
+$$\theta_{t+1}=\theta_t-\gamma_t\nabla F(\theta_t)$$
+
+where
+
+$$\nabla F(\theta)=-\frac{1}{n}\sum_{i=1}^n\frac{\nabla_{\theta}
+                  p_{\theta}(Y_i)}{p_{\theta}(Y_i)}
+  =-\frac{1}{n}\sum_{i=1}^n\frac{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \nabla_\theta\exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right) \right)   \right] }{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right)  \right) \right] }$$
+
+## Stochastic gradient Descent
+
+We replace $\nabla F(\theta_t)$ by an unbiased estimator $\hat{g}_t$ to get SGD:
+
+$$\theta_{t+1}=\theta_t-\gamma_t\hat{g}_t,\qquad \text{where}\quad  \mathbb{E}\left[ \hat{g}_t\mid \theta_t \right] =\nabla F(\theta_t).$$
+Estimator $\hat{g}_t$ can be constructed by
+
+- Sampling values of $W$
+- Possibly sampling a subset $I\subset \left\{ n \right\}$ of a given cardinality.
+
+---
+# Adaptive algorithms
+
+## Sophistications of SGD
+
+- AdaGrad (2011) uses adaptive coordinate-wise step-sizes:
+
+  $$\theta_{t+1} = \theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}} \odot \hat{g}_t \qquad \text{where} \quad G_t = \sum_{s=1}^{t}\hat{g}_s^{\odot 2}.$$
+
+- RMSProp (2012) adds momentum to the step-sizes:
+  
+  $$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{g}_t\qquad \text{where}\quad G_t=\alpha G_{t-1}+(1-\alpha)\hat{g}_t^{\odot 2}.$$
+
+- Adam (2015) also adds momentum to the gradients:
+  
+  $$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{m}_t\qquad \text{where}\quad m_t=\beta m_{t-1}+(1-\beta)\hat{g}_t.$$
+
+<br />
+
+$\rightsquigarrow$ All available in **Pytorch** with auto-differentiation.

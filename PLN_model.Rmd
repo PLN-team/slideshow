@@ -165,7 +165,7 @@ Let $\mathbf{A} = \mathbb{E}_q[\exp(\mathbf{Z})] = \exp\left(\mathbf{O} + \mathb
 ### Variational bound
 
 $$\begin{array}{ll}
-J(\mathbf{Y}) & = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\mathbf{O} + \mathbf{M}) - \mathbf{A} + \log(\mathbf{S})\right]\right) \mathbf{1}_{p} + \frac{n}2\log|{\boldsymbol\Omega}| \\
+J(\mathbf{Y}) & = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\mathbf{O} + \mathbf{M}) - \mathbf{A} + \frac12\log(\mathbf{S}^2)\right]\right) \mathbf{1}_{p} + \frac{n}2\log|{\boldsymbol\Omega}| \\
 & - \frac12 \mathrm{trace}\left({\boldsymbol\Omega} \bigg[\left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right)^\intercal \left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right) + \mathrm{diag}(\mathbf{1}_n^\intercal\mathbf{S}^2)\bigg]\right) + \text{cst.}\\
 \end{array}$$
 
@@ -187,7 +187,7 @@ $$\frac{\partial J(q)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (
 
 The ELBO $J(\theta, q)$ is bi-concave, i.e.
   - concave wrt $q = (\mathbf{M}, \mathbf{S})$ for given $\theta$ 
-  - convace wrt $\theta = (\boldsymbol\Sigma, \boldsymbol\Theta)$ for given $q$ 
+  - concave wrt $\theta = (\boldsymbol\Sigma, \boldsymbol\Theta)$ for given $q$ 
 but .important[not jointly concave] in general.
 
 ## Optimization
@@ -201,47 +201,3 @@ Gradient ascent for the complete set of parameters<sup>1</sup> $(\mathbf{M}, \ma
 .footnote[[1] Alternating between variational and model parameters is useless here <br/>
           [2] Optimizing on $\mathbf{S}$ such as $\mathbf{S} \circ \mathbf{S} = \mathbf{S}^2$ is the variance avoids positive constraints ]
 
----
-# Properties of the variational estimators
-
-## Classical M-estimation 
-
-We can derive asymptotic behavior (like Hessian-based Fisher information matrix for the variance) ...
-
-... But VEM stationary point is .important[not a log-likelihood stationary point], see `r Citep(myBib, 'Westling2015')`
-
-<br />
-
-## Numerical study
-
-- number of samples $n \in \{50, 100, 500, 1000, 10000\}$
-- number of species/genes $p \in \{20, 200\}$
-- number of covariates $d \in \{2, 5, 10\}$
-- sampling effort $TSS \in \{\text{low}, \text{medium}, \text{high}\}$ ($\approx 10^4$, $10^5$ and $10^6$)
-- noise level $\sigma^2 \in \{0.2, 0.5, 1, 2\}$
-- $\boldsymbol\Sigma$ as $\sigma_{jk} = \sigma^2 \rho^{|j-k|}$, with $\rho = 0.2$
-- $\mathbf{\Theta}$ with entries sampled from $\mathcal{N}(0,1/d)$
-
----
-
-# Bias of $\hat{\boldsymbol\Theta}$
-
-![Bias](slides_files/PLN_bias.png)
-
-$\rightsquigarrow$ .important[asymptotically unbiased]
-
----
-
-# Root mean square error of $\hat{\boldsymbol\Theta}$
-
-![RMSE](slides_files/PLN_rmse.png)
-
-$\rightsquigarrow$ .important[asymptotically unbiased]
-
----
-
-# 95% confident interval - Coverage
-
-![Coverage](slides_files/PLN_confint.png)
-
-.important[variance underestimated], no trusted confidence intervals can be derived out-of-the box

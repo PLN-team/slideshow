@@ -75,10 +75,17 @@ class: inverse, center, middle
 ---
 class: inverse, center, middle
 
-# Multivariate Poisson lognormal models <br/> .small[Statistical framework and inference]
+# Multivariate Poisson lognormal models <br/> .small[Statistical framework, inference, optimisation]
 
-```{r PLN_stat_model, child='PLN_stat_model.Rmd'}
+```{r PLN_model, child='PLN_model.Rmd'}
 ```
+
+```{r PLN_properties, child='PLN_properties.Rmd'}
+```
+
+```{r PLN_optim, child='PLN_optim.Rmd'}
+```
+
 
 ---
 

@@ -1,0 +1,112 @@
+
+---
+# Statistical Inference
+
+## A first try: Wald test
+
+Test $\mathcal{H}_0: R \theta = r_0$ with the statistic
+$$ (R \hat{\theta} - r_0)^\top \left[n R\hat{\mathbb{V}}(\hat{\theta}) R^\top \right]^{-1} (R \hat{\theta} - r_0) \sim \chi_k^2 \quad \text{where} \quad k = \text{rank}(R).$$
+
+The Fisher Information matrix
+
+$$I(\hat{\theta}) = -  \mathbb{E}_\theta \left[ \frac{\partial^2 \log \ell(\theta; x)}{\partial  \theta^2} \right]$$
+
+can be used as an approximation of $n\mathbb{V}(\hat{\theta})^{-1}$.
+
+## Application
+
+Derive confidences interval for the inverse covariance $\mathbf{\Omega}$ and the regression parameters $\mathbf{\Theta}$.
+
+---
+
+# Variational Wald-test
+
+
+## Variational Fisher Information
+
+
+The Fisher information matrix is given by
+
+$$I(\theta) = \begin{pmatrix}
+  \frac{1}{n}(\mathbf{I}_p \otimes 
+\mathbf{X}^\top)\mathrm{diag}(\mathrm{vec}(\mathbf{A}))(\mathbf{I}_p \otimes \mathbf{X}) & \mathbf{0} \\
+  \mathbf{0} & \frac12\mathbf{\Omega}^{-1} \otimes 
+\mathbf{\Omega}^{-1} 
+  \end{pmatrix}$$
+
+and can be inverted blockwise to estimate $\mathbb{V}(\hat{\theta})$.
+
+## Wald test and coverage
+
+- $\hat{\mathbb{V}}(\mathbf{\Theta}_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}$
+- $\hat{\mathbb{V}}(\Omega_{kl}) = 2\Omega_{kk}\Omega_{ll}$
+
+The confidence intervals at level $\alpha$ are given by 
+
+- $B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\mathbf{\Theta}_{kj})}$ 
+- $\Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}$. 
+
+---
+
+# Numerical study
+
+## Study Bias and coverage of the estimator
+
+- number of samples $n \in \{50, 100, 500, 1000, 10000\}$
+
+- number of species/genes $p \in \{20, 200\}$
+
+- number of covariates $d \in \{2, 5, 10\}$
+
+- sampling effort $TSS \in \{\text{low}, \text{medium}, \text{high}\}$ ($\approx 10^4$, $10^5$ and $10^6$)
+
+- noise level $\sigma^2 \in \{0.2, 0.5, 1, 2\}$
+
+- $\boldsymbol\Sigma$ as $\sigma_{jk} = \sigma^2 \rho^{|j-k|}$, with $\rho = 0.2$
+
+- $\mathbf{\Theta}$ with entries sampled from $\mathcal{N}(0,1/d)$
+
+
+---
+
+# Bias of $\hat{\boldsymbol\Theta}$
+
+![Bias](slides_files/PLN_bias.png)
+
+$\rightsquigarrow$ .important[asymptotically unbiased]
+
+---
+
+# Root mean square error of $\hat{\boldsymbol\Theta}$
+
+![RMSE](slides_files/PLN_rmse.png)
+
+$\rightsquigarrow$ .important[asymptotically unbiased]
+
+---
+
+# 95% confident interval - Coverage
+
+![Coverage](slides_files/PLN_confint.png)
+
+.important[variance underestimated], no trusted confidence intervals can be derived out-of-the box
+
+---
+# Other ideas
+
+## Louis Formula
+
+Alternate form of the Fisher information matrix: same results...
+
+## LR test, Rao test
+
+Same results
+
+## M-estimation
+
+We can derive asymptotic behavior ...
+
+... but VEM stationary point is .important[not a log-likelihood stationary point], see `r Citep(myBib, 'Westling2015')`
+
+$\rightsquigarrow$ Sandwich estimator, correction... next try !
+

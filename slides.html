@@ -3,7 +3,7 @@
   <head>
     <title>PLNmodels</title>
     <meta charset="utf-8" />
-    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 16 March, 2021" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 05 May, 2021" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
@@ -16,7 +16,7 @@ class: center, middle, inverse, title-slide
 
 # PLNmodels
 ## A collection of Poisson lognormal models <br/> for multivariate analysis of count data
-### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 16 March, 2021</small>
+### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 05 May, 2021</small>
 ### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
 
 ---
@@ -45,7 +45,7 @@ packageVersion("PLNmodels")
 ```
 
 ```
-## [1] '0.11.4'
+## [1] '0.11.5.9010'
 ```
 
 
@@ -281,7 +281,7 @@ log(1 + oaks$Abundance) %&gt;%
 ---
 class: inverse, center, middle
 
-# Multivariate Poisson lognormal models &lt;br/&gt; .small[Statistical framework and inference]
+# Multivariate Poisson lognormal models &lt;br/&gt; .small[Statistical framework, inference, optimisation]
 
 
 
@@ -412,7 +412,7 @@ Let `\(\mathbf{A} = \mathbb{E}_q[\exp(\mathbf{Z})] = \exp\left(\mathbf{O} + \mat
 ### Variational bound
 
 `$$\begin{array}{ll}
-J(\mathbf{Y}) &amp; = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\mathbf{O} + \mathbf{M}) - \mathbf{A} + \log(\mathbf{S})\right]\right) \mathbf{1}_{p} + \frac{n}2\log|{\boldsymbol\Omega}| \\
+J(\mathbf{Y}) &amp; = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\mathbf{O} + \mathbf{M}) - \mathbf{A} + \frac12\log(\mathbf{S}^2)\right]\right) \mathbf{1}_{p} + \frac{n}2\log|{\boldsymbol\Omega}| \\
 &amp; - \frac12 \mathrm{trace}\left({\boldsymbol\Omega} \bigg[\left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right)^\intercal \left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right) + \mathrm{diag}(\mathbf{1}_n^\intercal\mathbf{S}^2)\bigg]\right) + \text{cst.}\\
 \end{array}$$`
 
@@ -434,7 +434,7 @@ J(\mathbf{Y}) &amp; = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\ma
 
 The ELBO `\(J(\theta, q)\)` is bi-concave, i.e.
   - concave wrt `\(q = (\mathbf{M}, \mathbf{S})\)` for given `\(\theta\)` 
-  - convace wrt `\(\theta = (\boldsymbol\Sigma, \boldsymbol\Theta)\)` for given `\(q\)` 
+  - concave wrt `\(\theta = (\boldsymbol\Sigma, \boldsymbol\Theta)\)` for given `\(q\)` 
 but .important[not jointly concave] in general.
 
 ## Optimization
@@ -448,26 +448,76 @@ Gradient ascent for the complete set of parameters&lt;sup&gt;1&lt;/sup&gt; `\((\
 .footnote[[1] Alternating between variational and model parameters is useless here &lt;br/&gt;
           [2] Optimizing on `\(\mathbf{S}\)` such as `\(\mathbf{S} \circ \mathbf{S} = \mathbf{S}^2\)` is the variance avoids positive constraints ]
 
+
+
+
 ---
-# Properties of the variational estimators
+# Statistical Inference
 
-## Classical M-estimation 
+## A first try: Wald test
 
-We can derive asymptotic behavior (like Hessian-based Fisher information matrix for the variance) ...
+Test `\(\mathcal{H}_0: R \theta = r_0\)` with the statistic
+$$ (R \hat{\theta} - r_0)^\top \left[n R\hat{\mathbb{V}}(\hat{\theta}) R^\top \right]^{-1} (R \hat{\theta} - r_0) \sim \chi_k^2 \quad \text{where} \quad k = \text{rank}(R).$$
 
-... But VEM stationary point is .important[not a log-likelihood stationary point], see [WM15]
+The Fisher Information matrix
 
-&lt;br /&gt;
+`$$I(\hat{\theta}) = -  \mathbb{E}_\theta \left[ \frac{\partial^2 \log \ell(\theta; x)}{\partial  \theta^2} \right]$$`
 
-## Numerical study
+can be used as an approximation of `\(n\mathbb{V}(\hat{\theta})^{-1}\)`.
+
+## Application
+
+Derive confidences interval for the inverse covariance `\(\mathbf{\Omega}\)` and the regression parameters `\(\mathbf{\Theta}\)`.
+
+---
+
+# Variational Wald-test
+
+
+## Variational Fisher Information
+
+
+The Fisher information matrix is given by
+
+`$$I(\theta) = \begin{pmatrix}
+  \frac{1}{n}(\mathbf{I}_p \otimes 
+\mathbf{X}^\top)\mathrm{diag}(\mathrm{vec}(\mathbf{A}))(\mathbf{I}_p \otimes \mathbf{X}) &amp; \mathbf{0} \\
+  \mathbf{0} &amp; \frac12\mathbf{\Omega}^{-1} \otimes 
+\mathbf{\Omega}^{-1} 
+  \end{pmatrix}$$`
+
+and can be inverted blockwise to estimate `\(\mathbb{V}(\hat{\theta})\)`.
+
+## Wald test and coverage
+
+- `\(\hat{\mathbb{V}}(\mathbf{\Theta}_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}\)`
+- `\(\hat{\mathbb{V}}(\Omega_{kl}) = 2\Omega_{kk}\Omega_{ll}\)`
+
+The confidence intervals at level `\(\alpha\)` are given by 
+
+- `\(B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\mathbf{\Theta}_{kj})}\)` 
+- `\(\Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}\)`. 
+
+---
+
+# Numerical study
+
+## Study Bias and coverage of the estimator
 
 - number of samples `\(n \in \{50, 100, 500, 1000, 10000\}\)`
+
 - number of species/genes `\(p \in \{20, 200\}\)`
+
 - number of covariates `\(d \in \{2, 5, 10\}\)`
+
 - sampling effort `\(TSS \in \{\text{low}, \text{medium}, \text{high}\}\)` ($\approx 10^4$, `\(10^5\)` and `\(10^6\)`)
+
 - noise level `\(\sigma^2 \in \{0.2, 0.5, 1, 2\}\)`
+
 - `\(\boldsymbol\Sigma\)` as `\(\sigma_{jk} = \sigma^2 \rho^{|j-k|}\)`, with `\(\rho = 0.2\)`
+
 - `\(\mathbf{\Theta}\)` with entries sampled from `\(\mathcal{N}(0,1/d)\)`
+
 
 ---
 
@@ -492,6 +542,140 @@ We can derive asymptotic behavior (like Hessian-based Fisher information matrix 
 ![Coverage](slides_files/PLN_confint.png)
 
 .important[variance underestimated], no trusted confidence intervals can be derived out-of-the box
+
+---
+# Other ideas
+
+## Louis Formula
+
+Alternate form of the Fisher information matrix: same results...
+
+## LR test, Rao test
+
+Same results
+
+## M-estimation
+
+We can derive asymptotic behavior ...
+
+... but VEM stationary point is .important[not a log-likelihood stationary point], see [WM15]
+
+`\(\rightsquigarrow\)` Sandwich estimator, correction... next try !
+
+
+
+
+---
+
+# Other tracks for optimization
+
+.important[Bastien Batardière's MsC internship] co-supervized with Joon Kwon and Laure Sansonnet
+
+## Use tools from deep-learning
+
+Keep on optimizing the variational criterion, by relying on
+
+- tools for automatic differentiation
+- stochastic-gradient descent variants
+- GPU
+
+`\(\rightsquigarrow\)` first prove of concept with **Pytorch** for PLN/PLNPCA 
+
+## Alternate objective functions
+
+- Other variational approximations
+- Direct optimization of the log-likelihood via gradient approximation
+
+---
+
+# PLN model: alternate objectives (I)
+
+## Alternate formulation (inspired by PLN-PCA)
+
+`$$\begin{align*}
+W_i&amp;\sim \mathcal{N}(0,I_p),\text{ iid}, \quad i=1,\dots,n\\
+Z_i&amp;=\mathbf{\Theta}\mathbf{x}_i+\mathbf{C} W_i,\quad i\in 1,\dots,n,\\
+Y_{ij}|Z_{ij}&amp;\sim \mathcal{P}(\exp \left( o_{ij}+Z_{ij} \right)).
+\end{align*}$$`
+
+## Variational approximation on `\(W\)`
+
+We now use `\(q(\mathbf{W}) \approx p_\theta(\mathbf{W} | \mathbf{Y})\)`, with `\(q(\mathbf{W}_i) \sim \mathcal{N}(\mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i))\)`
+
+We found
+
+$$
+`\begin{gather*}
+J(\mathbf{Y}) = \mathbf{1}_n^\intercal \left( \mathbf{Y} \circ \left[\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top\right] - \mathbf{A} - \frac12 \left[\mathbf{M}^2 + \mathbf{S}^2 - \log(\mathbf{S}^2)\right] \right) \mathbf{1}_{p} + \text{cst.}\\
+\mathrm{with} \quad  \mathbf{A} = \exp(\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top + \mathbf{S}^2 (\mathbf{C}^2)^\top )
+\end{gather*}`
+$$
+
+`\(\rightsquigarrow\)` Direct gradient ascent on `\((\mathbf{C}, \mathbf{\Theta}, \mathbf{M}, \mathbf{S})\)`
+
+---
+
+# PLN model: alternate objectives (II)
+
+## Target log-likelihood 
+
+Likelihood of an observation `\(Y_i\)` `\((i\in [n])\)` writes:
+
+`$$\log p_{\theta}(Y_i)=\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\quad \dots \quad  \right) \right]$$`
+
+Function to minimize:
+`$$F(\theta)=-\frac{1}{n}\sum_{i=1}^n\log p_{\theta}(Y_i).$$`
+
+- Optimize log-likelihood directly
+
+- Statistical guarantees easiest to derive
+
+`\(\rightsquigarrow\)` How?
+
+---
+# SGD + importance sampling
+
+## Gradient Descent
+ 
+`$$\theta_{t+1}=\theta_t-\gamma_t\nabla F(\theta_t)$$`
+
+where
+
+`$$\nabla F(\theta)=-\frac{1}{n}\sum_{i=1}^n\frac{\nabla_{\theta}
+                  p_{\theta}(Y_i)}{p_{\theta}(Y_i)}
+  =-\frac{1}{n}\sum_{i=1}^n\frac{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \nabla_\theta\exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right) \right)   \right] }{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right)  \right) \right] }$$`
+
+## Stochastic gradient Descent
+
+We replace `\(\nabla F(\theta_t)\)` by an unbiased estimator `\(\hat{g}_t\)` to get SGD:
+
+`$$\theta_{t+1}=\theta_t-\gamma_t\hat{g}_t,\qquad \text{where}\quad  \mathbb{E}\left[ \hat{g}_t\mid \theta_t \right] =\nabla F(\theta_t).$$`
+Estimator `\(\hat{g}_t\)` can be constructed by
+
+- Sampling values of `\(W\)`
+- Possibly sampling a subset `\(I\subset \left\{ n \right\}\)` of a given cardinality.
+
+---
+# Adaptive algorithms
+
+## Sophistications of SGD
+
+- AdaGrad (2011) uses adaptive coordinate-wise step-sizes:
+
+  `$$\theta_{t+1} = \theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}} \odot \hat{g}_t \qquad \text{where} \quad G_t = \sum_{s=1}^{t}\hat{g}_s^{\odot 2}.$$`
+
+- RMSProp (2012) adds momentum to the step-sizes:
+  
+  `$$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{g}_t\qquad \text{where}\quad G_t=\alpha G_{t-1}+(1-\alpha)\hat{g}_t^{\odot 2}.$$`
+
+- Adam (2015) also adds momentum to the gradients:
+  
+  `$$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{m}_t\qquad \text{where}\quad m_t=\beta m_{t-1}+(1-\beta)\hat{g}_t.$$`
+
+&lt;br /&gt;
+
+`\(\rightsquigarrow\)` All available in **Pytorch** with auto-differentiation.
+
 
 ---
 
