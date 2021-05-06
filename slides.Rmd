@@ -80,25 +80,9 @@ class: inverse, center, middle
 ```{r PLN_model, child='PLN_model.Rmd'}
 ```
 
-```{r PLN_properties, child='PLN_properties.Rmd'}
-```
-
-```{r PLN_optim, child='PLN_optim.Rmd'}
-```
-
-
 ---
 
-class: inverse, center, middle
-
-# Multivariate Poisson Regression <br /> .small[Illustrating the oaks powdery mildew data set]
-
-```{r PLN_oaks, child='PLN_oaks.Rmd'}
-```
-
----
-
-# Natural extensions
+# PLN: Natural extensions
 
 ### Various tasks of multivariate analysis
 
@@ -123,6 +107,29 @@ class: inverse, center, middle
 ### Challenge
 
 .important[A variant] of the variational algorithm is required for each model
+
+---
+
+class: inverse, center, middle
+
+# Multivariate Poisson Regression <br /> .small[Illustrating the oaks powdery mildew data set]
+
+```{r PLN_oaks, child='PLN_oaks.Rmd'}
+```
+
+---
+
+class: inverse, center, middle
+
+# PLN: towards statistical properties and large-scale optimizer
+
+```{r PLN_properties, child='PLN_properties.Rmd'}
+```
+
+```{r PLN_optim, child='PLN_optim.Rmd'}
+```
+
+
 
 ---
 

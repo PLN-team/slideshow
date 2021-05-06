@@ -3,7 +3,7 @@
   <head>
     <title>PLNmodels</title>
     <meta charset="utf-8" />
-    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 05 May, 2021" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin   INRAE - Applied Mathematics and Informatics Division   Last update 06 May, 2021" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
@@ -16,7 +16,7 @@ class: center, middle, inverse, title-slide
 
 # PLNmodels
 ## A collection of Poisson lognormal models <br/> for multivariate analysis of count data
-### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 05 May, 2021</small>
+### J. Chiquet, M. Mariadassou, S. Robin<br /><br /> <small>INRAE - Applied Mathematics and Informatics Division</small> <br /> <small>Last update 06 May, 2021</small>
 ### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
 
 ---
@@ -449,233 +449,33 @@ Gradient ascent for the complete set of parameters&lt;sup&gt;1&lt;/sup&gt; `\((\
           [2] Optimizing on `\(\mathbf{S}\)` such as `\(\mathbf{S} \circ \mathbf{S} = \mathbf{S}^2\)` is the variance avoids positive constraints ]
 
 
-
-
----
-# Statistical Inference
-
-## A first try: Wald test
-
-Test `\(\mathcal{H}_0: R \theta = r_0\)` with the statistic
-$$ (R \hat{\theta} - r_0)^\top \left[n R\hat{\mathbb{V}}(\hat{\theta}) R^\top \right]^{-1} (R \hat{\theta} - r_0) \sim \chi_k^2 \quad \text{where} \quad k = \text{rank}(R).$$
-
-The Fisher Information matrix
-
-`$$I(\hat{\theta}) = -  \mathbb{E}_\theta \left[ \frac{\partial^2 \log \ell(\theta; x)}{\partial  \theta^2} \right]$$`
-
-can be used as an approximation of `\(n\mathbb{V}(\hat{\theta})^{-1}\)`.
-
-## Application
-
-Derive confidences interval for the inverse covariance `\(\mathbf{\Omega}\)` and the regression parameters `\(\mathbf{\Theta}\)`.
-
 ---
 
-# Variational Wald-test
+# PLN: Natural extensions
 
+### Various tasks of multivariate analysis
 
-## Variational Fisher Information
+  - .important[Classification]: maximize separation between groups with means 
 
+  `$$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$`
 
-The Fisher information matrix is given by
+  - .important[Clustering]: mixture model in the latent space 
 
-`$$I(\theta) = \begin{pmatrix}
-  \frac{1}{n}(\mathbf{I}_p \otimes 
-\mathbf{X}^\top)\mathrm{diag}(\mathrm{vec}(\mathbf{A}))(\mathbf{I}_p \otimes \mathbf{X}) &amp; \mathbf{0} \\
-  \mathbf{0} &amp; \frac12\mathbf{\Omega}^{-1} \otimes 
-\mathbf{\Omega}^{-1} 
-  \end{pmatrix}$$`
+  `$$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$`
 
-and can be inverted blockwise to estimate `\(\mathbb{V}(\hat{\theta})\)`.
 
-## Wald test and coverage
+  - .important[Dimension Reduction]: rank constraint matrix `\(\boldsymbol\Sigma\)`.
+    
+    `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{B}\mathbf{B}^\top), \quad \mathbf{B} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$`
 
-- `\(\hat{\mathbb{V}}(\mathbf{\Theta}_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}\)`
-- `\(\hat{\mathbb{V}}(\Omega_{kl}) = 2\Omega_{kk}\Omega_{ll}\)`
 
-The confidence intervals at level `\(\alpha\)` are given by 
-
-- `\(B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\mathbf{\Theta}_{kj})}\)` 
-- `\(\Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}\)`. 
-
----
-
-# Numerical study
-
-## Study Bias and coverage of the estimator
-
-- number of samples `\(n \in \{50, 100, 500, 1000, 10000\}\)`
-
-- number of species/genes `\(p \in \{20, 200\}\)`
-
-- number of covariates `\(d \in \{2, 5, 10\}\)`
-
-- sampling effort `\(TSS \in \{\text{low}, \text{medium}, \text{high}\}\)` ($\approx 10^4$, `\(10^5\)` and `\(10^6\)`)
-
-- noise level `\(\sigma^2 \in \{0.2, 0.5, 1, 2\}\)`
-
-- `\(\boldsymbol\Sigma\)` as `\(\sigma_{jk} = \sigma^2 \rho^{|j-k|}\)`, with `\(\rho = 0.2\)`
-
-- `\(\mathbf{\Theta}\)` with entries sampled from `\(\mathcal{N}(0,1/d)\)`
-
-
----
-
-# Bias of `\(\hat{\boldsymbol\Theta}\)`
-
-![Bias](slides_files/PLN_bias.png)
-
-`\(\rightsquigarrow\)` .important[asymptotically unbiased]
-
----
-
-# Root mean square error of `\(\hat{\boldsymbol\Theta}\)`
-
-![RMSE](slides_files/PLN_rmse.png)
-
-`\(\rightsquigarrow\)` .important[asymptotically unbiased]
-
----
-
-# 95% confident interval - Coverage
-
-![Coverage](slides_files/PLN_confint.png)
-
-.important[variance underestimated], no trusted confidence intervals can be derived out-of-the box
-
----
-# Other ideas
-
-## Louis Formula
-
-Alternate form of the Fisher information matrix: same results...
-
-## LR test, Rao test
-
-Same results
-
-## M-estimation
-
-We can derive asymptotic behavior ...
-
-... but VEM stationary point is .important[not a log-likelihood stationary point], see [WM15]
-
-`\(\rightsquigarrow\)` Sandwich estimator, correction... next try !
-
-
-
-
----
-
-# Other tracks for optimization
-
-.important[Bastien Batardière's MsC internship] co-supervized with Joon Kwon and Laure Sansonnet
-
-## Use tools from deep-learning
-
-Keep on optimizing the variational criterion, by relying on
-
-- tools for automatic differentiation
-- stochastic-gradient descent variants
-- GPU
-
-`\(\rightsquigarrow\)` first prove of concept with **Pytorch** for PLN/PLNPCA 
-
-## Alternate objective functions
-
-- Other variational approximations
-- Direct optimization of the log-likelihood via gradient approximation
-
----
-
-# PLN model: alternate objectives (I)
-
-## Alternate formulation (inspired by PLN-PCA)
-
-`$$\begin{align*}
-W_i&amp;\sim \mathcal{N}(0,I_p),\text{ iid}, \quad i=1,\dots,n\\
-Z_i&amp;=\mathbf{\Theta}\mathbf{x}_i+\mathbf{C} W_i,\quad i\in 1,\dots,n,\\
-Y_{ij}|Z_{ij}&amp;\sim \mathcal{P}(\exp \left( o_{ij}+Z_{ij} \right)).
-\end{align*}$$`
-
-## Variational approximation on `\(W\)`
-
-We now use `\(q(\mathbf{W}) \approx p_\theta(\mathbf{W} | \mathbf{Y})\)`, with `\(q(\mathbf{W}_i) \sim \mathcal{N}(\mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i))\)`
-
-We found
-
-$$
-`\begin{gather*}
-J(\mathbf{Y}) = \mathbf{1}_n^\intercal \left( \mathbf{Y} \circ \left[\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top\right] - \mathbf{A} - \frac12 \left[\mathbf{M}^2 + \mathbf{S}^2 - \log(\mathbf{S}^2)\right] \right) \mathbf{1}_{p} + \text{cst.}\\
-\mathrm{with} \quad  \mathbf{A} = \exp(\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top + \mathbf{S}^2 (\mathbf{C}^2)^\top )
-\end{gather*}`
-$$
-
-`\(\rightsquigarrow\)` Direct gradient ascent on `\((\mathbf{C}, \mathbf{\Theta}, \mathbf{M}, \mathbf{S})\)`
-
----
-
-# PLN model: alternate objectives (II)
-
-## Target log-likelihood 
-
-Likelihood of an observation `\(Y_i\)` `\((i\in [n])\)` writes:
-
-`$$\log p_{\theta}(Y_i)=\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\quad \dots \quad  \right) \right]$$`
-
-Function to minimize:
-`$$F(\theta)=-\frac{1}{n}\sum_{i=1}^n\log p_{\theta}(Y_i).$$`
-
-- Optimize log-likelihood directly
-
-- Statistical guarantees easiest to derive
-
-`\(\rightsquigarrow\)` How?
-
----
-# SGD + importance sampling
-
-## Gradient Descent
- 
-`$$\theta_{t+1}=\theta_t-\gamma_t\nabla F(\theta_t)$$`
-
-where
-
-`$$\nabla F(\theta)=-\frac{1}{n}\sum_{i=1}^n\frac{\nabla_{\theta}
-                  p_{\theta}(Y_i)}{p_{\theta}(Y_i)}
-  =-\frac{1}{n}\sum_{i=1}^n\frac{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \nabla_\theta\exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right) \right)   \right] }{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right)  \right) \right] }$$`
-
-## Stochastic gradient Descent
-
-We replace `\(\nabla F(\theta_t)\)` by an unbiased estimator `\(\hat{g}_t\)` to get SGD:
-
-`$$\theta_{t+1}=\theta_t-\gamma_t\hat{g}_t,\qquad \text{where}\quad  \mathbb{E}\left[ \hat{g}_t\mid \theta_t \right] =\nabla F(\theta_t).$$`
-Estimator `\(\hat{g}_t\)` can be constructed by
-
-- Sampling values of `\(W\)`
-- Possibly sampling a subset `\(I\subset \left\{ n \right\}\)` of a given cardinality.
-
----
-# Adaptive algorithms
-
-## Sophistications of SGD
-
-- AdaGrad (2011) uses adaptive coordinate-wise step-sizes:
-
-  `$$\theta_{t+1} = \theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}} \odot \hat{g}_t \qquad \text{where} \quad G_t = \sum_{s=1}^{t}\hat{g}_s^{\odot 2}.$$`
-
-- RMSProp (2012) adds momentum to the step-sizes:
+  - .important[Network inference]: sparsity constraint on inverse covariance.
   
-  `$$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{g}_t\qquad \text{where}\quad G_t=\alpha G_{t-1}+(1-\alpha)\hat{g}_t^{\odot 2}.$$`
+  `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 &lt; c.$$`
 
-- Adam (2015) also adds momentum to the gradients:
-  
-  `$$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{m}_t\qquad \text{where}\quad m_t=\beta m_{t-1}+(1-\beta)\hat{g}_t.$$`
+### Challenge
 
-&lt;br /&gt;
-
-`\(\rightsquigarrow\)` All available in **Pytorch** with auto-differentiation.
-
+.important[A variant] of the variational algorithm is required for each model
 
 ---
 
@@ -911,31 +711,238 @@ sigma(M11_oaks) %&gt;% cov2cor() %&gt;%
 
 ---
 
-# Natural extensions
+class: inverse, center, middle
 
-### Various tasks of multivariate analysis
-
-  - .important[Classification]: maximize separation between groups with means 
-
-  `$$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$`
-
-  - .important[Clustering]: mixture model in the latent space 
-
-  `$$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$`
+# PLN: towards statistical properties and large-scale optimizer
 
 
-  - .important[Dimension Reduction]: rank constraint matrix `\(\boldsymbol\Sigma\)`.
-    
-    `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{B}\mathbf{B}^\top), \quad \mathbf{B} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$`
+
+---
+# Statistical Inference
+
+## A first try: Wald test
+
+Test `\(\mathcal{H}_0: R \theta = r_0\)` with the statistic
+$$ (R \hat{\theta} - r_0)^\top \left[n R\hat{\mathbb{V}}(\hat{\theta}) R^\top \right]^{-1} (R \hat{\theta} - r_0) \sim \chi_k^2 \quad \text{where} \quad k = \text{rank}(R).$$
+
+The Fisher Information matrix
+
+`$$I(\hat{\theta}) = -  \mathbb{E}_\theta \left[ \frac{\partial^2 \log \ell(\theta; x)}{\partial  \theta^2} \right]$$`
+
+can be used as an approximation of `\(n\mathbb{V}(\hat{\theta})^{-1}\)`.
+
+## Application
+
+Derive confidences interval for the inverse covariance `\(\mathbf{\Omega}\)` and the regression parameters `\(\mathbf{\Theta}\)`.
+
+---
+
+# Variational Wald-test
 
 
-  - .important[Network inference]: sparsity constraint on inverse covariance.
+## Variational Fisher Information
+
+
+The Fisher information matrix is given by
+
+`$$I(\theta) = \begin{pmatrix}
+  \frac{1}{n}(\mathbf{I}_p \otimes 
+\mathbf{X}^\top)\mathrm{diag}(\mathrm{vec}(\mathbf{A}))(\mathbf{I}_p \otimes \mathbf{X}) &amp; \mathbf{0} \\
+  \mathbf{0} &amp; \frac12\mathbf{\Omega}^{-1} \otimes 
+\mathbf{\Omega}^{-1} 
+  \end{pmatrix}$$`
+
+and can be inverted blockwise to estimate `\(\mathbb{V}(\hat{\theta})\)`.
+
+## Wald test and coverage
+
+- `\(\hat{\mathbb{V}}(\mathbf{\Theta}_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}\)`
+- `\(\hat{\mathbb{V}}(\Omega_{kl}) = 2\Omega_{kk}\Omega_{ll}\)`
+
+The confidence intervals at level `\(\alpha\)` are given by 
+
+- `\(B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\mathbf{\Theta}_{kj})}\)` 
+- `\(\Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}\)`. 
+
+---
+
+# Numerical study
+
+## Study Bias and coverage of the estimator
+
+- number of samples `\(n \in \{50, 100, 500, 1000, 10000\}\)`
+
+- number of species/genes `\(p \in \{20, 200\}\)`
+
+- number of covariates `\(d \in \{2, 5, 10\}\)`
+
+- sampling effort `\(TSS \in \{\text{low}, \text{medium}, \text{high}\}\)` ($\approx 10^4$, `\(10^5\)` and `\(10^6\)`)
+
+- noise level `\(\sigma^2 \in \{0.2, 0.5, 1, 2\}\)`
+
+- `\(\boldsymbol\Sigma\)` as `\(\sigma_{jk} = \sigma^2 \rho^{|j-k|}\)`, with `\(\rho = 0.2\)`
+
+- `\(\mathbf{\Theta}\)` with entries sampled from `\(\mathcal{N}(0,1/d)\)`
+
+
+---
+
+# Bias of `\(\hat{\boldsymbol\Theta}\)`
+
+![Bias](slides_files/PLN_bias.png)
+
+`\(\rightsquigarrow\)` .important[asymptotically unbiased]
+
+---
+
+# Root mean square error of `\(\hat{\boldsymbol\Theta}\)`
+
+![RMSE](slides_files/PLN_rmse.png)
+
+`\(\rightsquigarrow\)` .important[asymptotically unbiased]
+
+---
+
+# 95% confident interval - Coverage
+
+![Coverage](slides_files/PLN_confint.png)
+
+.important[variance underestimated], no trusted confidence intervals can be derived out-of-the box
+
+---
+# Other ideas
+
+## Louis Formula
+
+Alternate form of the Fisher information matrix: same results...
+
+## LR test, Rao test
+
+Same results
+
+## M-estimation
+
+We can derive asymptotic behavior ...
+
+... but VEM stationary point is .important[not a log-likelihood stationary point], see [WM15]
+
+`\(\rightsquigarrow\)` Sandwich estimator, correction... next try !
+
+
+
+
+---
+
+# Other tracks for optimization
+
+.important[Bastien Batardière's MsC internship] co-supervized with Joon Kwon and Laure Sansonnet
+
+## Use tools from deep-learning
+
+Keep on optimizing the variational criterion, by relying on
+
+- tools for automatic differentiation
+- stochastic-gradient descent variants
+- GPU
+
+`\(\rightsquigarrow\)` first prove of concept with **Pytorch** for PLN/PLNPCA 
+
+## Alternate objective functions
+
+- Other variational approximations
+- Direct optimization of the log-likelihood via gradient approximation
+
+---
+
+# PLN model: alternate objectives (I)
+
+## Alternate formulation (inspired by PLN-PCA)
+
+`$$\begin{align*}
+W_i&amp;\sim \mathcal{N}(0,I_p),\text{ iid}, \quad i=1,\dots,n\\
+Z_i&amp;=\mathbf{\Theta}\mathbf{x}_i+\mathbf{C} W_i,\quad i\in 1,\dots,n,\\
+Y_{ij}|Z_{ij}&amp;\sim \mathcal{P}(\exp \left( o_{ij}+Z_{ij} \right)).
+\end{align*}$$`
+
+## Variational approximation on `\(W\)`
+
+We now use `\(q(\mathbf{W}) \approx p_\theta(\mathbf{W} | \mathbf{Y})\)`, with `\(q(\mathbf{W}_i) \sim \mathcal{N}(\mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i))\)`
+
+We found
+
+$$
+`\begin{gather*}
+J(\mathbf{Y}) = \mathbf{1}_n^\intercal \left( \mathbf{Y} \circ \left[\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top\right] - \mathbf{A} - \frac12 \left[\mathbf{M}^2 + \mathbf{S}^2 - \log(\mathbf{S}^2)\right] \right) \mathbf{1}_{p} + \text{cst.}\\
+\mathrm{with} \quad  \mathbf{A} = \exp(\mathbf{O} + \mathbf{X}\mathbf{\Theta} + \mathbf{M}\mathbf{C}^\top + \mathbf{S}^2 (\mathbf{C}^2)^\top )
+\end{gather*}`
+$$
+
+`\(\rightsquigarrow\)` Direct gradient ascent on `\((\mathbf{C}, \mathbf{\Theta}, \mathbf{M}, \mathbf{S})\)`
+
+---
+
+# PLN model: alternate objectives (II)
+
+## Target log-likelihood 
+
+Likelihood of an observation `\(Y_i\)` `\((i\in [n])\)` writes:
+
+`$$\log p_{\theta}(Y_i)=\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\quad \dots \quad  \right) \right]$$`
+
+Function to minimize:
+`$$F(\theta)=-\frac{1}{n}\sum_{i=1}^n\log p_{\theta}(Y_i).$$`
+
+- Optimize log-likelihood directly
+
+- Statistical guarantees easiest to derive
+
+`\(\rightsquigarrow\)` How?
+
+---
+# SGD + importance sampling
+
+## Gradient Descent
+ 
+`$$\theta_{t+1}=\theta_t-\gamma_t\nabla F(\theta_t)$$`
+
+where
+
+`$$\nabla F(\theta)=-\frac{1}{n}\sum_{i=1}^n\frac{\nabla_{\theta}
+                  p_{\theta}(Y_i)}{p_{\theta}(Y_i)}
+  =-\frac{1}{n}\sum_{i=1}^n\frac{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \nabla_\theta\exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right) \right)   \right] }{\mathbb{E}_{W\sim \mathcal{N}(0,I_q)}\left[ \exp \left( \sum_{j=1}^{p}\left( \quad \dots \quad  \right)  \right) \right] }$$`
+
+## Stochastic gradient Descent
+
+We replace `\(\nabla F(\theta_t)\)` by an unbiased estimator `\(\hat{g}_t\)` to get SGD:
+
+`$$\theta_{t+1}=\theta_t-\gamma_t\hat{g}_t,\qquad \text{where}\quad  \mathbb{E}\left[ \hat{g}_t\mid \theta_t \right] =\nabla F(\theta_t).$$`
+Estimator `\(\hat{g}_t\)` can be constructed by
+
+- Sampling values of `\(W\)`
+- Possibly sampling a subset `\(I\subset \left\{ n \right\}\)` of a given cardinality.
+
+---
+# Adaptive algorithms
+
+## Sophistications of SGD
+
+- AdaGrad (2011) uses adaptive coordinate-wise step-sizes:
+
+  `$$\theta_{t+1} = \theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}} \odot \hat{g}_t \qquad \text{where} \quad G_t = \sum_{s=1}^{t}\hat{g}_s^{\odot 2}.$$`
+
+- RMSProp (2012) adds momentum to the step-sizes:
   
-  `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 &lt; c.$$`
+  `$$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{g}_t\qquad \text{where}\quad G_t=\alpha G_{t-1}+(1-\alpha)\hat{g}_t^{\odot 2}.$$`
 
-### Challenge
+- Adam (2015) also adds momentum to the gradients:
+  
+  `$$\theta_{t+1}=\theta_t-\frac{\gamma}{\sqrt{\varepsilon+G_t}}\odot \hat{m}_t\qquad \text{where}\quad m_t=\beta m_{t-1}+(1-\beta)\hat{g}_t.$$`
 
-.important[A variant] of the variational algorithm is required for each model
+&lt;br /&gt;
+
+`\(\rightsquigarrow\)` All available in **Pytorch** with auto-differentiation.
+
+
 
 ---
 
