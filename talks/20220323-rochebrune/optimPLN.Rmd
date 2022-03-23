@@ -47,6 +47,7 @@ myBib <- ReadBib("./optimPLN.bib", check = FALSE)
 
 ![](PNL.jpeg)
 
+---
 
 # Poisson lognormal Model
 
