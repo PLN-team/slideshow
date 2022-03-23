@@ -212,7 +212,7 @@ $$\begin{aligned}
 
 # 2. Direct Gradient approx: .small[second ingredient]
 
-In our average SGD algorithm, we need to estimate $\nabla_{\theta} \log p_{\theta}(Y_i) = \mathbb{E}_{W} \left[p_\theta(Y_i|W) \right]$.
+For our average SGD algorithm, we need to estimate $p_{\theta}(Y_i) = \mathbb{E}_{W} \left[p_\theta(Y_i|W) \right]$.
 
 Let $\tilde p_{\theta} = p_{\theta}(Y_i| W_i) p(W_i)$ (explicit) and $n_s$ the sampling effort. MC approach solves
 
