@@ -1,0 +1,201 @@
+---
+title: "PLNmodels"
+subtitle: "A collection of Poisson lognormal models <br/> for multivariate analysis of count data"
+author: "J. Chiquet, M. Mariadassou, S. Robin, B. Batardière, J. Kwon<br /><br /> <small>Paris-Saclay, AgroParisTech, INRAE</small> <br /> <small>Last update `r format(Sys.time(), '%d %B, %Y')`</small>"
+date: "<br/>https://pln-team.github.io/PLNmodels"
+output:
+  xaringan::moon_reader:
+    chakra: libs/remark-latest.min.js
+    css: ["pln.css", default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse) # data manipulation
+library(corrplot)  # plot of covariance/correlation matrices
+library(ggraph)
+library(igraph)
+library(RColorBrewer)
+
+fancy_network <- function(net, taxonomy, edge_color = c("#F8766D", "#00BFC4")) {
+  
+  mygraph <- plot(net, plot = FALSE)
+
+  V(mygraph)$type <- as.character(taxonomy)
+  E(mygraph)$color   <- factor(ifelse(E(mygraph)$weight > 0, edge_color[1], edge_color[2]), 
+                               levels = edge_color)
+  
+  angle <- 90 - 360 * 1:igraph::gorder(mygraph) / igraph::gorder(mygraph)
+  V(mygraph)$hjust <- ifelse(angle < -90, 1, 0)
+  V(mygraph)$angle <- ifelse(angle < -90, angle + 180, angle)
+  
+  p <- ggraph(mygraph, layout = 'linear', circular = TRUE) + 
+    geom_edge_arc(aes(edge_colour = color, edge_width = abs(weight)), alpha = 0.5, show.legend = FALSE) +
+    geom_node_text(aes(label = type, x = x*1.1, y=y*1.1, angle = angle, hjust = hjust), size = 2, alpha = 1) +
+    geom_node_point(aes(colour = type, size = size, alpha = 0.2)) +
+    scale_colour_manual(values = c(brewer.pal(6,"Paired"),"maroon4","springgreen", "tan4","plum","brown4","burlywood",brewer.pal(8, "Dark2"), "navy")) +
+    #    scale_colour_manual(values = c(brewer.pal(12,"Paired"),brewer.pal(8, "Dark2"), "navy")) +
+    scale_size_continuous( range = c(0.1,10) ) +
+    theme_void() +
+    theme(plot.margin=unit(c(0,0,0,0),"cm"),) + 
+    guides(alpha = "none", size = "none") + 
+    expand_limits(x = c(-1.5, 1.5), y = c(-1.5, 1.5))
+  
+  invisible(p)
+}
+```
+
+```{r, load_refs, echo=FALSE, cache=FALSE, message=FALSE, warning=FALSE}
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           cite.style = 'alphabetic', 
+           style = "markdown",
+           hyperlink = FALSE, 
+           dashed = FALSE)
+myBib <- ReadBib("./PLNreferences.bib", check = FALSE)
+```
+
+# Reproducibility
+
+## R/C++ Package PLNmodels
+
+Last stable release on CRAN,  development version available on GitHub.
+
+```{r install, eval=FALSE, tidy=FALSE}
+install.packages("PLNmodels")
+remotes::install_github("PLN-team/PLNmodels@dev")
+```
+
+```{r loading package, message=FALSE}
+library(PLNmodels)
+packageVersion("PLNmodels")
+```
+
+```{r future, echo = FALSE}
+options(future.fork.enable = TRUE)
+future::plan("multicore", workers = 10)
+```
+
+## Python module
+
+A Python + PyTorch implementation is coming
+
+## Advertisement .small[(more, sorry about that)]
+
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a new journal promoting reproducible research
+
+---
+# Resources
+
+## Help and documentation
+
+The [PLNmodels website](https://pln-team.github.io/PLNmodels/) contains the standard package documentation and a set of comprehensive vignettes for the top-level functions
+
+## Publications
+
+```{r, results='hide', echo = FALSE}
+RefManageR::Cite(myBib, 'PLNmodels')
+RefManageR::Cite(myBib, 'PLNPCA')
+RefManageR::Cite(myBib, 'PLNnetwork')
+RefManageR::Cite(myBib, 'Facon2021')
+RefManageR::Cite(myBib, 'Lejal2021')
+```
+
+<small>
+```{r, 'PLNrefs', results='asis', echo=FALSE}
+PrintBibliography(myBib)
+```
+</small>
+
+---
+
+class: inverse, middle
+
+# PLNmodels: what is done<sup>1</sup> 
+
+  1. .large[Motivations]
+  2. .large[A family of models for multivariate analysis]
+  3. .large[Efficient variational inference]
+  4. .large[Illustration]
+
+.footnote[[1] and published]
+
+<!-- STATISTICAL MODEL -->
+```{r PLN_stat_model, child='PLN_stat_model.Rmd'}
+```
+
+<!-- VARIATIONAL INFERENCE -->
+```{r PLN_var_inference, child='PLN_var_inference.Rmd'}
+```
+
+<!-- ILLUSTRATION -->
+```{r PLN_oaks_analysis, child='PLN_oaks_analysis.Rmd'}
+```
+
+---
+
+class: inverse, middle
+
+# Some more recent research
+
+## Limitations
+
+  - No guarantee for the variational estimators
+  - No test on the inference parameters
+  - Environmental Genomics, Single-Cell: more zeros, more rows, more columns
+  
+## Ongoing work
+
+  - Zero-inflated version
+  - Hypothesis testing
+  - Large scale and/or exact optimization
+  
+<!-- ZI-PLN MODEL -->
+```{r PLN_ZI, child='PLN_ZI.Rmd'}
+```
+
+<!-- TESTS -->
+```{r PLN_test, child='PLN_tests.Rmd'}
+```
+
+<!-- NEW OPTIM -->
+```{r PLN_optim, child='PLN_optim.Rmd'}
+```
+
+
+```{r future off, echo=FALSE}
+future::plan("sequential")
+```
+
+---
+# Conclusion
+
+## Summary
+
+  - PLN = generic model for multivariate count data analysis
+  - Flexible modeling of the covariance structure, allows for covariates
+  - Efficient V-EM algorithm
+
+## Extensions
+
+- Other variants
+      - covariance structures (spatial, time series, genetics...)
+- Other models
+  - Bernoulli/multinomial counterpart to PLN
+  - functional data
+  - multiple-data integration (e.g., Bernoulli + Poisson)
+
+
+---
+# References
+
+```{r, 'refs', results='asis', echo=FALSE}
+PrintBibliography(myBib)
+```
+

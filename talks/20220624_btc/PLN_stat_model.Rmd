@@ -1,0 +1,108 @@
+
+---
+
+# Generic form of data sets
+  
+Routinely gathered in ecology/microbiology/genomics 
+
+### Data tables
+
+  - .important[Abundances]: read counts of species/transcripts $j$ in sample $i$
+  - .important[Covariates]: value of environmental variable $k$ in sample $i$
+  - .important[Offsets]: sampling effort for species/transcripts $j$ in sample $i$
+
+### Need frameworks to model _dependencies between counts_ 
+
+  - understand **environmental effects** <br/>
+      $\rightsquigarrow$ explanatory models (multivariate regression, classification)
+  - exhibit **patterns of diversity** <br/>
+      $\rightsquigarrow$ summarize the information (clustering, dimension reduction)
+  - understand **between-species interactions** <br />
+      $\rightsquigarrow$ 'network' inference (variable/covariance selection)
+  - correct for technical and **confounding effects** <br/>
+      $\rightsquigarrow$ account for covariables and sampling effort
+
+---
+
+# Models for multivariate count data
+
+## If we were in a Gaussian world...
+
+The .important[general linear model] `r Citep(myBib, "MKB79")` would be appropriate! For each sample $i = 1,\dots,n$, 
+
+$$\underbrace{\mathbf{Y}_i}_{\text{abundances}} =  \underbrace{\mathbf{x}_i^\top \boldsymbol\Theta}_{\text{covariates}} + \underbrace{\mathbf{o}_i}_{\text{sampling effort}} + \boldsymbol\varepsilon_i, \quad \boldsymbol\varepsilon_i \sim \mathcal{N}(\mathbf{0}_p, \underbrace{\boldsymbol\Sigma}_{\text{between-species dependencies}})$$
+
+null covariance $\Leftrightarrow$ independence $\rightsquigarrow$ uncorrelated species/transcripts do not interact
+
+.content-box-red[This model gives birth to Principal Component Analysis,
+ Discriminant Analysis, Gaussian Graphical Models, Gaussian Mixture models and many others $\dots$]
+
+
+## With count data...
+
+There is no generic model for multivariate counts
+  - Data transformation (log, $\sqrt{}$) : quick and dirty
+  - Non-Gaussian multivariate distributions `r Citep(myBib, "IYA16")`: do not scale to data dimension yet
+  - .important[Latent variable models]: interaction occur in a latent (unobserved) layer
+
+---
+
+# The Poisson Lognormal model (PLN)
+
+The PLN model `r Citep(myBib, "AiH89")` is a .important[multivariate generalized linear model], where 
+
+- the counts $\mathbf{Y}_i$ are the response variables
+- the main effect is due to a linear combination of the covariates $\mathbf{x}_i$
+- a vector of offsets $\mathbf{o}_i$ can be specified for each sample.
+
+.content-box-red[
+$$
+\mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta},\boldsymbol\Sigma), \\
+$$
+]
+.pull-left[The unkwown parameters are 
+- $\boldsymbol\Theta$, the regression parameters
+- $\boldsymbol\Sigma$, the variance-covariance matrix
+]
+
+.pull-right[
+Stacking all individuals together, 
+  - $\mathbf{Y}$ is the $n\times p$ matrix of counts  
+  - $\mathbf{X}$ is the $n\times d$ matrix of design
+  - $\mathbf{O}$ is the $n\times p$ matrix of offsets
+]
+
+### Properties: .small[.important[over-dispersion, arbitrary-signed covariances]]
+
+- mean: $\mathbb{E}(Y_{ij}) =  \exp \left( o_{ij} + \mathbf{x}_i^\top {\boldsymbol\Theta}_{\cdot j} + \sigma_{jj}/2\right) >  0$
+- variance: $\mathbb{V}(Y_{ij}) = \mathbb{E}(Y_{ij}) + \mathbb{E}(Y_{ij})^2 \left( e^{\sigma_{jj}} - 1 \right) > \mathbb{E}(Y_{ij})$
+- covariance: $\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).$
+
+
+---
+
+# Natural extensions
+
+### Various tasks of multivariate analysis
+
+  - .important[Dimension Reduction]: rank constraint matrix $\boldsymbol\Sigma$.
+    
+    $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{B}\mathbf{B}^\top), \quad \mathbf{B} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
+
+  - .important[Classification]: maximize separation between groups with means 
+
+  $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$
+
+  - .important[Clustering]: mixture model in the latent space 
+
+  $$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$
+
+  - .important[Network inference]: sparsity constraint on inverse covariance.
+  
+  $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 < c.$$
+
+  - .important[Variable selection]: sparsity constraint on regression coefficients
+  
+  $$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\boldsymbol\Theta, \boldsymbol\Sigma), \quad \|\boldsymbol\Theta \|_1 < c.$$
+
+

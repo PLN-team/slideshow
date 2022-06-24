@@ -1,0 +1,104 @@
+
+---
+# Inference: .small[latent model but intractable EM]
+  
+Estimate $\theta = (\boldsymbol\Theta, \boldsymbol\Sigma)$, predict the $\mathbf{Z}_i$, while  the model marginal likelihood is
+
+$$p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i$$
+
+### Maximum likelihood for incomplete data model: EM
+
+With $\mathcal{H}(p) = -\mathbb{E}_p(\log(p))$ the entropy of $p$,
+
+$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_{p_\theta(\mathbf{Z}\,|\,\mathbf{Y})} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$ 
+
+EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$, but there is no close form!
+
+### Solutions
+
+  - `r Citep(myBib, "AiH89")` resort on numerical integration; `r Citep(myBib, "Kar05")` Monte-Carlo integration
+  - Several heuristics, not always well motivated, found in the literature...
+  - .important[Variational approach] `r Citep(myBib, "WaJ08")`: use a proxy of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$.
+
+---
+# Variational approximation
+
+## Principle
+
+  - Find a proxy of the conditional distribution $p(\mathbf{Z}\,|\,\mathbf{Y})$:
+
+$$q(\mathbf{Z}) \approx p_\theta(\mathbf{Z} | \mathbf{Y}).$$
+  - Choose a convenient class of distribution $\mathcal{Q}$ and minimize a divergence
+
+$$q(\mathbf{Z})^\star  \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right).$$
+
+## Popular choice
+
+The Küllback-Leibler divergence .small[(error averaged wrt the approximated distribution)]
+
+$$KL\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right) = \mathbb{E}_q\left[\log \frac{q(z)}{p(z)}\right] = \int_{\mathcal{Z}} q(z) \log \frac{q(z)}{p(z)} \mathrm{d}z.$$
+
+---
+# Variational EM & PLN
+
+## Class of distribution: diagonal multivariate Gaussian
+
+$$\mathcal{Q} = \Big\{q: \quad q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \quad q_i(\mathbf{Z}_i) = \mathcal{N}\left(\mathbf{Z}_i; \mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i)\right), \mathbf{m}_i, \mathbf{s}_i\in\mathbb{R}_p \Big\}$$
+
+Maximize the ELBO (Evidence Lower BOund):
+
+$$J(\theta, q) = \log p_\theta(\mathbf{Y}) - KL[q_\theta (\mathbf{Z}) ||  p_\theta(\mathbf{Z} | \mathbf{Y})]  = \mathbb{E}_{q} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q(\mathbf{Z})]$$
+
+## Variational EM
+
+  - VE step: find the optimal $q$ (here, $\{(\mathbf{m}_i, \mathbf{s}_i)\}_{i=1,\dots,n} = \{\mathbf{M}, \mathbf{S}\}$): 
+$$q^h = \arg \max J(\theta^h, q) = \arg\min_{q \in \mathcal{Q}} KL[q(\mathbf{Z}) \,||\, p_{\theta^h}(\mathbf{Z}\,|\,\mathbf{Y})]$$
+  - M step: update $\hat{\theta}^h$
+$$\theta^h = \arg\max J(\theta, q^h) = \arg\max_{\theta} \mathbb{E}_{q} [\log p_{\theta}(\mathbf{Y}, \mathbf{Z})]$$
+
+---
+# ELBO and gradients for PLN
+
+Let $\mathbf{A} = \mathbb{E}_q[\exp(\mathbf{Z})] = \exp\left(\mathbf{O} + \mathbf{M} + \frac12 \mathbf{S}^2\right)$
+
+### Variational bound
+
+$$\begin{array}{ll}
+J(\mathbf{Y}) & = \mathbf{1}_n^\intercal \left( \left[ \mathbf{Y} \circ (\mathbf{O} + \mathbf{M}) - \mathbf{A} + \log(\mathbf{S})\right]\right) \mathbf{1}_{p} + \frac{n}2\log|{\boldsymbol\Omega}| \\
+& - \frac12 \mathrm{trace}\left({\boldsymbol\Omega} \bigg[\left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right)^\intercal \left(\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}\right) + \mathrm{diag}(\mathbf{1}_n^\intercal\mathbf{S}^2)\bigg]\right) + \text{cst.}\\
+\end{array}$$
+
+### M-step (Analytical)
+
+$$\hat{{\boldsymbol\Theta}} = \left(\mathbf{X}^\top \mathbf{X}\right)^{-1} \mathbf{X} \mathbf{M}, \quad 
+   \hat{{\boldsymbol\Sigma}} = \frac{1}{n} \left(\mathbf{M}-\mathbf{X}\hat{{\boldsymbol\Theta}}\right)^\top \left(\mathbf{M}-\mathbf{X}\hat{\boldsymbol\Theta}\right) + \frac{1}{n} \mathrm{diag}(\mathbf{1}^\intercal\mathbf{S}^2)$$
+
+### Variational E-step (optimization)
+
+$$\frac{\partial J(q)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (\mathbf{M} - \mathbf{X}{\boldsymbol\Theta}) \mathbf{\Omega}\right), \qquad \frac{\partial J(q)}{\partial \mathbf{S}} = \frac{1}{\mathbf{S}} - \mathbf{S} \circ \mathbf{A} - \mathbf{S} \mathrm{D}_{\boldsymbol\Omega} .$$
+
+
+
+---
+
+# .small[Application to the optimization of PLN models]
+  
+## Property of PLN variational approximation
+
+The ELBO $J(\theta, q)$ is bi-concave, i.e.
+  - concave wrt $q = (\mathbf{M}, \mathbf{S})$ for given $\theta$ 
+  - convace wrt $\theta = (\boldsymbol\Sigma, \boldsymbol\Theta)$ for given $q$ 
+but .important[not jointly concave] in general.
+
+## Optimization
+
+Gradient ascent for the set of variational parameters $(\mathbf{M}, \mathbf{S})$
+
+#### Medium scale problems
+
+  - **algorithm**: conservative convex separable approximations `r Citet(myBib, "Svan02")` <br/>
+  - **implementation**: `NLopt` nonlinear-optimization library `r Citet(myBib, "nlopt")` <br/>
+  - **initialization**: LM after log-transformation applied independently on each variables + concatenation of the regression coefficients + Pearson residuals
+
+$\rightsquigarrow$ Comfortable up to a thousand of sites ( $n \approx 1000$ ), hundreds of species ( $p\approx 100s$ )
+
