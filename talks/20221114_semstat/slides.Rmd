@@ -1,0 +1,113 @@
+---
+title: "Poisson lognormal models for count data"
+subtitle: "Variational inference, Optimization"
+author: "J. Chiquet, M. Mariadassou, S. Robin, B. Batardière, J. Kwon, J. Stoehr <br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE</small> <br /> <small>Last update `r format(Sys.time(), '%d %B, %Y')`</small>"
+date: "<br/>https://pln-team.github.io/PLNmodels"
+output:
+  xaringan::moon_reader:
+    chakra: libs/remark-latest.min.js
+    css: ["pln.css", default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+class: inverse, center, middle
+
+# Multivariate Poisson lognormal models <br/> .small[Motivations, Framework]
+
+```{r setup, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+options(htmltools.dir.version = FALSE)
+library(tidyverse)  # data manipulation
+library(RefManageR) # reference manager
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           cite.style = 'alphabetic', 
+           style = "markdown",
+           hyperlink = FALSE, 
+           dashed = FALSE)
+myBib <- ReadBib("./PLNreferences.bib", check = FALSE)
+```
+
+<!-- STATISTICAL MODEL -->
+```{r PLN_stat_model, child='PLN_stat_model.Rmd'}
+```
+
+---
+class: inverse, center, middle
+
+# Variational inference for standard PLN<br/> .small[Optimisation]
+
+<!-- VARIATIONAL INFERENCE -->
+```{r PLN_var_inference, child='PLN_var_inference.Rmd'}
+```
+
+---
+class: inverse, center, middle
+
+# Variational estimators of standard PLN<br/> .small[Properties]
+
+<!-- PROPERTIES OF THE VARIATIONAL ESTIMATORS-->
+```{r PLN_var_properties, child='PLN_var_properties.Rmd'}
+```
+
+---
+
+# Recent advances <br/> .small[likezlihood maximization, Zero Inflation]
+
+<!-- OPTIMISATION -->
+```{r PLN_optim_IS, child='PLN_optim_IS.Rmd'}
+```
+
+<!-- ZI-PLN MODEL -->
+```{r PLN_ZI, child='PLN_ZI.Rmd'}
+```
+
+
+<!--   - No guarantee for the variational estimators -->
+<!--   - No test on the inference parameters -->
+<!--   - Environmental Genomics, Single-Cell: more zeros, more rows, more columns -->
+
+<!-- ## Ongoing work -->
+
+<!--   - Zero-inflated version -->
+<!--   - Hypothesis testing -->
+
+---
+# Conclusion
+
+## Summary
+
+  - PLN = generic model for multivariate count data analysis
+  - Flexible modeling of the covariance structure, allows for covariates
+  - Efficient V-EM algorithm
+
+## Extensions
+
+- Other variants
+      - covariance structures (spatial, time series, genetics...)
+- Other models
+  - Bernoulli/multinomial counterpart to PLN
+  - functional data
+  - multiple-data integration (e.g., Bernoulli + Poisson)
+
+
+---
+# References
+
+```{r, results='hide', echo = FALSE}
+RefManageR::Cite(myBib, 'PLNmodels')
+RefManageR::Cite(myBib, 'PLNPCA')
+RefManageR::Cite(myBib, 'PLNnetwork')
+RefManageR::Cite(myBib, 'Facon2021')
+RefManageR::Cite(myBib, 'Lejal2021')
+```
+
+<small>
+```{r, 'refs', results='asis', echo=FALSE}
+PrintBibliography(myBib)
+```
+</small>
+
