@@ -1,51 +1,54 @@
 
 ---
-# Asymptotic consistency (?)
+# Estimator Bias and consistency
 
-Let $\hat{\psi}_i = \hat{\psi}_i(\theta, \mathbf{Y}_i) = \arg \max_{\psi} J_i(\theta, \psi)$ and consider the stochastic map $\bar{J}_n$ defined by:
+### M-estimation framework `r Citep(myBib, "van2000asymptotic")`
 
-$$\bar{J}_n \; : \quad \theta \mapsto \frac{1}{n}\sum_{i=1}^{n} J_i(\theta, \hat{\psi}_i) \stackrel{\Delta}{=} \frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta)$$
+Let $\hat{\psi}_i = \hat{\psi}_i(\theta, \mathbf{Y}_i) = \arg \max_{\psi} J_i(\theta, \psi)$ and consider the stochastic map $\bar{J}_n$ defined by
 
-M-estimation suggests that $\hat{\theta} = \arg\max_{\theta} \bar{J}_{n}(\theta)$ should converge to $\bar{\theta} = \arg\max_{\theta} \bar{J}(\theta)$ where $\bar{J}(\theta) = \mathbb{E}_{\theta^\star}[\bar{J}_\mathbf{Y}(\theta)] =  \mathbb{E}_{\theta^\star}[J_\mathbf{Y}(\theta, \hat{\psi}(\theta, \mathbf{Y}))]$. 
+$$\bar{J}_n \; : \quad \theta \mapsto \frac{1}{n}\sum_{i=1}^{n} J_i(\theta, \hat{\psi}_i) \stackrel{\Delta}{=} \frac{1}{n}\sum_{i=1}^{n} 
+\bar{J}_i(\theta)$$
+
+M-estimation suggests that $\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \bar{J}_{n}(\theta)$ should converge to $\bar{\theta} = \arg\max_{\theta} \bar{J}(\theta)$ where $\bar{J}(\theta) = \mathbb{E}_{\theta^\star}[\bar{J}_\mathbf{Y}(\theta)] =  \mathbb{E}_{\theta^\star}[J_\mathbf{Y}(\theta, \hat{\psi}(\theta, \mathbf{Y}))]$. 
 
 --
 
 ### Theorem `r Citep(myBib, "Westling2015")`
 
-Under regularity condtions ensuring that $\bar{J}_n$ is smooth enough (and satisfied for example when $\theta$ and $\psi_i$ are restricted to compact sets), we have indeed: 
+In this line, `r Citet(myBib, "Westling2015")` show that under regularity conditions ensuring that $\bar{J}_n$ is smooth enough (e.g. when $\theta$ and $\psi_i$ are restricted to compact sets), 
 $$
-\hat{\theta} \xrightarrow[n \to +\infty]{a.e.} \bar{\theta}
+\hat{\theta}^{\text{ve}} \xrightarrow[n \to +\infty]{a.e.} \bar{\theta}
 $$
 
---
-
-.important[Open question:] $\bar{\theta} = \theta^\star$ ? No formal results as $J$ is untractable but numerical evidence suggest so.
+.important[Open question:] $\bar{\theta} = \theta^\star$ ? No formal results as $\bar{J}$ is untractable but numerical evidence suggests so.
 
 ---
 # Numerical study
 
-## Study Bias and coverage of the estimator
-
-- number of samples $n \in \{30, 250, 500, 1000 \}$
+## Study Bias of the estimator of $\hat{\boldsymbol B}$
 
 - number of variables $p = 50$
 
 - number of covariates $d \in \{2, 4\}$
 
-- sampling effort (TSS) $\approx 10^4$
+- number of samples $n \in \{30, 250, 500, 1000 \}$
 
-- noise level $\sigma^2 \in \{0.25, 1, 4\}$
+- sampling effort (TSS) $\approx 10^4$
 
 - $\boldsymbol\Sigma$ as $\sigma_{jk} = \sigma^2 \rho^{|j-k|}$, with $\rho = 0.2$
 
-- $\mathbf{\Theta}$ with entries sampled from $\mathcal{N}(0,1/d)$
+- $\mathbf{B}$ with entries sampled from $\mathcal{N}(0,1/d)$
 
+- noise level $\sigma^2 \in \{0.25, 1, 4\}$
 
+- 100 replicates
 ---
 
 # Bias of $\hat{\boldsymbol B}$
 
-![Bias](figs/PLN_bias.png)
+```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="Bias vanishes with $n$"}
+knitr::include_graphics("figs/PLN_bias.png")
+```
 
 $\rightsquigarrow$ .important[asymptotically unbiased]
 
@@ -53,21 +56,27 @@ $\rightsquigarrow$ .important[asymptotically unbiased]
 
 # Root mean square error of $\hat{\boldsymbol B}$
 
-![RMSE](figs/PLN_rmse.png)
-
-$\rightsquigarrow$ .important[asymptotically unbiased]
+```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="RMSE vanishes with $n$"}
+knitr::include_graphics("figs/PLN_rmse.png")
+```
 
 ---
-# Statistical Inference
 
-.content-box-red[We only consider the standard PLN model.]
+# Contribution of bias in RMSE of $\hat{\mathbf{B}}$
 
-## A first try: Wald test
+```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="Bias contribute in large part of the MSE"}
+knitr::include_graphics("figs/PLN_empirical_bias_vs_rmse.png")
+```
+
+---
+# Estimator Variance
+
+## Motivation: Wald test
 
 Test $\mathcal{H}_0: R \theta = r_0$ with the statistic
 $$ (R \hat{\theta} - r_0)^\top \left[n R\hat{\mathbb{V}}(\hat{\theta}) R^\top \right]^{-1} (R \hat{\theta} - r_0) \sim \chi_k^2 \quad \text{where} \quad k = \text{rank}(R).$$
 
-The Fisher Information matrix
+If $\hat{\theta}$ is ht MLE, then the Fisher Information matrix
 
 $$I(\hat{\theta}) = -  \mathbb{E}_\theta \left[ \frac{\partial^2 \log \ell(\theta; x)}{\partial  \theta^2} \right]$$
 
@@ -75,19 +84,19 @@ can be used as an approximation of $n\mathbb{V}(\hat{\theta})^{-1}$.
 
 ## Application
 
-Derive confidences interval for the inverse covariance $\mathbf{\Omega}$ and the regression parameters $\mathbf{\Theta}$.
+Derive confidences interval for the inverse covariance $\mathbf{\Omega}$ and the regression parameters $\mathbf{B}$.
 
 ---
 
-# Variational Wald-test
+# Variance: naïve approach
 
+Do as if $\hat{\theta}^{\text{ve}}$ was a MLE and $J_n$ the log-likelihood.
 
-## Variational Fisher Information
+### Variational Fisher Information
 
+The Fisher information matrix is given by (from the Hessian of $J$) by
 
-The Fisher information matrix is given by
-
-$$I(\theta) = \begin{pmatrix}
+$$I_n(\hat{\theta}^{\text{ve}}) = \begin{pmatrix}
   \frac{1}{n}(\mathbf{I}_p \otimes 
 \mathbf{X}^\top)\mathrm{diag}(\mathrm{vec}(\mathbf{A}))(\mathbf{I}_p \otimes \mathbf{X}) & \mathbf{0} \\
   \mathbf{0} & \frac12\mathbf{\Omega}^{-1} \otimes 
@@ -96,94 +105,69 @@ $$I(\theta) = \begin{pmatrix}
 
 and can be inverted blockwise to estimate $\mathbb{V}(\hat{\theta})$.
 
-## Wald test and coverage
+### Wald test and coverage
 
-- $\hat{\mathbb{V}}(\mathbf{\Theta}_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}$
-- $\hat{\mathbb{V}}(\Omega_{kl}) = 2\Omega_{kk}\Omega_{ll}$
+$\hat{\mathbb{V}}(\mathbf{B}_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}, \qquad \hat{\mathbb{V}}(\Omega_{kl}) = 2\hat{\Omega}_{kk}\hat{\Omega}_{ll}$
 
 The confidence intervals at level $\alpha$ are given by 
 
-- $B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\mathbf{\Theta}_{kj})}$ 
-- $\Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}$. 
+$B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\mathbf{B}_{kj})}, \qquad \Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}$. 
 
 ---
 
-# Asymptotic consistency (?)
+# Contribution of variance in RMSE of $\hat{\mathbf{B}}$
 
-Let $\hat{\psi}_i = \hat{\psi}_i(\theta, Y_i) = \arg \max_{\psi} J_i(\theta, \psi)$ and consider the stochastic map $\bar{J}_n$ defined by:
-
-$$\bar{J}_n \; : \quad \theta \mapsto \frac{1}{n}\sum_{i=1}^{n} J_i(\theta, \hat{\psi}_i) \stackrel{\Delta}{=} \frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta)$$
-
-M-estimation suggests that $\hat{\theta} = \arg\max_{\theta} \bar{J}_{n}(\theta)$ should converge to $\bar{\theta} = \arg\max_{\theta} \bar{J}(\theta)$ where $\bar{J}(\theta) = \mathbb{E}_{\theta^\star}[\bar{J}_\mathbf{Y}(\theta)] =  \mathbb{E}_{\theta^\star}[J_\mathbf{Y}(\theta, \hat{\psi}(\theta, \mathbf{Y}))]$. 
-
-### Theorem `r Citep(myBib, "Westling2015")`
-
-Under regularity condtions ensuring that $\bar{J}_n$ is smooth enough (and satisfied for example when $\theta$ and $\psi_i$ are restricted to compact sets), we have indeed: 
-$$
-\hat{\theta} \xrightarrow[n \to +\infty]{a.e.} \bar{\theta}
-$$
-
-.important[Open question:] $\bar{\theta} = \theta^\star$ ? No formal results as $J$ is untractable but numerical evidence suggest so.
-
----
-
-# Numerical study
-
-## Study Bias and coverage of the estimator
-
-- number of samples $n \in \{50, 100, 500, 1000, 10000\}$
-
-- number of species/genes $p \in \{20, 200\}$
-
-- number of covariates $d \in \{2, 5, 10\}$
-
-- sampling effort $TSS \in \{\text{low}, \text{medium}, \text{high}\}$ ($\approx 10^4$, $10^5$ and $10^6$)
-
-- noise level $\sigma^2 \in \{0.2, 0.5, 1, 2\}$
-
-- $\boldsymbol\Sigma$ as $\sigma_{jk} = \sigma^2 \rho^{|j-k|}$, with $\rho = 0.2$
-
-- $\mathbf{\Theta}$ with entries sampled from $\mathcal{N}(0,1/d)$
-
-
----
-
-# Bias of $\hat{\boldsymbol\Theta}$
-
-```{r, echo = FALSE, out.width='80%', fig.align='center', fig.cap="The variational estimator are asymptotically unbiased"}
-knitr::include_graphics("figs/PLN_bias.png")
+```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="Weak contribution of Variance to MSE"}
+knitr::include_graphics("figs/PLN_empirical_variance_vs_rmse.png")
 ```
 
 ---
 
-# 95% confident interval - Coverage
+# Variance: empirical vs variational
 
-```{r, echo = FALSE, out.width='70%', fig.align='center', fig.cap="Variance underestimated, no trusted confidence intervals can be derived out-of-the box"}
-knitr::include_graphics("figs/PLN_confint.png")
+```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="Variance underestimated..."}
+knitr::include_graphics("figs/PLN_se_empirical_wald.png")
 ```
 
 ---
-# Asymptotic normality
+
+# 95% confident interval - coverage
+
+```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="No trusted confidence intervals can be derived out-of-the box"}
+knitr::include_graphics("figs/PLN_coverage_wald.png")
+```
+
+---
+# Variance : sandwich estimator (I)
+
+Pursuing on the M-estimation theory of `r Citet(myBib, "van2000asymptotic")`, `r Citet(myBib, "Westling2015")` prove 
+asymptotic normality of variational estimators and discuss the .important[sandwich] estimator of the variance.
 
 ### Theorem `r Citep(myBib, "Westling2015")`
 
-Under additional regularity condtions (still satisfied for example when $\theta$ and $\psi_i$ are restricted to compact sets), we have indeed: 
+Under additional regularity conditions (still satisfied for example when $\theta$ and $\psi_i$ are restricted to compact sets), we have 
 $$
 \sqrt{n}(\hat{\theta} - \bar{\theta})  \xrightarrow[]{d} \mathcal{N}(0, V(\bar{\theta}))
 $$
 where $V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}$ for 
+
 $$
 \begin{aligned}
- C(\theta) = \mathbb{E}[\nabla_{\theta\theta} \bar{J}_Y(\theta) ] \quad \mathrm{and} \quad 
- D(\theta) = \mathbb{E}\left[(\nabla_{\theta} \bar{J}_Y(\theta)) (\nabla_{\theta} \bar{J}_Y(\theta)^\intercal \right]
+ C(\theta) = \mathbb{E}[\nabla_{\theta\theta} \bar{J}(\theta) ] \quad \mathrm{and} \quad 
+ D(\theta) = \mathbb{E}\left[(\nabla_{\theta} \bar{J}(\theta)) (\nabla_{\theta} \bar{J}(\theta)^\intercal \right]
 \end{aligned}
 $$
+
+---
+# Variance : sandwich estimator (II)
+
+We need estimations of $\nabla_{\theta\theta} \bar{J}(\theta)$ and $C$ and $D$ 
 
 ### Practical computations .small[chain rule]
 
 $$
 \begin{aligned}
-\nabla_{\theta\theta} \bar{J}_{Y}(\theta) = \left[\nabla_{\theta\theta} J_{Y} - \nabla_{\theta \psi} J_{Y} (\nabla_{\psi\psi} J_{Y})^{-1} \nabla_{\psi\theta} J_{Y}\right] (\theta, \hat{\psi}) \text{ and } \nabla_{\theta} \bar{J}_{Y}(\theta) = \nabla_{\theta} J_{Y}(\theta, \hat{\psi})
+\nabla_{\theta\theta} \bar{J}(\theta) = \left[\nabla_{\theta\theta} J - \nabla_{\theta \psi} J (\nabla_{\psi\psi} J)^{-1} \nabla_{\psi\theta} J\right] (\theta, \hat{\psi}) \text{ and } \nabla_{\theta} \bar{J}(\theta) = \nabla_{\theta} J(\theta, \hat{\psi})
 \end{aligned}
 $$
 
@@ -193,11 +177,17 @@ $$
  \hat{D}_n(\theta) & = \frac{1}{n} \sum_{i=1}^n \left[ \nabla_{\theta} J_i \nabla_{\theta} J_i^\intercal \right](\theta, \hat{\psi}_i)
 \end{aligned}
 $$
+<br/>
+
+### Caveat
+
+- For $\theta = (\mathbf{B}, \boldsymbol\Omega)$, $\hat{C}_n$ requires the inversion of $n$ matrices with $(p^2+pd)$ rows/columns\dots...
+- Let us first consider the estimation of $\theta = \mathbf{B}$ only, with .important[known variance] $\boldsymbol\Omega^{-1}$
 
 ---
-# Reasonably ugly formula
+# Reasonably fancy formula
  
-Additional efforts and computational tricks give:
+Additional matrix algebra efforts and computational tricks give
 
 $$
 \begin{aligned}
@@ -208,16 +198,22 @@ and
 
 $$
 \begin{aligned}
-\hat{C}_n(\theta) = - \frac{1}{n} \sum_{i=1}^n \left[ \mathbf{D}_i^{1/2} \mathbf{C}_i (\mathbf{C}_i^{-1} - \mathbf{B}_i) \mathbf{C}_i \mathbf{D}_i^{1/2} \right] \otimes \mathbf{x}_i \mathbf{x}_i^\intercal \in \mathbb{R}^{dp \times dp}
+\hat{C}_n(\theta) = - \frac{1}{n} \sum_{i=1}^n \left( \boldsymbol\Sigma + \mathrm{diag}(\mathbf{A}_i)^{-1}  + \frac12\mathrm{diag}(\mathbf{s}_i^4) \right) \otimes \mathbf{x}_i \mathbf{x}_i^\intercal \in \mathbb{R}^{dp \times dp}
 \end{aligned}
 $$
-where $\mathbf{D}_i = \mathrm{diag}(\mathbf{A}_i)$ and 
+$\rightsquigarrow$ Pratically not very useful since $\Sigma$ is unknown
 
-$$
-\begin{aligned}
-\mathbf{C}_i = \mathrm{diag}\left( \frac{\mathbf{2}_p}{\mathbf{2}_p + \mathbf{s}_i^2\mathbf{A}_i}\right) \quad \text{and} \quad 
-\mathbf{B}_i = \left[\mathbf{C}_i + \mathbf{D}_i^{-1/2} \boldsymbol{\Omega} \mathbf{D}_i^{-1/2} \right]^{-1} 
-\end{aligned}
-$$
+#### Ongoing work 
 
-Yet to be implemented...
+Derive the formula with unknown $\boldsymbol\Sigma$
+- Plugin-in  $\hat{\Sigma}$ in the formula of $\hat{C}_n$ leads very poor results\dots
+- Need to account for cross-terms in $\nabla_{\theta \psi_i} \bar{J}_i(\theta; \hat{\psi}_i)$ between $\Omega$ and $\psi_i$...
+- Use Jackknife resampling to estimate the variance\dots
+
+---
+# 95% CI - sandwich coverage
+
+```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="Coverage seems ok with fixed variance matrix"}
+knitr::include_graphics("figs/PLN_coverage_sandwich_fixed_variance.png")
+```
+

@@ -49,7 +49,7 @@ $$\boldsymbol{\psi}_i^{(h)} = \arg \max J_{i}(\theta^{(h)}, \boldsymbol{\psi}_i)
   - M step: optimize $\theta$
 $$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \boldsymbol{\psi}_i^{(h)})$$
 
-We end up with 
+We end up with a $M$-estimator:
 
 $$
 \begin{equation}

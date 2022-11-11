@@ -130,15 +130,15 @@ scRNA$counts %>% as_tibble() %>% rmarkdown::paged_table()
 
 We adjust the standard PLN model and the ZI-PLN model with some sparsity on the precision matrix:
 
-```{r PLN scRNA, cache = TRUE}
+```{r PLN-scRNA, cache = TRUE}
 system.time(myPLN <- 
     PLN(counts ~ 1 + offset(log(total_counts)),
         data = scRNA, control = list(trace = 0)))
 ```
 
-```{r ZIPLN scRNA, cache = TRUE}
+```{r ZIPLN-scRNA, cache = TRUE}
 system.time(myZIPLN <- 
-    ZIPLN(counts ~ 1 + offset(log(total_counts)), rho = .25,
+    ZIPLN(counts ~ 1 + offset(log(total_counts)), rho = .1,
           data = scRNA, control = list(trace = 0)))
 ```
 
@@ -146,7 +146,7 @@ system.time(myZIPLN <-
 
 # A quick example in genomics (3)
 
-![](slides_files/figure-html/PLN-ZIPLN.png)
+![](figs/PLN-ZIPLN.png)
 
 ZI-PLN seems to be less variant for predicting small counts
 
@@ -157,5 +157,4 @@ ZI-PLN seems to be less variant for predicting small counts
 ```{r}
 prcomp(myZIPLN$latent) %>% factoextra::fviz_pca_ind(col.ind = scRNA$cell_line)
 ```
----
 

@@ -54,26 +54,21 @@ class: inverse, center, middle
 ```
 
 ---
+class: inverse, center, middle
 
-# Recent advances <br/> .small[likezlihood maximization, Zero Inflation]
-
-<!-- OPTIMISATION -->
+# Direct optimization of the likelihood <br/> .small[Gradient estimation with importance sampling] 
 ```{r PLN_optim_IS, child='PLN_optim_IS.Rmd'}
 ```
+
+
+---
+class: inverse, center, middle
+
+# Zero-inflated PLN
 
 <!-- ZI-PLN MODEL -->
 ```{r PLN_ZI, child='PLN_ZI.Rmd'}
 ```
-
-
-<!--   - No guarantee for the variational estimators -->
-<!--   - No test on the inference parameters -->
-<!--   - Environmental Genomics, Single-Cell: more zeros, more rows, more columns -->
-
-<!-- ## Ongoing work -->
-
-<!--   - Zero-inflated version -->
-<!--   - Hypothesis testing -->
 
 ---
 # Conclusion
@@ -83,16 +78,12 @@ class: inverse, center, middle
   - PLN = generic model for multivariate count data analysis
   - Flexible modeling of the covariance structure, allows for covariates
   - Efficient V-EM algorithm
+  - Variational estimator is asymptotically normal (and hopefully unbiased) with computable covariance matrix. 
+  - ZI-PLN reduces (some) problems induced by high sparsity in the data
 
-## Extensions
+## Advertisement 
 
-- Other variants
-      - covariance structures (spatial, time series, genetics...)
-- Other models
-  - Bernoulli/multinomial counterpart to PLN
-  - functional data
-  - multiple-data integration (e.g., Bernoulli + Poisson)
-
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a new journal promoting reproducible research in ML and statistics
 
 ---
 # References

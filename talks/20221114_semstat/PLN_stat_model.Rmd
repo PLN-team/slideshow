@@ -1,32 +1,32 @@
 
----
+<!-- --- -->
 
-# Generic form of data sets
-  
-Routinely gathered in ecology/microbiology/genomics 
+<!-- # Generic form of data sets -->
 
-### Data tables
+<!-- Routinely gathered in ecology/microbiology/genomics  -->
 
-  - .important[Abundances]: read counts of species/transcripts $j$ in sample $i$
-  - .important[Covariates]: value of environmental variable $k$ in sample $i$
-  - .important[Offsets]: sampling effort for species/transcripts $j$ in sample $i$
+<!-- ### Data tables -->
 
-### Need frameworks to model _dependencies between counts_ 
+<!--   - .important[Abundances]: read counts of species/transcripts $j$ in sample $i$ -->
+<!--   - .important[Covariates]: value of environmental variable $k$ in sample $i$ -->
+<!--   - .important[Offsets]: sampling effort for species/transcripts $j$ in sample $i$ -->
 
-  - understand **environmental effects** <br/>
-      $\rightsquigarrow$ explanatory models (multivariate regression, classification)
-  - exhibit **patterns of diversity** <br/>
-      $\rightsquigarrow$ summarize the information (clustering, dimension reduction)
-  - understand **between-species interactions** <br />
-      $\rightsquigarrow$ 'network' inference (variable/covariance selection)
-  - correct for technical and **confounding effects** <br/>
-      $\rightsquigarrow$ account for covariables and sampling effort
+<!-- ### Need frameworks to model _dependencies between counts_  -->
+
+<!--   - understand **environmental effects** <br/> -->
+<!--       $\rightsquigarrow$ explanatory models (multivariate regression, classification) -->
+<!--   - exhibit **patterns of diversity** <br/> -->
+<!--       $\rightsquigarrow$ summarize the information (clustering, dimension reduction) -->
+<!--   - understand **between-species interactions** <br /> -->
+<!--       $\rightsquigarrow$ 'network' inference (variable/covariance selection) -->
+<!--   - correct for technical and **confounding effects** <br/> -->
+<!--       $\rightsquigarrow$ account for covariables and sampling effort -->
 
 ---
 
 # Models for multivariate count data
 
-## If we were in a Gaussian world...
+### If we were in a Gaussian world...
 
 The .important[general linear model] `r Citep(myBib, "MKB79")` would be appropriate! For each sample $i = 1,\dots,n$, 
 
@@ -37,8 +37,7 @@ null covariance $\Leftrightarrow$ independence $\rightsquigarrow$ uncorrelated s
 .content-box-red[This model gives birth to Principal Component Analysis,
  Discriminant Analysis, Gaussian Graphical Models, Gaussian Mixture models and many others $\dots$]
 
-
-## With count data...
+### With count data...
 
 There is no generic model for multivariate counts
   - Data transformation (log, $\sqrt{}$) : quick and dirty
@@ -106,9 +105,14 @@ Stacking all individuals together,
   $$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\mathbf{B}, \boldsymbol\Sigma), \quad \|\mathbf{B} \|_1 < c.$$
 ---
 
-# Avalaibility
+# Availability
 
-## R/C++ Package PLNmodels
+### Help and documentation
+
+- PLNmodels website <https://pln-team.github.io/PLNmodels> 
+- github group <https://github.com/pln-team>
+
+### R/C++ Package PLNmodels
 
 Last stable release on CRAN,  development version available on GitHub).
 
@@ -117,15 +121,12 @@ install.packages("PLNmodels")
 remotes::install_github("PLN-team/PLNmodels@dev")
 ```
 
-```{r loading package, message=FALSE, eval = FALSE}
+```{r loading package, message=FALSE}
 library(PLNmodels)
 packageVersion("PLNmodels")
 ```
 
-## Python module
+### Python module
 
 A Python + PyTorch implementation is coming
 
-## Help and documentation
-
-The [PLNmodels website](https://pln-team.github.io/PLNmodels/) contains

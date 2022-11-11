@@ -1,78 +1,88 @@
 
-
 ---
 
-# .small[Large scale problems] 
+# PLN-PCA variant
 
-**Sophisticated Adaptive Stochastic Gradient Descent **
+<br/><br/>
 
-- Rprop (1993) uses the gradient sign and update each variable independently:
 
-- AdaGrad (2011) uses adaptive coordinate-wise step-sizes
+$$\begin{aligned}
+\mathbf{Z}_i &=  \mathbf{B}^\intercal x_i+ \mathbf{C} W_i, \qquad W_{i} \sim \mathcal{N}\left(0, I_{q}\right) \\[1.25ex]
+\mathbf{Y}_i  \mid \mathbf{Z}_i & \sim \mathcal{P}\left(\exp \left( \mathbf{Z}_i\right)\right) \\
+\end{aligned}$$
 
-- RMSProp (2012) adds momentum to the step-sizes
+where $q\leq p$ is the dimension of the latent space. The model parameters encompass
+
+<br/>
+
+  - The matrix of regression parameters $\mathbf{B} = (\beta _{kj})_{1 \leq k \leq d, 1 \leq j \leq p}$,
+  - The matrix $C \in \mathbb R^{p\times q}$ sending the latent variable $W_i$ from $\mathbb{R}^q$ to $\mathbb{R}^p$.
+
+If $p = q$, $\theta = (\mathbf{B}, \Sigma = C^T C)$, .important[standard PLN]?
+
+If $q < p$, $\theta = (\beta, C)$, .important[PLN-PCA]
+
+<br/>
+
+We .important[control the number of parameters]/size of the subspace with $q$
+
+---
+# Direct optimization
+
+<br/>
+
+### .content-box-red[.small[Direct optimization by approximating the gradient of the objective]]
+
+.content-box-yellow[
+
+
+$$\begin{aligned}
+\nabla_{\theta} \sum _{i =1}^n \log p_{\theta}(Y_i) & = \sum _{i =1}^n \nabla_{\theta}  \log \left(  \int_{R^q} p_{\theta} (Y_i|W_i) p(W_i)\mathrm{d} W_i \right) \\ & = \nabla_{\theta} \sum _{i =1} ^n \log \mathbb{E}_W (p_\theta(Y_i|W_i)) \\
+\end{aligned}$$
+]
+
+<br/>
+
+### Algorithm
+
+- Ingredient 1: fancy SG ascent with variance reduction (e.g. Adagrad + SAGA)
+- Ingredient 2: Importance sampling to estimate the gradient
+
+
+---
+# Importance Sampling
+
+### Gradient derivation .small[(First Louis Formula)]
+
+$$\begin{aligned}
+\nabla_{\theta}  \log \mathbb{E}_{W}\left[  p_{\theta} (Y_i|W)  \right]  & = \frac {\nabla_{\theta}   \mathbb{E}_{W}\left[  p_{\theta} (Y_i|W)  \right]}{\mathbb{E}_{W}\left[  p_{\theta} (Y_i|W)  \right]} = \frac {\mathbb{E}_{W}\left[  \nabla_{\theta} p_{\theta} (Y_i|W)  \right]}{\mathbb{E}_{W}\left[  p_{\theta} (Y_i|W)  \right]} \\ & = \frac {\mathbb{E}_{W}\left[ p_{\theta} (Y_i|W) \nabla_{\theta} \log(p_{\theta} (Y_i|W))  \right]}{\mathbb{E}_{W}\left[  p_{\theta} (Y_i|W)  \right]} = \frac{\bar N}{\bar D} \\
+\end{aligned}$$
+
+### Approximation via Importance Sampling 
+
+Our estimator of the numerator and the denominator are respectively, drawing $V_k \sim \phi(.)$,
+
+$$\bar N = \frac 1 {n_s} \sum_{k=1}^{n_s} \frac {p(V_k)}{\phi(V_k)} p_\theta(Y_i|V_k) \nabla_{\theta}\log p_\theta(Y_i| V_k), \bar D = \frac 1 {n_s} \sum_{k=1}^{n_s} \frac {p(V_k)}{\phi(V_k)} p_\theta(Y_i| V_k),$$
+
+and the ratio can be seen as a self normalizing weighted IS approach:
+
+$$\bar N/\bar D = \frac 1 {n_s} \sum_k^{n_s} \tilde{w}_k \nabla_{\theta}\log p_\theta(Y_i| V_k), \quad w_k = \frac {p(V_k)p_\theta(Y_i|V_k)}{\phi(V_k)}, \quad \tilde{w}_k = w_k/\sum_k w_k$$
+
+
+---
+# How to choose the proposition law $\phi$
   
-- Adam (2015) also adds momentum to the gradients
+Choose $\phi$ as close as possible as $p_\theta (Y|W)p(W) \varpropto p_\theta(W | Y)$,
 
-```{r, echo = FALSE}
-knitr::include_graphics("figs/momentum.png")
-```
+Since $p(W)$ is Gaussian, we choose $\phi$ Gaussian with
 
-$\rightsquigarrow$ All available in **Pytorch** with auto-differentiation.
+- mean $m = \mathbb{E}_W\left[W |Y \right]$, estimated using IS with weights recycled from the previous iterations.
 
----
+- covariance $\Sigma$, estimated from the 2nd derivative taken in m (explicit)
 
-# Optimizers comparison
+$$\Omega^{-1} = - \nabla_{WW} \log p_{\theta}(Y_i| W) p(W) \bigg|_{W = m}$$
+### Expected theoretical guarantees
 
-```{r, echo = FALSE, out.width='65%', fig.align='center', fig.cap="n = 1,000, p = 200, d = 2. Rprop is much faster."}
-knitr::include_graphics("figs/optimizer.png")
-```
-
----
-
-# Performance
-
-```{r, echo = FALSE, out.width='65%', fig.align='center', fig.cap="n = 10,000, p = 2,000, d = 2 (running time: 1 min 40s)"}
-knitr::include_graphics("figs/final_n=10000,p=2000.png")
-```
-
-$\rightsquigarrow$ Work up to $n = 100,000$, $p = 10,000s$
-
----
-
-# Exact likelihood maximization  
-
-With B. Batardière, J. Kwon
-
-To compare and assess at least empirically the performance of the VE-M estimator
-
-  - Use importance sampling to estimate the likelihood: 
-
- $$p_{\theta}(Y_i) = \int \tilde p_{\theta}(Y_i|Z) p(Z)  \mathrm d Z = \int \tilde p_{\theta}(Z) \mathrm d Z \approx \frac 1 {n_s} \sum_{k=1}^{n_s} \frac {\tilde p_{\theta}(V_k)}{g(V_k)}, ~ ~ ~(V_{k})_{1 \leq k \leq n_s} \overset{iid}{\sim} g$$
- 
-  - Estimate the gradients of the log-likelihood by plug-in: 
-
-  $$\nabla _{\theta} \log p_{\theta}(Y_i) \approx \nabla_{\theta} \log\left(\frac 1 {n_s} \sum_{k=1}^{n_s} \frac {\tilde p_{\theta}^{(u)}(V_k)}{g(V_k)}\right)$$
-
-  - Use SAGA (F. Bach), a smart incremental gradient descent approach 
-
-$\rightsquigarrow$ Work up to $n=1,000, p = 30$, $n=1,000, q = 30, p >> q$ for PCA variant
-
----
-
-# .small[Comparing exact and variational estimators]
-
-
-.pull-left[
-```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="Log-likelihood computed with importance sampling and variational estimators on 20 replicates"}
-knitr::include_graphics("figs/IMPS_vs_VPLN_posterior.png")
-```
-]
-
-.pull-right[
-```{r, echo = FALSE, out.width='85%', fig.align='center', fig.cap="Same, on a single run (blue = IS, black = fastPLN, red = true log-likelihood"}
-knitr::include_graphics("figs/exactPLN_vs_fastPLN_loglik.png")
-```
-]
-
-The true log-likelihood used for comparison is computed numerically.
+- Gaussian proposition law does not give bounded weights and finite variance in theory
+- Student proposition law does, leading to theoretical guarantees on the estimator 
+- In practice, Gaussian or Student proposition law gives the same effective sample size. 
