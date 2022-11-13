@@ -39,7 +39,6 @@ class: inverse, center, middle
 
 ```{r setup, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE, message=FALSE}
 options(htmltools.dir.version = FALSE)
-library(tidyverse)  # data manipulation
 library(RefManageR) # reference manager
 BibOptions(check.entries = FALSE, 
            bib.style = "authoryear", 
@@ -52,6 +51,10 @@ myBib <- ReadBib("./PLNreferences.bib", check = FALSE)
 
 <!-- STATISTICAL MODEL -->
 ```{r PLN_stat_model, child='PLN_stat_model.Rmd'}
+```
+
+<!-- ILLUSTRATION -->
+```{r PLN_oaks_analysis, child='PLN_oaks_analysis.Rmd'}
 ```
 
 ---
