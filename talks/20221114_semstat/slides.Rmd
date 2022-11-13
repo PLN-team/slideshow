@@ -1,7 +1,7 @@
 ---
 title: "Poisson lognormal models for count data"
 subtitle: "Variational inference, Optimization"
-author: "J. Chiquet, M. Mariadassou, S. Robin, B. Batardière, J. Kwon, J. Stoehr <br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE</small> <br /> <small>Last update `r format(Sys.time(), '%d %B, %Y')`</small>"
+author: "J. Chiquet, M. Mariadassou, S. Robin<br/> + B. Batardière, J. Kwon, J. Stoehr <br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE</small> <br /> <small>Last update `r format(Sys.time(), '%d %B, %Y')`</small>"
 date: "<br/>https://pln-team.github.io/PLNmodels"
 output:
   xaringan::moon_reader:
@@ -14,6 +14,25 @@ output:
       countIncrementalSlides: false
 ---
 
+class: inverse, middle
+
+# Outline 
+
+  1. .large[Multivariate Poisson lognormal models] 
+  <br/>
+  
+  2. .large[Optimization with Variational inference] 
+  <br/>
+  
+  3. .large[Properties of the Variational estimators] 
+  <br/>
+  
+  4. .large[Direct Optimization with Important Sampling]
+  <br/>
+  
+  5. .large[Zero-Inflated PLN]
+
+---
 class: inverse, center, middle
 
 # Multivariate Poisson lognormal models <br/> .small[Motivations, Framework]
@@ -47,7 +66,7 @@ class: inverse, center, middle
 ---
 class: inverse, center, middle
 
-# Variational estimators of standard PLN<br/> .small[Properties]
+# Variational estimators of standard PLN<br/> .small[Properties] <br/>
 
 <!-- PROPERTIES OF THE VARIATIONAL ESTIMATORS-->
 ```{r PLN_var_properties, child='PLN_var_properties.Rmd'}
@@ -81,9 +100,16 @@ class: inverse, center, middle
   - Variational estimator is asymptotically normal (and hopefully unbiased) with computable covariance matrix. 
   - ZI-PLN reduces (some) problems induced by high sparsity in the data
 
+## Work in progress
+
+  - Caracterisation of Variational Estimator
+  - Direct likelihood optim (Stochastic Gradient + Important Sampling)
+  - Optimisation guarantee for coupling adpative SGD + variance reduction
+  - Connection/Comparison with VAE with e.g Poisson neg log-likelihood as loss
+  
 ## Advertisement 
 
-[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a new journal promoting reproducible research in ML and statistics
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.
 
 ---
 # References

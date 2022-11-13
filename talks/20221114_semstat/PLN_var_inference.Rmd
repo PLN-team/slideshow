@@ -16,7 +16,7 @@ EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y}
 
 ### Variational approximation `r Citep(myBib, "WaJ08")`
 
-Use a proxy $q_\psi$ of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$ minimizing a divergence in a class $\mathcal{Q}$ .small[(e.g, Küllback-Leibler divergence]
+Use a proxy $q_\psi$ of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$ minimizing a divergence in a class $\mathcal{Q}$ .small[(e.g, Küllback-Leibler divergence)]
 
 $$q_\psi(\mathbf{Z})^\star  \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right), \, \text{e.g.}, D(.,.) = KL(., .) = \mathbb{E}_{q_\psi}\left[\log \frac{q(z)}{p(z)}\right].$$
 
@@ -45,15 +45,15 @@ J_i(\theta, \psi_i) = &\mathbf{Y}_i^\intercal(\mathbf{o}_i + \mathbf{m}_i) - \le
 .important[Alternate] until convergence between
 
   - VE step: optimize $\boldsymbol{\psi}$ (can be written individually)
-$$\boldsymbol{\psi}_i^{(h)} = \arg \max J_{i}(\theta^{(h)}, \boldsymbol{\psi}_i) \left( = \arg\min_{q_i} KL[q_i(\mathbf{Z}_i) \,||\, p_{\theta^h}(\mathbf{Z}_i\,|\,\mathbf{Y}_i)] \right)$$
+$$\psi_i^{(h)} = \arg \max J_{i}(\theta^{(h)}, \psi_i) \left( = \arg\min_{q_i} KL[q_i(\mathbf{Z}_i) \,||\, p_{\theta^h}(\mathbf{Z}_i\,|\,\mathbf{Y}_i)] \right)$$
   - M step: optimize $\theta$
-$$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \boldsymbol{\psi}_i^{(h)})$$
+$$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \psi_i^{(h)})$$
 
 We end up with a $M$-estimator:
 
 $$
 \begin{equation}
-\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \left( \frac{1}{n}\sum_{i=1}^{n} \sup_{\boldsymbol{\psi}_i} J_i(\theta, \boldsymbol{\psi}_i) \right)  = \arg\max_{\theta} \underbrace{\left(\frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta) \right)}_{\bar{J}_n(\theta)} 
+\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \left( \frac{1}{n}\sum_{i=1}^{n} \sup_{\psi_i} J_i(\theta, \psi_i) \right)  = \arg\max_{\theta} \underbrace{\left(\frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta) \right)}_{\bar{J}_n(\theta)} 
 \end{equation}
 $$
 where $\bar{J}_i(\theta) = \sup_{\psi_i} J_i(\theta,\psi_i)$ is the *profiled* objective function.
@@ -77,15 +77,16 @@ $$\hat{{\mathbf{B}}} = \left(\mathbf{X}^\top \mathbf{X}\right)^{-1} \mathbf{X} \
 ### VE-step: gradient ascent
 
 $$\frac{\partial J(\psi)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (\mathbf{M} - \mathbf{X}{\mathbf{B}}) \mathbf{\Omega}\right), \qquad \frac{\partial J(\psi)}{\partial \mathbf{S}} = \frac{1}{\mathbf{S}} - \mathbf{S} \circ \mathbf{A} - \mathbf{S} \mathrm{D}_{\boldsymbol\Omega} .$$
+$\rightsquigarrow$ Same routine for other PLN variants.
 
 ---
-# Implementation and algorithms
+# Implementations
 
 #### Medium scale problems
 
   - **algorithm**: conservative convex separable approximations `r Citep(myBib, "Svan02")`
   - **implementation**: `NLopt` nonlinear-optimization library `r Citep(myBib, "nlopt")` <br/>
-$\rightsquigarrow$ up to a thousand of sites ( $n \approx 1000$ ), hundreds of species ( $p\approx 100s$ )
+$\rightsquigarrow$ Up to thousands of sites ( $n \approx 1000s$ ), hundreds of species ( $p\approx 100s$ )
 
 #### Large scale problems
 

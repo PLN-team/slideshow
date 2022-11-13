@@ -1,7 +1,7 @@
 
 ---
 
-# A zero-inflated PLN .scriptsize[with M. Mariadassoua and F. Gindraud]
+# A zero-inflated PLN
 
 ### Motivations 
 
@@ -12,14 +12,14 @@
 
 Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure 
 $$\begin{aligned}
-   \mathbf{Z}_i & \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\boldsymbol\Theta},\boldsymbol\Sigma) \\
-    W_{ij} & \sim \mathcal{B}(\text{logit}^{-1}(\mathbf{x}_i^\top{\boldsymbol\Theta}_j^0)) \\
+   \mathbf{Z}_i & \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma) \\
+    W_{ij} & \sim \mathcal{B}(\text{logit}^{-1}(\mathbf{x}_i^\top{\mathbf{B}}_j^0)) \\
     Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim W_{ij}\delta_0 + (1-W_{ij}) \mathcal{P}\left(\exp\{Z_{ij}\}\right), \\
 \end{aligned}$$
   
 The unkwown parameters are 
-- $\boldsymbol\Theta$, the regression parameters (from the PLN component)
-- $\boldsymbol\Theta^0$, the regression parameters (from the Bernoulli component)
+- $\mathbf{B}$, the regression parameters (from the PLN component)
+- $\mathbf{B}^0$, the regression parameters (from the Bernoulli component)
 - $\boldsymbol\Sigma$, the variance-covariance matrix
 
 $\rightsquigarrow$ ZI-PLN is a mixture of PLN and Bernoulli distribution with shared covariates.
@@ -67,7 +67,7 @@ q_{\psi_1}(\mathbf{Z}_i) = \mathcal{N}(\mathbf{Z}_i; \mathbf{m}_{i}, \mathrm{dia
 
 ### Variational lower bound
 
-Let $\theta = (\mathbf{\Theta}, \mathbf{\Theta}^0, \mathbf{\Sigma})$ and $\psi= (\mathbf{M}, \mathbf{S}, \mathbf{\Pi})$, then
+Let $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Sigma})$ and $\psi= (\mathbf{M}, \mathbf{S}, \mathbf{\Pi})$, then
 
 \begin{align*}
 J(\theta, \psi) & =  \log p_\theta(\mathbf{Y}) - KL(p_\theta(. | \mathbf{Y}) \| q_\psi(.) ) \\
@@ -84,24 +84,24 @@ J(\theta, \psi) & =  \log p_\theta(\mathbf{Y}) - KL(p_\theta(. | \mathbf{Y}) \| 
 
 ### A sparse criterion
 
-Recall that $\theta = (\mathbf{\Theta}, \mathbf{\Theta}^0, \mathbf{\Omega} = \mathbf{\Sigma}^{-1})$. Sparsity allows to control the number of parameters: 
+Recall that $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Omega} = \mathbf{\Sigma}^{-1})$. Sparsity allows to control the number of parameters: 
 
 \begin{equation*}
- \arg\min_{\theta, \psi} J(\theta, \psi)  + \lambda_1 \| \mathbb{\Theta}  \|_1 + \lambda_2 \|  \mathbb{\Omega}  \|_1 \color{#ddd}{ \left( + \lambda_1 \| \mathbb{\Theta}^0  \|_1 \right)}
+ \arg\min_{\theta, \psi} J(\theta, \psi)  + \lambda_1 \| \mathbb{B}  \|_1 + \lambda_2 \|  \mathbb{\Omega}  \|_1 \color{#ddd}{ \left( + \lambda_1 \| \mathbb{B}^0  \|_1 \right)}
 \end{equation*}
 
 ### Alternate optimization
 
-  - (Stochastic) Gradient-descent on $\mathbf{\Theta}^0, \mathbf{M}, \mathbf{S}$
+  - (Stochastic) Gradient-descent on $\mathbf{B}^0, \mathbf{M}, \mathbf{S}$
   - Closed-form for posterior probabilities $\mathbf{\Pi}$
   - Inverse covariance $\mathbf{\Omega}$ 
-    - if $\lambda_2=0$, $\hat{\mathbf{\Sigma}} = n^{-1} \left[ (\mathbf{M} - \mathbf{X\Theta})^\top(\mathbf{M} - \mathbf{X\Theta}) + \bar{\mathbf{S}}^2 \right]$
+    - if $\lambda_2=0$, $\hat{\mathbf{\Sigma}} = n^{-1} \left[ (\mathbf{M} - \mathbf{XB})^\top(\mathbf{M} - \mathbf{XB}) + \bar{\mathbf{S}}^2 \right]$
     - if $\lambda_2 > 0$, $\ell_1$ penalized MLE ( $\rightsquigarrow$ Graphical-Lasso with $\hat{\mathbf{\Sigma}}$ as input)
-  - PLN regression coefficient $\mathbf{\Theta}$ 
-    - if $\lambda_1=0$, $\hat{\mathbf{\Theta}} = [\mathbf{X}^\top \mathbf{X}]^{-1} \mathbf{X}^\top \mathbf{M}$
+  - PLN regression coefficient $\mathbf{B}$ 
+    - if $\lambda_1=0$, $\hat{\mathbf{B}} = [\mathbf{X}^\top \mathbf{X}]^{-1} \mathbf{X}^\top \mathbf{M}$
     - if $\lambda_1 > 0$, vectorize and solve a $\ell_1$ penalized least-squared problem
 
-**Initialize** $\Theta^0$ with logistic regression on $\delta_0(\mathbf{Y})$, $\mathbf{\Theta}$ with Poisson regression
+**Initialize** $B^0$ with logistic regression on $\delta_0(\mathbf{Y})$, $\mathbf{B}$ with Poisson regression
 
 ---
 
@@ -114,9 +114,8 @@ The dataset `scRNA` contains the counts of the 500 most varying transcripts in t
 We subsample 500 random cells and the keep the 200 most varying genes
 
 ```{r scRNA data set}
-library(PLNmodels)
-library(ZIPLN)
-data(scRNA)
+library(PLNmodels); library(ZIPLN)
+data(scRNA); set.seed(1234)
 scRNA        <- scRNA[sample.int(nrow(scRNA), 500), ]
 scRNA$counts <- scRNA$counts[, 1:200]
 scRNA$counts %>% as_tibble() %>% rmarkdown::paged_table()

@@ -9,7 +9,7 @@ Let $\hat{\psi}_i = \hat{\psi}_i(\theta, \mathbf{Y}_i) = \arg \max_{\psi} J_i(\t
 $$\bar{J}_n \; : \quad \theta \mapsto \frac{1}{n}\sum_{i=1}^{n} J_i(\theta, \hat{\psi}_i) \stackrel{\Delta}{=} \frac{1}{n}\sum_{i=1}^{n} 
 \bar{J}_i(\theta)$$
 
-M-estimation suggests that $\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \bar{J}_{n}(\theta)$ should converge to $\bar{\theta} = \arg\max_{\theta} \bar{J}(\theta)$ where $\bar{J}(\theta) = \mathbb{E}_{\theta^\star}[\bar{J}_\mathbf{Y}(\theta)] =  \mathbb{E}_{\theta^\star}[J_\mathbf{Y}(\theta, \hat{\psi}(\theta, \mathbf{Y}))]$. 
+M-estimation suggests that $\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \bar{J}_{n}(\theta)$ should converge to $\bar{\theta} = \arg\max_{\theta} \bar{J}(\theta)$ where $\bar{J}(\theta) = \mathbb{E}_{\theta^\star}[\bar{J}_Y(\theta)] =  \mathbb{E}_{\theta^\star}[J_Y(\theta, \hat{\psi}(\theta, Y))]$. 
 
 --
 
@@ -76,21 +76,21 @@ knitr::include_graphics("figs/PLN_empirical_bias_vs_rmse.png")
 Test $\mathcal{H}_0: R \theta = r_0$ with the statistic
 $$ (R \hat{\theta} - r_0)^\top \left[n R\hat{\mathbb{V}}(\hat{\theta}) R^\top \right]^{-1} (R \hat{\theta} - r_0) \sim \chi_k^2 \quad \text{where} \quad k = \text{rank}(R).$$
 
-If $\hat{\theta}$ is ht MLE, then the Fisher Information matrix
+If $\hat{\theta}$ is the MLE, then the Fisher Information matrix
 
-$$I(\hat{\theta}) = -  \mathbb{E}_\theta \left[ \frac{\partial^2 \log \ell(\theta; x)}{\partial  \theta^2} \right]$$
+$$I(\theta) = -  \mathbb{E}_\theta \left[ \frac{\partial^2 \log \ell(\theta; x)}{\partial  \theta^2} \right]$$
 
-can be used as an approximation of $n\mathbb{V}(\hat{\theta})^{-1}$.
+can be used to build an approximation of $n\mathbb{V}(\hat{\theta})^{-1}$.
 
 ## Application
 
-Derive confidences interval for the inverse covariance $\mathbf{\Omega}$ and the regression parameters $\mathbf{B}$.
+Derive confidence intervals for the inverse covariance $\mathbf{\Omega}$ and the regression parameters $\mathbf{B}$.
 
 ---
 
 # Variance: naïve approach
 
-Do as if $\hat{\theta}^{\text{ve}}$ was a MLE and $J_n$ the log-likelihood.
+Do as if $\hat{\theta}^{\text{ve}}$ was a MLE and $\bar{J}_n$ the log-likelihood.
 
 ### Variational Fisher Information
 
@@ -105,13 +105,15 @@ $$I_n(\hat{\theta}^{\text{ve}}) = \begin{pmatrix}
 
 and can be inverted blockwise to estimate $\mathbb{V}(\hat{\theta})$.
 
+--
+
 ### Wald test and coverage
 
-$\hat{\mathbb{V}}(\mathbf{B}_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}, \qquad \hat{\mathbb{V}}(\Omega_{kl}) = 2\hat{\Omega}_{kk}\hat{\Omega}_{ll}$
+$\hat{\mathbb{V}}(B_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}, \qquad \hat{\mathbb{V}}(\Omega_{kl}) = 2\hat{\Omega}_{kk}\hat{\Omega}_{ll}$
 
 The confidence intervals at level $\alpha$ are given by 
 
-$B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\mathbf{B}_{kj})}, \qquad \Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}$. 
+$B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(B_{kj})}, \qquad \Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}$. 
 
 ---
 
@@ -147,7 +149,7 @@ asymptotic normality of variational estimators and discuss the .important[sandwi
 
 Under additional regularity conditions (still satisfied for example when $\theta$ and $\psi_i$ are restricted to compact sets), we have 
 $$
-\sqrt{n}(\hat{\theta} - \bar{\theta})  \xrightarrow[]{d} \mathcal{N}(0, V(\bar{\theta}))
+\sqrt{n}(\hat{\theta}^{\text{ve}} - \bar{\theta})  \xrightarrow[]{d} \mathcal{N}(0, V(\bar{\theta}))
 $$
 where $V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}$ for 
 
@@ -181,7 +183,7 @@ $$
 
 ### Caveat
 
-- For $\theta = (\mathbf{B}, \boldsymbol\Omega)$, $\hat{C}_n$ requires the inversion of $n$ matrices with $(p^2+pd)$ rows/columns\dots...
+- For $\theta = (\mathbf{B}, \boldsymbol\Omega)$, $\hat{C}_n$ requires the inversion of $n$ matrices with $(p^2+pd)$ rows/columns...
 - Let us first consider the estimation of $\theta = \mathbf{B}$ only, with .important[known variance] $\boldsymbol\Omega^{-1}$
 
 ---
@@ -201,14 +203,14 @@ $$
 \hat{C}_n(\theta) = - \frac{1}{n} \sum_{i=1}^n \left( \boldsymbol\Sigma + \mathrm{diag}(\mathbf{A}_i)^{-1}  + \frac12\mathrm{diag}(\mathbf{s}_i^4) \right) \otimes \mathbf{x}_i \mathbf{x}_i^\intercal \in \mathbb{R}^{dp \times dp}
 \end{aligned}
 $$
-$\rightsquigarrow$ Pratically not very useful since $\Sigma$ is unknown
+$\rightsquigarrow$ Practically not very useful since $\Sigma$ is unknown
 
 #### Ongoing work 
 
 Derive the formula with unknown $\boldsymbol\Sigma$
-- Plugin-in  $\hat{\Sigma}$ in the formula of $\hat{C}_n$ leads very poor results\dots
-- Need to account for cross-terms in $\nabla_{\theta \psi_i} \bar{J}_i(\theta; \hat{\psi}_i)$ between $\Omega$ and $\psi_i$...
-- Use Jackknife resampling to estimate the variance\dots
+- Plugin-in  $\hat{\Sigma}$ in the formula of $\hat{C}_n$ leads .important[very] poor results
+- Need to account for cross-terms in $\nabla_{\theta \psi_i} J_i(\theta, \hat{\psi}_i)$ between $\Omega$ and $\psi_i$, and inverse with large matrices: limited practical interest
+- Idea: use Jackknife resampling to estimate the variance
 
 ---
 # 95% CI - sandwich coverage
