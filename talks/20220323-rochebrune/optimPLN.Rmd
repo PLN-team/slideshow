@@ -34,19 +34,6 @@ BibOptions(check.entries = FALSE,
 myBib <- ReadBib("./optimPLN.bib", check = FALSE)
 ```
 
-# PLN Google Search
-
-### Github group
-
-![](PLN-teams.png)
-
----
-# PLN Google Search
-
-### Mind the Spelling!
-
-![](PNL.jpeg)
-
 ---
 
 # Poisson lognormal Model

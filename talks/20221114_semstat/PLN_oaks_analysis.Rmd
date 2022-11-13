@@ -41,7 +41,7 @@ future::plan("multicore", workers = 10)
 
 ---
 
-# Illustration on ecological environmental DNA 
+# Illustration on ecological data (eDNA)
 
 ### Oaks powdery mildew data set
 

@@ -40,7 +40,7 @@ pip install pyPLNmodels
   
 Amaizingly works from `RStudio` with **reticulate** correctly configured:
   
-```{r pyPLNmodels config reticulate, eval = FALSE}
+```{r pyPLNmodels config reticulate, eval = FALSE, warning=FALSE}
 library(reticulate)
 use_condaenv("pyPLNmodels")
 ```
@@ -57,9 +57,9 @@ In Python, (data set with $p = 50, n = 200, d = 2$)
 
 ```{python, import oaks data, warning = FALSE}
 import pandas as pd 
-Y = pd.read_csv("Y.csv")
-X = pd.read_csv("X.csv")
-O = pd.read_csv("O.csv")
+Y = pd.read_csv("data-oaks/Y.csv")
+X = pd.read_csv("data-oaks/X.csv")
+O = pd.read_csv("data-oaks/O.csv")
 ```
 
 ---
