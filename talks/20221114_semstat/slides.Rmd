@@ -5,6 +5,7 @@ author: "J. Chiquet, M. Mariadassou, S. Robin<br/> + B. Batardière, J. Kwon, J.
 date: "<br/>https://pln-team.github.io/PLNmodels"
 output:
   xaringan::moon_reader:
+    self_contained: true
     chakra: libs/remark-latest.min.js
     css: ["pln.css", default, metropolis, metropolis-fonts]
     lib_dir: libs
