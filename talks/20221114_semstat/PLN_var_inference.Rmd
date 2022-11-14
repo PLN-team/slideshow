@@ -82,13 +82,13 @@ $\rightsquigarrow$ Same routine for other PLN variants.
 ---
 # Implementations
 
-#### Medium scale problems
+#### Medium scale problems (R/C++ package)
 
   - **algorithm**: conservative convex separable approximations `r Citep(myBib, "Svan02")`
   - **implementation**: `NLopt` nonlinear-optimization library `r Citep(myBib, "nlopt")` <br/>
 $\rightsquigarrow$ Up to thousands of sites ( $n \approx 1000s$ ), hundreds of species ( $p\approx 100s$ )
 
-#### Large scale problems
+#### Large scale problems  (Python/Pytorch module)
 
   - **algorithm**: Rprop (gradient sign + adaptive variable-specific update) `r Citep(myBib, "rprop")`
   - **implementation**: `torch` with GPU auto-differentiation `r Citep(myBib, c("torch", "pytorch"))` <br/>

@@ -64,24 +64,26 @@ Characterize the samples and the sampling, most important being
 
 ---
 
-# Abundance table (I)
+# Abundance table
 
-```{r glimpse Abundance}
+.pull-left[
+Data table
+```{r glimpse Abundance, echo = FALSE}
 data(oaks)
 oaks$Abundance %>% as_tibble() %>% 
-  dplyr::select(1:10) %>% 
+  dplyr::select(5:10) %>% 
   rmarkdown::paged_table()
 ```
+]
+.pull-right[
+Matrix of count (log-scale)
 
----
-
-# Abundance table (II)
-
-```{r glance Abundances, fig.height=6}
+```{r glance Abundances, fig.height=6, fig.cap="log-scaled counts", echo = FALSE}
 log(1 + oaks$Abundance) %>% 
   corrplot::corrplot(is.corr = FALSE,
     addgrid.col = NA,  tl.cex = .5,  cl.pos = "n")
 ```
+]
 
 ---
 #  PLN with offsets and covariates (1)
@@ -186,31 +188,6 @@ factoextra::fviz_pca_biplot(
 ```
 
 ---
-# Clustering of the oaks samples
-
-```{r PLNmixture-oaks, cache.rebuild= TRUE, warning=FALSE, message=FALSE, results='hide'}
-PLN_mixtures <-
-   PLNmixture(Abundance ~ 1 + offset(log(Offset)), data = oaks, clusters = 1:3)
-myPLN_mix <- getModel(PLN_mixtures, 3)
-```
-
-.pull-left[
-```{r PLN clustering 1 fake, eval = FALSE}
-myPLN_mix$plot_clustering_pca()
-```
-
-```{r PLN clustering 1, echo = FALSE}
-myPLN_mix$plot_clustering_pca(main = 'clustering memberships in individual factor map')
-```
-]
-
-.pull-right[
-```{r PLN clustering 2}
-myPLN_mix$plot_clustering_data()
-```
-]
-
----
 # Network inference
 
 ```{r PLNnetwork, cache.rebuild= TRUE, warning=FALSE, message=FALSE, results='hide'}
@@ -235,3 +212,30 @@ print(net)
 ```{r future off, echo=FALSE}
 future::plan("sequential")
 ```
+
+---
+
+# Availability
+
+### Help and documentation
+
+- github group <https://github.com/pln-team>
+- PLNmodels website <https://pln-team.github.io/PLNmodels> 
+
+### R/C++ Package `PLNmodels`
+
+Last stable release on CRAN,  development version available on GitHub).
+
+```{r install, eval=FALSE, tidy=FALSE}
+install.packages("PLNmodels")
+remotes::install_github("PLN-team/PLNmodels@dev")
+```
+
+```{r loading package, message=FALSE}
+library(PLNmodels)
+packageVersion("PLNmodels")
+```
+
+### Python module `pyPLNmodels`
+
+A Python/PyTorch implementation is about to be published

@@ -103,30 +103,4 @@ Stacking all individuals together,
   - .important[Variable selection]: sparsity constraint on regression coefficients
   
   $$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\mathbf{B}, \boldsymbol\Sigma), \quad \|\mathbf{B} \|_1 < c.$$
----
-
-# Availability
-
-### Help and documentation
-
-- PLNmodels website <https://pln-team.github.io/PLNmodels> 
-- github group <https://github.com/pln-team>
-
-### R/C++ Package PLNmodels
-
-Last stable release on CRAN,  development version available on GitHub).
-
-```{r install, eval=FALSE, tidy=FALSE}
-install.packages("PLNmodels")
-remotes::install_github("PLN-team/PLNmodels@dev")
-```
-
-```{r loading package, message=FALSE}
-library(PLNmodels)
-packageVersion("PLNmodels")
-```
-
-### Python module
-
-A Python + PyTorch implementation is coming
 
