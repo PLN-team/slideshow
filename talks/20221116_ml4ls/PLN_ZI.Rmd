@@ -24,28 +24,28 @@ The unkwown parameters are
 
 $\rightsquigarrow$ ZI-PLN is a mixture of PLN and Bernoulli distribution with shared covariates.
 
----
+<!-- --- -->
 
-# ZI-PLN identifiability
+<!-- # ZI-PLN identifiability -->
 
-Consider the standard ZIPLN model (*i.e.* not the ZIPLN-regression model) with 1 sample: 
+<!-- Consider the standard ZIPLN model (*i.e.* not the ZIPLN-regression model) with 1 sample:  -->
 
-$$\begin{aligned}
-  {(W_j)}_{j=1 \dots p} & \sim \mathcal{B}^{\otimes} ( \mathbf{\pi} ) = \mathcal{B}(\pi_1) \otimes \dots \mathcal{B}(\pi_p) \\
-  {(Z_j)}_{j=1 \dots p} & \sim \mathcal{N}_p(\mathbf{\mu}, \mathbf{\Sigma} ) \\
-  Y_j | W_j, Z_j & \sim (1-W_j) \mathcal{P}(e^{Z_j}) + W_j \delta_0 \\
-\end{aligned}$$
+<!-- $$\begin{aligned} -->
+<!--   {(W_j)}_{j=1 \dots p} & \sim \mathcal{B}^{\otimes} ( \mathbf{\pi} ) = \mathcal{B}(\pi_1) \otimes \dots \mathcal{B}(\pi_p) \\ -->
+<!--   {(Z_j)}_{j=1 \dots p} & \sim \mathcal{N}_p(\mathbf{\mu}, \mathbf{\Sigma} ) \\ -->
+<!--   Y_j | W_j, Z_j & \sim (1-W_j) \mathcal{P}(e^{Z_j}) + W_j \delta_0 \\ -->
+<!-- \end{aligned}$$ -->
 
-### Proposition
+<!-- ### Proposition -->
 
-The standard ZIPLN model defined above with parameter $\mathbf{\theta} = (\mathbf{\pi}, \mathbf{\mu}, \mathbf{\Sigma})$ and parameter space $(0,1)^{p} \times \mathbb{R}^p \times \mathbb{S}_p^{++}$ is identifiable. 
+<!-- The standard ZIPLN model defined above with parameter $\mathbf{\theta} = (\mathbf{\pi}, \mathbf{\mu}, \mathbf{\Sigma})$ and parameter space $(0,1)^{p} \times \mathbb{R}^p \times \mathbb{S}_p^{++}$ is identifiable.  -->
 
-**Proof**. We used the moments of $\mathbf{Y}$ to prove identifiability and rely on the following results for Gaussian and Poisson distributions:
+<!-- **Proof**. We used the moments of $\mathbf{Y}$ to prove identifiability and rely on the following results for Gaussian and Poisson distributions: -->
 
-  - If $U \sim \mathcal{N}(\mu, \sigma^2)$, then $\mathbb{E}[e^U] = \exp(\mu + \sigma^2/2)$
-  - If $U \sim \mathcal{P}(\lambda)$ then $\mathbb{E}[U] = \lambda \quad  \mathbb{E}[U^2] = \lambda (1 + \lambda) \quad \mathbb{E}[U^2] = \lambda (1 + 3\lambda + \lambda^2)$
+<!--   - If $U \sim \mathcal{N}(\mu, \sigma^2)$, then $\mathbb{E}[e^U] = \exp(\mu + \sigma^2/2)$ -->
+<!--   - If $U \sim \mathcal{P}(\lambda)$ then $\mathbb{E}[U] = \lambda \quad  \mathbb{E}[U^2] = \lambda (1 + \lambda) \quad \mathbb{E}[U^2] = \lambda (1 + 3\lambda + \lambda^2)$ -->
 
-Each coordinate of $\mathbf{\theta}$ can be expressed as a simple functions of the (first three) moments of $p_{\mathbf{\theta}}$ and thus $p_{\mathbf{\theta}} = p_{\mathbf{\theta}'} \Rightarrow \mathbf{\theta} = \mathbf{\theta}'$. 
+<!-- Each coordinate of $\mathbf{\theta}$ can be expressed as a simple functions of the (first three) moments of $p_{\mathbf{\theta}}$ and thus $p_{\mathbf{\theta}} = p_{\mathbf{\theta}'} \Rightarrow \mathbf{\theta} = \mathbf{\theta}'$.  -->
 
 ---
 
@@ -80,14 +80,14 @@ J(\theta, \psi) & =  \log p_\theta(\mathbf{Y}) - KL(p_\theta(. | \mathbf{Y}) \| 
 
 ---
 
-# Optimizaton
+# Sparse regularization
 
-### A sparse criterion
+### Criterion
 
 Recall that $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Omega} = \mathbf{\Sigma}^{-1})$. Sparsity allows to control the number of parameters: 
 
 \begin{equation*}
- \arg\min_{\theta, \psi} J(\theta, \psi)  + \lambda_1 \| \mathbb{B}  \|_1 + \lambda_2 \|  \mathbb{\Omega}  \|_1 \color{#ddd}{ \left( + \lambda_1 \| \mathbb{B}^0  \|_1 \right)}
+ \arg\min_{\theta, \psi} J(\theta, \psi)  + \lambda_1 \| \mathbf{B}  \|_1 + \lambda_2 \|  \mathbb{\Omega}  \|_1 \color{#ddd}{ \left( + \lambda_1 \| \mathbf{B}^0  \|_1 \right)}
 \end{equation*}
 
 ### Alternate optimization
@@ -132,12 +132,12 @@ We adjust the standard PLN model and the ZI-PLN model with some sparsity on the 
 ```{r PLN-scRNA, cache = TRUE}
 system.time(myPLN <- 
     PLN(counts ~ 1 + offset(log(total_counts)),
-        data = scRNA, control = list(trace = 0)))
+        data = scRNA, control = list(trace = 0, xtol_rel = 1e-4)))
 ```
 
 ```{r ZIPLN-scRNA, cache = TRUE}
 system.time(myZIPLN <- 
-    ZIPLN(counts ~ 1 + offset(log(total_counts)), rho = .1,
+    ZIPLN(counts ~ 1 + offset(log(total_counts)), rho = .2,
           data = scRNA, control = list(trace = 0)))
 ```
 
@@ -167,4 +167,19 @@ data.frame(
 prcomp(myZIPLN$latent) %>% factoextra::fviz_pca_ind(col.ind = scRNA$cell_line)
 ```
 
+---
+
+# A quick example in genomics (5)
+
+See .important[Sophie Donnet]'s talk for more about Stochastic Block Models
+
+```{r, results='hide', cache = TRUE}
+library(sbm)
+A <- myZIPLN$model_par$Omega != 0; diag(A) <- 0
+mySBM <- estimateSimpleSBM(A, estimOptions=list(plot=FALSE))
+```
+
+```{r plotSBM, out.width='60%', fig.height=6, fig.align='center', fig.cap='Omega support reordered according to SBM memberships', echo = FALSE}
+p <- plot(mySBM); print(p)
+```
 
