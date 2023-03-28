@@ -1,0 +1,145 @@
+
+---
+
+# Background: Gaussian LDA
+
+### Model
+
+Assume the samples are distributed in $K$ groups and note
+
+- $\mathbf{G}$ the group membership matrix
+- $\mathbf{U} = [{\boldsymbol\mu}_1, \dots, {\boldsymbol\mu}_K]$ the matrix of group-specific means
+
+The model is
+
+$$\mathbf{Z}_i = \mathcal{N}(\mathbf{G}_i^\top \mathbf{U}, {\boldsymbol\Sigma})$$
+
+$\rightsquigarrow$ Aim of LDA: Find the linear combination(s) $\mathbf{Z} u$ maximizing separation between groups
+
+
+### Solution
+
+Find the first eigenvectors of $\mathbf{\Sigma}_w^{-1} \mathbf{\Sigma}_b$ where
+
+- $\mathbf{\Sigma}_w$ is the _within_-group variance matrix, i.e. the unbiased estimated of ${\boldsymbol\Sigma}$:
+- $\mathbf{\Sigma}_b$ is the _between_-group variance matrix, estimated from $\mathbf{U}$.
+
+---
+
+# Poisson lognormal LDA (1)
+
+Similar to normal PLN with
+
+- $\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{G})$
+- $\mathbf{B} \rightarrow (\mathbf{B}, \mathbf{U})$
+
+### Inference
+
+-  Use .important[variational inference] to estimate $(\mathbf{B}, \mathbf{U})$, $\mathbf{\Sigma}$ and $\mathbf{Z}_i$
+
+- Compute $\hat{\mathbf{\Sigma}}_b$ as
+
+$$\hat{\mathbf{\Sigma}}_b = \frac1{K-1} \sum_k n_k (\hat{{\boldsymbol\mu}}_k - \hat{{\boldsymbol\mu}}_\bullet) (\hat{{\boldsymbol\mu}}_k - \hat{{\boldsymbol\mu}}_\bullet)^\intercal$$
+
+- Compute first $K-1$ eigenvectors of $\hat{{\boldsymbol\Sigma}}^{-1} \hat{\mathbf{\Sigma}}_b = \mathbf{P}^\top \Lambda \mathbf{P}$
+
+
+---
+
+# Poisson lognormal LDA (2)
+
+### Graphical representation
+
+Mimick Gaussian LDA:
+
+- Center the estimated latent positions $\tilde{\mathbf{Z}}$
+- Compute the estimated coordinates along the discriminant axes
+
+$$\tilde{\mathbf{Z}}^{LDA} = \tilde{\mathbf{Z}} \mathbf{P} \Lambda^{1/2}$$
+
+### Prediction
+
+For each group $k$
+- Assume that the new sample $\mathbf{Y}_{\text{new}}$ comes from group $k$
+- Compute (variational) _likelihood_ $p_k = \mathbb{P}(\mathbf{Y}_{\text{new}} | \hat{{\boldsymbol\Sigma}}, \hat{\mathbf{\Sigma}_b}, \hat{{\boldsymbol\mu}}_k)$
+- Compute posterior probability $\pi_k \propto \frac{n_k p_k}{n}$
+
+$\rightsquigarrow$ Assign to group with highest $\pi_k$
+
+
+---
+
+# Discriminant Analysis  (scRNA, 1)
+
+Use the `cell-line` variable for grouping (`grouping` is a factor of group to be considered)
+
+```{r PLNLDA-oaks, cache=TRUE, results=FALSE}
+myLDA_cell_line <- 
+  PLNLDA(counts ~ 1 + offset(log(total_counts)), grouping = cell_line,
+         data = scRNA_train)
+```
+
+.pull-left[
+```{r plot-lda-oaks1, echo = FALSE, fig.height = 6}
+plot(myLDA_cell_line, map = "individual")
+```
+]
+
+.pull-right[
+```{r plot-lda-oaks2, echo = FALSE, fig.height = 6}
+plot(myLDA_cell_line, map = "variable")
+```
+]
+
+---
+# Discriminant Analysis  (scRNA, 2)
+
+Consider now a diagonal covariance.
+
+```{r PLNLDA-oaks-diag, cache=TRUE, results=FALSE}
+myLDA_cell_line_diag <- 
+  PLNLDA(counts ~ 1 + offset(log(total_counts)), grouping = cell_line,
+         data = scRNA_train, control = PLN_param(covariance = "diagonal"))
+```
+
+.pull-left[
+```{r plot-lda-diag-oaks1, echo = FALSE, fig.height = 6}
+plot(myLDA_cell_line_diag, map = "individual")
+```
+]
+
+.pull-right[
+```{r plot-lda-diag-oaks2, echo = FALSE, fig.height = 6}
+plot(myLDA_cell_line_diag, map = "variable")
+```
+]
+
+---
+# Discriminant Analysis (scRNA, 3)
+
+We can prediction cell-line of some new data: let us try either diagonal or fully parametrized covariance.
+
+```{r, pred-scRNA, cache = TRUE}
+pred_cell_line      <- predict(myLDA_cell_line     ,
+                               newdata = scRNA_test, type = "response")
+pred_cell_line_diag <- predict(myLDA_cell_line_diag,
+                               newdata = scRNA_test, type = "response")
+```
+
+The ARI on the test set is impressive.footnote[The problem should be easy though...]
+
+```{r, ari-lda-pred-scRNA}
+aricode::ARI(pred_cell_line, scRNA_test$cell_line)
+aricode::ARI(pred_cell_line_diag, scRNA_test$cell_line)
+```
+
+---
+# Discriminant Analysis  (scRNA, 4)
+
+Let us explore the discriminant groups: 
+
+```{r LDA-heatmap-factors, fig.align='center'}
+heatmap(exp(myLDA_cell_line$group_means))
+```
+
+Indeed, some groups of gene caracterize well the cell-lines.

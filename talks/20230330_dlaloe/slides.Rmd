@@ -1,6 +1,6 @@
 ---
 title: "Poisson lognormal models for count data"
-subtitle: "Focus on "
+subtitle: "Focus on some probabilistic factor models: Poisson LDA and Poisson PCA"
 author: "J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others<br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty </small> <br /> <small>Last update `r format(Sys.time(), '%d %B, %Y')`</small>"
 date: "<br/>https://pln-team.github.io/PLNmodels"
 output:
@@ -20,13 +20,13 @@ class: inverse, middle
   1. .large[**Framework** of multivariate Poisson lognormal models] 
   <br/>
 
-  2. .large[**Focus** on factor analysis with PLN (PCA, LDA)] 
+  2. .large[**PLN estimation** with variational inference] 
+  <br/>
+
+  3. .large[**Focus** on factor analysis with PLN (LDA, PCA)] 
   <br/>
   
-  3. .large[**Optimization** with Variational inference] 
-  <br/>
-  
-  4. .large[**Ongoing extension** for factor models] 
+  4. .large[**Illustration** on a scRNA dataset] 
 
 ---
 class: inverse, center, middle
@@ -43,14 +43,17 @@ BibOptions(check.entries = FALSE,
            hyperlink = FALSE, 
            dashed = FALSE)
 myBib <- ReadBib("./PLNreferences.bib", check = FALSE)
+
+library(tidyverse)  # data manipulation
+library(PLNmodels)  # plot of covariance/correlation matrices
+library(corrplot)   # plot of covariance/correlation matrices
+
+options(future.fork.enable = TRUE)
+future::plan("multicore", workers = 10)
 ```
 
 <!-- STATISTICAL MODEL -->
 ```{r PLN_stat_model, child='PLN_stat_model.Rmd'}
-```
-
-<!-- ILLUSTRATION -->
-```{r PLN_scRNA_analysis, child='PLN_scRNA_analysis.Rmd'}
 ```
 
 ---
@@ -60,6 +63,63 @@ class: inverse, center, middle
 
 <!-- VARIATIONAL INFERENCE -->
 ```{r PLN_var_inference, child='PLN_var_inference.Rmd'}
+```
+
+```{r PLN_scRNA_analysis, child='PLN_scRNA_analysis.Rmd'}
+```
+
+
+---
+class: inverse, center, middle
+
+# Probabilistic factor models in PLN<br/> .small[Poisson LDA and Poisson PCA]
+
+---
+
+# Natural extensions of PLN
+
+### Various tasks of multivariate analysis
+
+  - .important[Dimension Reduction]: rank constraint matrix $\boldsymbol\Sigma$.
+    
+    $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
+
+  - .important[Classification]: maximize separation between groups with means 
+
+  $$\mathbf{Z}_i \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$
+
+  - .important[Clustering]: mixture model in the latent space 
+
+  $$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$
+
+  - .important[Network inference]: sparsity constraint on inverse covariance.
+  
+  $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 < c.$$
+
+  - .important[Variable selection]: sparsity constraint on regression coefficients
+  
+  $$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\mathbf{B}, \boldsymbol\Sigma), \quad \|\mathbf{B} \|_1 < c.$$
+
+
+---
+
+# Natural extensions of PLN
+
+### Tasks seen in Factor Analysis
+
+  - .important[Dimension Reduction]: rank constraint matrix $\boldsymbol\Sigma$. .important[PCA]
+    
+    $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
+
+  - .important[Classification]: maximize separation between groups with means .important[LDA]
+
+  $$\mathbf{Z}_i \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$
+
+
+```{r PLN_LDA, child='PLN_LDA.Rmd'}
+```
+
+```{r PLN_PCA, child='PLN_PCA.Rmd'}
 ```
 
 ---

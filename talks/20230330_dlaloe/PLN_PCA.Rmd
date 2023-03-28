@@ -1,0 +1,97 @@
+
+---
+
+# Poisson Lognormal PCA
+
+### Model
+  
+$$\begin{array}{rcl}
+  \mathbf{Z}_i & \sim^\text{iid} \mathcal{N}_p({\boldsymbol 0}_p, {\boldsymbol\Sigma}), & \text{rank}({\boldsymbol\Sigma}) = k \ll p \\
+  \mathbf{Y}_i \,|\, \mathbf{Z}_i & \sim \mathcal{P}(\exp\{\mathbf{O}_i + \mathbf{X}_i \mathbf{B} + \mathbf{Z}_i\})
+\end{array}$$
+
+Recall that: $\text{rank}({\boldsymbol\Sigma}) = q \quad \Leftrightarrow \quad \exists \mathbf{C} (p \times q): \Sigma = \mathbf{C} \mathbf{C}^\intercal$.
+  
+### Estimation
+
+Variational inference
+
+$$\text{maximize } J({\boldsymbol\beta}, {\boldsymbol\psi}) $$
+$\rightsquigarrow$ Still bi-concave in ${\boldsymbol\beta} = (\mathbf{C}, \mathbf{B})$ and ${\boldsymbol\psi} = (\mathbf{M}, \mathbf{S})$
+
+
+---
+
+# Model selection and Visualization
+
+### Number of components/rank $k$ needs to be chosen.
+  
+$\log p_{\hat{\boldsymbol\beta}}(\mathbf{Y})$ intractable: use variational "likelihood"  $J(\hat{\boldsymbol\beta}, \hat{\boldsymbol\psi})$
+
+- BIC $\rightsquigarrow$ $\text{vBIC}_k = J(\hat{\boldsymbol\beta}, \tilde{p}) - \frac12 p (d + k) \log(n)$
+- ICL $\rightsquigarrow$ $\text{vICL}_k = \text{vBIC}_k - \mathcal{H}(\tilde{p})$
+
+$$
+  \hat{k} = \arg\max_k \text{vBIC}_k
+  \qquad \text{or} \qquad
+  \hat{k} = \arg\max_k \text{vICL}_k
+$$
+### Visualization
+
+- Gaussian PCA: Optimal subspaces nested when $q$ increases.
+- PLN-pPCA: Non-nested subspaces.
+
+For the selected dimension dimension $\hat{k}$:
+
+- Compute the estimated latent positions $\mathbb{E}_q(\mathbf{Z}_i) = \mathbf{M} \hat{\mathbf{C}}^\top$
+- Perform PCA on the $\mathbf{M} \hat{\mathbf{C}}^\top$
+- Display result in any dimension $k \leq \hat{k}$
+
+---
+
+# PCA: Goodness of fit
+
+.important[pPCA:] Cumulated sum of the  eigenvalues = \% of variance preserved on the first $q$ components.
+
+### PLN-pPCA
+
+Deviance based criterion.
+
+- Compute $\tilde{\mathbf{Z}}^{(k)} = \mathbf{O} + \mathbf{X} \hat{\mathbf{B}}^\top + \mathbf{M}^{(k)} \left(\hat{\mathbf{C}}^{(k)}\right)^\top$
+- Take $\lambda_{ij}^{(k)} = \exp\left(\tilde{Z}_{ij}^{(k)}\right)$
+- Define $\lambda_{ij}^{\min} = \exp( \tilde{Z}_{ij}^0)$ and $\lambda_{ij}^{\max} = Y_{ij}$
+- Compute the Poisson log-likelihood $\ell_k = \log \mathbb{P}(\mathbf{Y}; \lambda^{(k)})$
+
+### Pseudo-$R^2$
+
+$$R_k^2 = \frac{\ell_k - \ell_{\min}}{\ell_{\max} - \ell_{\min}}$$
+
+---
+# A PCA analysis of the scRNA data set (1)
+
+```{r PLNPCA offset, cache=TRUE, warning=FALSE, message=FALSE, results='hide'}
+PCA_scRNA <- PLNPCA(counts ~ 1 + offset(log(total_counts)), data = scRNA_train,
+                    ranks = c(1, 2, seq(5, 40, 5)))
+```
+
+### Model Selection
+```{r PCA offset vizu cell-line, fig.width=6, fig.height=6, fig.align="center", echo=FALSE}
+plot(PCA_scRNA)
+myPCA_scRNA <- getBestModel(PCA_scRNA, "BIC")
+```
+
+---
+# A PCA analysis of the scRNA data set  (2)
+
+### Biplot
+
+Individual + Factor map - 40 most contributing genes
+
+<small>
+```{r PCA offset vizu tree, fig.width=6, fig.height=6, fig.align="center", echo=FALSE}
+myPCA_scRNA %>% factoextra::fviz_pca_biplot(
+  select.var = list(contrib = 40), addEllipses = TRUE, habillage = scRNA_train$cell_line,
+  title = "Biplot (50 most contributing genes)"
+  ) + labs(col = "tree status") + scale_color_viridis_d()
+```
+</small>

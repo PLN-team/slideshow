@@ -18,7 +18,7 @@ class: center, middle, inverse, title-slide
 # Poisson lognormal models for count data
 ]
 .subtitle[
-## Focus on
+## Focus on some probabilistic factor models: Poisson LDA and Poisson PCA
 ]
 .author[
 ### J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others<br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty </small> <br /> <small>Last update 28 mars, 2023</small>
@@ -37,13 +37,13 @@ class: inverse, middle
   1. .large[**Framework** of multivariate Poisson lognormal models] 
   &lt;br/&gt;
 
-  2. .large[**Focus** on factor analysis with PLN (PCA, LDA)] 
+  2. .large[**PLN estimation** with variational inference] 
+  &lt;br/&gt;
+
+  3. .large[**Focus** on factor analysis with PLN (LDA, PCA)] 
   &lt;br/&gt;
   
-  3. .large[**Optimization** with Variational inference] 
-  &lt;br/&gt;
-  
-  4. .large[**Ongoing extension** for factor models] 
+  4. .large[**Illustration** on a scRNA dataset] 
 
 ---
 class: inverse, center, middle
@@ -77,6 +77,49 @@ Routinely gathered in ecology/microbiology/genomics
       `\(\rightsquigarrow\)` 'network' inference (variable/covariance selection)
   - correct for technical and **confounding effects** &lt;br/&gt;
       `\(\rightsquigarrow\)` account for covariables and sampling effort
+
+---
+
+# Illustration in genomics
+
+## scRNA data set 
+
+The dataset `scRNA` contains the counts of the 500 most varying transcripts in the mixtures of 5 cell lines in human liver (obtained with standard 10x scRNAseq Chromium protocol).
+
+We subsample 500 random cells and the keep the 200 most varying genes
+
+
+
+
+```r
+data(scRNA); set.seed(1234)
+train_set &lt;- sample.int(nrow(scRNA), 500)
+test_set  &lt;- setdiff(1:nrow(scRNA), train_set)
+scRNA_train &lt;- scRNA[train_set, ]
+scRNA_test  &lt;- scRNA[test_set, ]
+scRNA_train$counts &lt;- scRNA_train$counts[, 1:200]
+scRNA_test$counts  &lt;- scRNA_test$counts[, 1:200]
+```
+
+### Covariates
+
+- `cell_line`: the cell line of the current row (among 5)
+- `total_counts`: Total number reads for that cell
+
+---
+
+# Table of Counts
+
+.pull-left[
+Matrix view (log-transform + total-counts normalization)
+
+![log-scaled counts](slides_files/figure-html/glance counts-1.png)
+]
+
+.pull-right[
+Histogram (log-transform + total-counts normalization)
+![](slides_files/figure-html/glimpse Abundance-1.png)&lt;!-- --&gt;
+]
 
 ---
 
@@ -134,85 +177,148 @@ Stacking all individuals together,
 - covariance: `\(\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).\)`
 
 
+
 ---
+class: inverse, center, middle
 
-# Natural extensions
+# Variational inference for standard PLN&lt;br/&gt; .small[Optimisation]
 
-### Various tasks of multivariate analysis
-
-  - .important[Dimension Reduction]: rank constraint matrix `\(\boldsymbol\Sigma\)`.
-    
-    `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$`
-
-  - .important[Classification]: maximize separation between groups with means 
-
-  `$$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$`
-
-  - .important[Clustering]: mixture model in the latent space 
-
-  `$$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$`
-
-  - .important[Network inference]: sparsity constraint on inverse covariance.
-  
-  `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 &lt; c.$$`
-
-  - .important[Variable selection]: sparsity constraint on regression coefficients
-  
-  `$$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\mathbf{B}, \boldsymbol\Sigma), \quad \|\mathbf{B} \|_1 &lt; c.$$`
-
-&lt;!-- ILLUSTRATION --&gt;
-
-
-
+&lt;!-- VARIATIONAL INFERENCE --&gt;
 
 
 ---
+# PLN Inference: general ingredients
+  
+Estimate `\(\theta = (\mathbf{B}, \boldsymbol\Sigma)\)`, predict the `\(\mathbf{Z}_i\)`, while  the model marginal likelihood is
 
-# Illustration in genomics
+`$$p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i$$`
 
-## scRNA data set 
+### Expectation-Maximization
 
-The dataset `scRNA` contains the counts of the 500 most varying transcripts in the mixtures of 5 cell lines in human liver (obtained with standard 10x scRNAseq Chromium protocol).
+With `\(\mathcal{H}(p) = -\mathbb{E}_p(\log(p))\)` the entropy of `\(p\)`,
 
-We subsample 500 random cells and the keep the 200 most varying genes
+`$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_{p_\theta(\mathbf{Z}\,|\,\mathbf{Y})} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$` 
 
+EM requires to evaluate (some moments of) `\(p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})\)`, but there is no close form!
 
+### Variational approximation [WJ08]
+
+Use a proxy `\(q_\psi\)` of `\(p_\theta(\mathbf{Z}\,|\,\mathbf{Y})\)` minimizing a divergence in a class `\(\mathcal{Q}\)` .small[(e.g, Küllback-Leibler divergence)]
+
+`$$q_\psi(\mathbf{Z})^\star  \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right), \, \text{e.g.}, D(.,.) = KL(., .) = \mathbb{E}_{q_\psi}\left[\log \frac{q(z)}{p(z)}\right].$$`
+
+---
+# Inference: specific ingredients
+
+Consider `\(\mathcal{Q}\)` the class of diagonal multivariate Gaussian distributions:
+
+`$$\Big\{q: \, q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \, q_i(\mathbf{Z}_i) = \mathcal{N}\left(\mathbf{Z}_i; \mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i)\right), \boldsymbol\psi_i = (\mathbf{m}_i, \mathbf{s}_i) \in\mathbb{R}_p\times\mathbb{R}_p \Big\}$$`
+
+and maximize the ELBO (Evidence Lower BOund)
+
+`$$\begin{aligned}J(\theta, \psi) &amp; = \log p_\theta(\mathbf{Y}) - KL[q_\psi (\mathbf{Z}) ||  p_\theta(\mathbf{Z} | \mathbf{Y})] \\ &amp; = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q_\psi(\mathbf{Z})] \\  &amp; 
+= \frac{1}{n} \sum_{i = 1}^n J_i(\theta, \psi_i),\end{aligned}$$`
+
+where, letting `\(\mathbf{A}_i = \mathbb{E}_{q_i}[\exp(Z_i)] = \exp\left( \mathbf{o}_i + \mathbf{m}_i + \frac{1}{2}\mathbf{s}^2_i\right)\)`, we have
+
+`$$\begin{aligned}
+J_i(\theta, \psi_i) = &amp;\mathbf{Y}_i^\intercal(\mathbf{o}_i + \mathbf{m}_i) - \left(\mathbf{A}_i - \frac{1}{2}\log(\mathbf{s}^2_i)\right) ^\intercal \mathbf{1}_p + \frac{1}{2} |\log|{\boldsymbol\Omega}|  \\
+&amp; - \frac{1}{2}(\mathbf{m}_i - \boldsymbol{\Theta}\mathbf{x}_i)^\intercal \boldsymbol{\Omega} (\mathbf{m}_i - \boldsymbol{\Theta}\mathbf{x}_i) - \frac{1}{2} \mathrm{diag}(\boldsymbol\Omega)^\intercal\mathbf{s}^2_i + \mathrm{cst} 
+\end{aligned}$$`
+
+---
+# Resulting Variational EM
+
+.important[Alternate] until convergence between
+
+  - VE step: optimize `\(\boldsymbol{\psi}\)` (can be written individually)
+`$$\psi_i^{(h)} = \arg \max J_{i}(\theta^{(h)}, \psi_i) \left( = \arg\min_{q_i} KL[q_i(\mathbf{Z}_i) \,||\, p_{\theta^h}(\mathbf{Z}_i\,|\,\mathbf{Y}_i)] \right)$$`
+  - M step: optimize `\(\theta\)`
+`$$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \psi_i^{(h)})$$`
+
+We end up with a `\(M\)`-estimator:
+
+$$
+`\begin{equation}
+\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \left( \frac{1}{n}\sum_{i=1}^{n} \sup_{\psi_i} J_i(\theta, \psi_i) \right)  = \arg\max_{\theta} \underbrace{\left(\frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta) \right)}_{\bar{J}_n(\theta)} 
+\end{equation}`
+$$
+where `\(\bar{J}_i(\theta) = \sup_{\psi_i} J_i(\theta,\psi_i)\)` is the *profiled* objective function.
+
+---
+# Optimization of simple PLN models
+
+### Property of the objective function
+  
+The ELBO `\(J(\theta, \psi)\)` is bi-concave, i.e.
+  - concave wrt `\(\psi = (\mathbf{M}, \mathbf{S})\)` for given `\(\theta\)` 
+  - convace wrt `\(\theta = (\boldsymbol\Sigma, \mathbf{B})\)` for given `\(\psi\)` 
+
+but .important[not jointly concave] in general.
+
+### M-step: analytical
+
+`$$\hat{{\mathbf{B}}} = \left(\mathbf{X}^\top \mathbf{X}\right)^{-1} \mathbf{X} \mathbf{M}, \quad 
+   \hat{{\boldsymbol\Sigma}} = \frac{1}{n} \left(\mathbf{M}-\mathbf{X}\hat{{\mathbf{B}}}\right)^\top \left(\mathbf{M}-\mathbf{X}\hat{\mathbf{B}}\right) + \frac{1}{n} \mathrm{diag}(\mathbf{1}^\intercal\mathbf{S}^2)$$`
+
+### VE-step: gradient ascent
+
+`$$\frac{\partial J(\psi)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (\mathbf{M} - \mathbf{X}{\mathbf{B}}) \mathbf{\Omega}\right), \qquad \frac{\partial J(\psi)}{\partial \mathbf{S}} = \frac{1}{\mathbf{S}} - \mathbf{S} \circ \mathbf{A} - \mathbf{S} \mathrm{D}_{\boldsymbol\Omega} .$$`
+`\(\rightsquigarrow\)` Same routine for other PLN variants.
+
+---
+# Implementations
+
+#### Medium scale problems (R/C++ package)
+
+  - **algorithm**: conservative convex separable approximations [Sva02]
+  - **implementation**: `NLopt` nonlinear-optimization library [Joh11] &lt;br/&gt;
+`\(\rightsquigarrow\)` Up to thousands of sites ( `\(n \approx 1000s\)` ), hundreds of species ( `\(p\approx 100s\)` )
+
+#### Large scale problems  (Python/Pytorch module)
+
+  - **algorithm**: `Rprop` (gradient sign + adaptive variable-specific update) [RB93]
+  - **implementation**: `torch` with GPU auto-differentiation [FL22; Pas+17] &lt;br/&gt;
+`\(\rightsquigarrow\)` Up to  `\(n \approx 100,000\)` and `\(p\approx 10,000s\)`
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="figs/final_n=10000,p=2000.png" alt="n = 10,000, p = 2,000, d = 2 (running time: 1 min 40s)" width="30%" /&gt;
+&lt;p class="caption"&gt;n = 10,000, p = 2,000, d = 2 (running time: 1 min 40s)&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# Availability
+
+### Help and documentation
+
+- github group &lt;https://github.com/pln-team&gt;
+- PLNmodels website &lt;https://pln-team.github.io/PLNmodels&gt; 
+
+### R/C++ Package `PLNmodels`
+
+Last stable release on CRAN,  development version available on GitHub).
 
 
 ```r
-data(scRNA); set.seed(1234)
-train_set &lt;- sample.int(nrow(scRNA), 500)
-test_set  &lt;- setdiff(1:nrow(scRNA), train_set)
-scRNA_train &lt;- scRNA[train_set, ]
-scRNA_test  &lt;- scRNA[test_set, ]
-scRNA_train$counts &lt;- scRNA_train$counts[, 1:200]
-scRNA_test$counts  &lt;- scRNA_test$counts[, 1:200]
+install.packages("PLNmodels")
+remotes::install_github("PLN-team/PLNmodels@dev")
 ```
 
-### Covariates
 
-- `cell_line`: the cell line of the current row (among 5)
-- `total_counts`: Total number reads for that cell
-
----
-
-# Table of Counts
-
-.pull-left[
-Matrix view (log-transform + total-counts normalization)
-
-![log-scaled counts](slides_files/figure-html/glance counts-1.png)
-]
-
-.pull-right[
-Histogram (log-transform + total-counts normalization)
-
-```
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```r
+library(PLNmodels)
+packageVersion("PLNmodels")
 ```
 
-![](slides_files/figure-html/glimpse Abundance-1.png)&lt;!-- --&gt;
-]
+```
+## [1] '1.0.1'
+```
+
+### Python module `pyPLNmodels`
+
+A PyTorch implementation is available in pyPI [https://pypi.org/project/pyPLNmodels/](https://pypi.org/project/pyPLNmodels/)
+
+
 
 ---
 #  PLN with offsets and covariates
@@ -304,6 +410,169 @@ Looking at the coefficients `\(\mathbf{B}\)` associated with `cell_line` bring a
 &lt;img src="slides_files/figure-html/scRNA matrix plot-1.png" style="display: block; margin: auto;" /&gt;
 
 ---
+# Simple torch example in `R` 
+
+
+```r
+data("oaks")
+system.time(myPLN_torch &lt;-
+              PLN(Abundance ~ 1  + offset(log(Offset)),
+                  data = oaks, control = PLN_param(backend = "torch", trace = 0)))
+```
+
+```
+##    user  system elapsed 
+##   2.978   0.461   2.360
+```
+
+```r
+system.time(myPLN_nlopt &lt;-
+              PLN(Abundance ~ 1  + offset(log(Offset)),
+                  data = oaks, control = PLN_param(backend = "nlopt", trace = 0)))
+```
+
+```
+##    user  system elapsed 
+##   6.532   1.311   3.855
+```
+
+
+```r
+myPLN_torch$loglik
+```
+
+```
+## [1] -32208.86
+```
+
+```r
+myPLN_nlopt$loglik
+```
+
+```
+## [1] -32087.39
+```
+
+
+
+---
+class: inverse, center, middle
+
+# Probabilistic factor models in PLN&lt;br/&gt; .small[Poisson LDA and Poisson PCA]
+
+---
+
+# Natural extensions of PLN
+
+### Various tasks of multivariate analysis
+
+  - .important[Dimension Reduction]: rank constraint matrix `\(\boldsymbol\Sigma\)`.
+    
+    `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$`
+
+  - .important[Classification]: maximize separation between groups with means 
+
+  `$$\mathbf{Z}_i \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$`
+
+  - .important[Clustering]: mixture model in the latent space 
+
+  `$$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$`
+
+  - .important[Network inference]: sparsity constraint on inverse covariance.
+  
+  `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 &lt; c.$$`
+
+  - .important[Variable selection]: sparsity constraint on regression coefficients
+  
+  `$$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\mathbf{B}, \boldsymbol\Sigma), \quad \|\mathbf{B} \|_1 &lt; c.$$`
+
+
+---
+
+# Natural extensions of PLN
+
+### Tasks seen in Factor Analysis
+
+  - .important[Dimension Reduction]: rank constraint matrix `\(\boldsymbol\Sigma\)`. .important[PCA]
+    
+    `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$`
+
+  - .important[Classification]: maximize separation between groups with means .important[LDA]
+
+  `$$\mathbf{Z}_i \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$`
+
+
+
+
+---
+
+# Background: Gaussian LDA
+
+### Model
+
+Assume the samples are distributed in `\(K\)` groups and note
+
+- `\(\mathbf{G}\)` the group membership matrix
+- `\(\mathbf{U} = [{\boldsymbol\mu}_1, \dots, {\boldsymbol\mu}_K]\)` the matrix of group-specific means
+
+The model is
+
+`$$\mathbf{Z}_i = \mathcal{N}(\mathbf{G}_i^\top \mathbf{U}, {\boldsymbol\Sigma})$$`
+
+`\(\rightsquigarrow\)` Aim of LDA: Find the linear combination(s) `\(\mathbf{Z} u\)` maximizing separation between groups
+
+
+### Solution
+
+Find the first eigenvectors of `\(\mathbf{\Sigma}_w^{-1} \mathbf{\Sigma}_b\)` where
+
+- `\(\mathbf{\Sigma}_w\)` is the _within_-group variance matrix, i.e. the unbiased estimated of `\({\boldsymbol\Sigma}\)`:
+- `\(\mathbf{\Sigma}_b\)` is the _between_-group variance matrix, estimated from `\(\mathbf{U}\)`.
+
+---
+
+# Poisson lognormal LDA (1)
+
+Similar to normal PLN with
+
+- `\(\mathbf{X} \rightarrow (\mathbf{X}, \mathbf{G})\)`
+- `\(\mathbf{B} \rightarrow (\mathbf{B}, \mathbf{U})\)`
+
+### Inference
+
+-  Use .important[variational inference] to estimate `\((\mathbf{B}, \mathbf{U})\)`, `\(\mathbf{\Sigma}\)` and `\(\mathbf{Z}_i\)`
+
+- Compute `\(\hat{\mathbf{\Sigma}}_b\)` as
+
+`$$\hat{\mathbf{\Sigma}}_b = \frac1{K-1} \sum_k n_k (\hat{{\boldsymbol\mu}}_k - \hat{{\boldsymbol\mu}}_\bullet) (\hat{{\boldsymbol\mu}}_k - \hat{{\boldsymbol\mu}}_\bullet)^\intercal$$`
+
+- Compute first `\(K-1\)` eigenvectors of `\(\hat{{\boldsymbol\Sigma}}^{-1} \hat{\mathbf{\Sigma}}_b = \mathbf{P}^\top \Lambda \mathbf{P}\)`
+
+
+---
+
+# Poisson lognormal LDA (2)
+
+### Graphical representation
+
+Mimick Gaussian LDA:
+
+- Center the estimated latent positions `\(\tilde{\mathbf{Z}}\)`
+- Compute the estimated coordinates along the discriminant axes
+
+`$$\tilde{\mathbf{Z}}^{LDA} = \tilde{\mathbf{Z}} \mathbf{P} \Lambda^{1/2}$$`
+
+### Prediction
+
+For each group `\(k\)`
+- Assume that the new sample `\(\mathbf{Y}_{\text{new}}\)` comes from group `\(k\)`
+- Compute (variational) _likelihood_ `\(p_k = \mathbb{P}(\mathbf{Y}_{\text{new}} | \hat{{\boldsymbol\Sigma}}, \hat{\mathbf{\Sigma}_b}, \hat{{\boldsymbol\mu}}_k)\)`
+- Compute posterior probability `\(\pi_k \propto \frac{n_k p_k}{n}\)`
+
+`\(\rightsquigarrow\)` Assign to group with highest `\(\pi_k\)`
+
+
+---
 
 # Discriminant Analysis  (scRNA, 1)
 
@@ -390,6 +659,75 @@ heatmap(exp(myLDA_cell_line$group_means))
 
 Indeed, some groups of gene caracterize well the cell-lines.
 
+
+
+---
+
+# Poisson Lognormal PCA
+
+### Model
+  
+`$$\begin{array}{rcl}
+  \mathbf{Z}_i &amp; \sim^\text{iid} \mathcal{N}_p({\boldsymbol 0}_p, {\boldsymbol\Sigma}), &amp; \text{rank}({\boldsymbol\Sigma}) = k \ll p \\
+  \mathbf{Y}_i \,|\, \mathbf{Z}_i &amp; \sim \mathcal{P}(\exp\{\mathbf{O}_i + \mathbf{X}_i \mathbf{B} + \mathbf{Z}_i\})
+\end{array}$$`
+
+Recall that: `\(\text{rank}({\boldsymbol\Sigma}) = q \quad \Leftrightarrow \quad \exists \mathbf{C} (p \times q): \Sigma = \mathbf{C} \mathbf{C}^\intercal\)`.
+  
+### Estimation
+
+Variational inference
+
+$$\text{maximize } J({\boldsymbol\beta}, {\boldsymbol\psi}) $$
+`\(\rightsquigarrow\)` Still bi-concave in `\({\boldsymbol\beta} = (\mathbf{C}, \mathbf{B})\)` and `\({\boldsymbol\psi} = (\mathbf{M}, \mathbf{S})\)`
+
+
+---
+
+# Model selection and Visualization
+
+### Number of components/rank `\(k\)` needs to be chosen.
+  
+`\(\log p_{\hat{\boldsymbol\beta}}(\mathbf{Y})\)` intractable: use variational "likelihood"  `\(J(\hat{\boldsymbol\beta}, \hat{\boldsymbol\psi})\)`
+
+- BIC `\(\rightsquigarrow\)` `\(\text{vBIC}_k = J(\hat{\boldsymbol\beta}, \tilde{p}) - \frac12 p (d + k) \log(n)\)`
+- ICL `\(\rightsquigarrow\)` `\(\text{vICL}_k = \text{vBIC}_k - \mathcal{H}(\tilde{p})\)`
+
+$$
+  \hat{k} = \arg\max_k \text{vBIC}_k
+  \qquad \text{or} \qquad
+  \hat{k} = \arg\max_k \text{vICL}_k
+$$
+### Visualization
+
+- Gaussian PCA: Optimal subspaces nested when `\(q\)` increases.
+- PLN-pPCA: Non-nested subspaces.
+
+For the selected dimension dimension `\(\hat{k}\)`:
+
+- Compute the estimated latent positions `\(\mathbb{E}_q(\mathbf{Z}_i) = \mathbf{M} \hat{\mathbf{C}}^\top\)`
+- Perform PCA on the `\(\mathbf{M} \hat{\mathbf{C}}^\top\)`
+- Display result in any dimension `\(k \leq \hat{k}\)`
+
+---
+
+# PCA: Goodness of fit
+
+.important[pPCA:] Cumulated sum of the  eigenvalues = \% of variance preserved on the first `\(q\)` components.
+
+### PLN-pPCA
+
+Deviance based criterion.
+
+- Compute `\(\tilde{\mathbf{Z}}^{(k)} = \mathbf{O} + \mathbf{X} \hat{\mathbf{B}}^\top + \mathbf{M}^{(k)} \left(\hat{\mathbf{C}}^{(k)}\right)^\top\)`
+- Take `\(\lambda_{ij}^{(k)} = \exp\left(\tilde{Z}_{ij}^{(k)}\right)\)`
+- Define `\(\lambda_{ij}^{\min} = \exp( \tilde{Z}_{ij}^0)\)` and `\(\lambda_{ij}^{\max} = Y_{ij}\)`
+- Compute the Poisson log-likelihood `\(\ell_k = \log \mathbb{P}(\mathbf{Y}; \lambda^{(k)})\)`
+
+### Pseudo-$R^2$
+
+`$$R_k^2 = \frac{\ell_k - \ell_{\min}}{\ell_{\max} - \ell_{\min}}$$`
+
 ---
 # A PCA analysis of the scRNA data set (1)
 
@@ -412,192 +750,6 @@ Individual + Factor map - 40 most contributing genes
 &lt;small&gt;
 &lt;img src="slides_files/figure-html/PCA offset vizu tree-1.png" style="display: block; margin: auto;" /&gt;
 &lt;/small&gt;
-
----
-# Availability
-
-### Help and documentation
-
-- github group &lt;https://github.com/pln-team&gt;
-- PLNmodels website &lt;https://pln-team.github.io/PLNmodels&gt; 
-
-### R/C++ Package `PLNmodels`
-
-Last stable release on CRAN,  development version available on GitHub).
-
-
-```r
-install.packages("PLNmodels")
-remotes::install_github("PLN-team/PLNmodels@dev")
-```
-
-
-```r
-library(PLNmodels)
-packageVersion("PLNmodels")
-```
-
-```
-## [1] '1.0.1'
-```
-
-### Python module `pyPLNmodels`
-
-A PyTorch implementation is available in pyPI [https://pypi.org/project/pyPLNmodels/](https://pypi.org/project/pyPLNmodels/)
-
----
-# Simple torch example in `R` 
-
-
-```r
-data("oaks")
-system.time(myPLN_torch &lt;-
-              PLN(Abundance ~ 1  + offset(log(Offset)),
-                  data = oaks, control = PLN_param(backend = "torch", trace = 0)))
-```
-
-```
-##    user  system elapsed 
-##   1.949   0.654   1.697
-```
-
-```r
-system.time(myPLN_nlopt &lt;-
-              PLN(Abundance ~ 1  + offset(log(Offset)),
-                  data = oaks, control = PLN_param(backend = "nlopt", trace = 0)))
-```
-
-```
-##    user  system elapsed 
-##   6.705   1.347   3.964
-```
-
-
-```r
-myPLN_torch$loglik
-```
-
-```
-## [1] -32231.25
-```
-
-```r
-myPLN_nlopt$loglik
-```
-
-```
-## [1] -32087.39
-```
-
-
----
-class: inverse, center, middle
-
-# Variational inference for standard PLN&lt;br/&gt; .small[Optimisation]
-
-&lt;!-- VARIATIONAL INFERENCE --&gt;
-
-
----
-# Inference: general ingredients
-  
-Estimate `\(\theta = (\mathbf{B}, \boldsymbol\Sigma)\)`, predict the `\(\mathbf{Z}_i\)`, while  the model marginal likelihood is
-
-`$$p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i$$`
-
-### Expectation-Maximization
-
-With `\(\mathcal{H}(p) = -\mathbb{E}_p(\log(p))\)` the entropy of `\(p\)`,
-
-`$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_{p_\theta(\mathbf{Z}\,|\,\mathbf{Y})} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$` 
-
-EM requires to evaluate (some moments of) `\(p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})\)`, but there is no close form!
-
-### Variational approximation [WJ08]
-
-Use a proxy `\(q_\psi\)` of `\(p_\theta(\mathbf{Z}\,|\,\mathbf{Y})\)` minimizing a divergence in a class `\(\mathcal{Q}\)` .small[(e.g, Küllback-Leibler divergence)]
-
-`$$q_\psi(\mathbf{Z})^\star  \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right), \, \text{e.g.}, D(.,.) = KL(., .) = \mathbb{E}_{q_\psi}\left[\log \frac{q(z)}{p(z)}\right].$$`
-
----
-# Inference: specific ingredients
-
-Consider `\(\mathcal{Q}\)` the class of diagonal multivariate Gaussian distributions:
-
-`$$\Big\{q: \, q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \, q_i(\mathbf{Z}_i) = \mathcal{N}\left(\mathbf{Z}_i; \mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i)\right), \boldsymbol\psi_i = (\mathbf{m}_i, \mathbf{s}_i) \in\mathbb{R}_p\times\mathbb{R}_p \Big\}$$`
-
-and maximize the ELBO (Evidence Lower BOund)
-
-`$$\begin{aligned}J(\theta, \psi) &amp; = \log p_\theta(\mathbf{Y}) - KL[q_\psi (\mathbf{Z}) ||  p_\theta(\mathbf{Z} | \mathbf{Y})] \\ &amp; = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q_\psi(\mathbf{Z})] \\  &amp; 
-= \frac{1}{n} \sum_{i = 1}^n J_i(\theta, \psi_i),\end{aligned}$$`
-
-where, letting `\(\mathbf{A}_i = \mathbb{E}_{q_i}[\exp(Z_i)] = \exp\left( \mathbf{o}_i + \mathbf{m}_i + \frac{1}{2}\mathbf{s}^2_i\right)\)`, we have
-
-`$$\begin{aligned}
-J_i(\theta, \psi_i) = &amp;\mathbf{Y}_i^\intercal(\mathbf{o}_i + \mathbf{m}_i) - \left(\mathbf{A}_i - \frac{1}{2}\log(\mathbf{s}^2_i)\right) ^\intercal \mathbf{1}_p + \frac{1}{2} |\log|{\boldsymbol\Omega}|  \\
-&amp; - \frac{1}{2}(\mathbf{m}_i - \boldsymbol{\Theta}\mathbf{x}_i)^\intercal \boldsymbol{\Omega} (\mathbf{m}_i - \boldsymbol{\Theta}\mathbf{x}_i) - \frac{1}{2} \mathrm{diag}(\boldsymbol\Omega)^\intercal\mathbf{s}^2_i + \mathrm{cst} 
-\end{aligned}$$`
-
----
-# Resulting Variational EM
-
-.important[Alternate] until convergence between
-
-  - VE step: optimize `\(\boldsymbol{\psi}\)` (can be written individually)
-`$$\psi_i^{(h)} = \arg \max J_{i}(\theta^{(h)}, \psi_i) \left( = \arg\min_{q_i} KL[q_i(\mathbf{Z}_i) \,||\, p_{\theta^h}(\mathbf{Z}_i\,|\,\mathbf{Y}_i)] \right)$$`
-  - M step: optimize `\(\theta\)`
-`$$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \psi_i^{(h)})$$`
-
-We end up with a `\(M\)`-estimator:
-
-$$
-`\begin{equation}
-\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \left( \frac{1}{n}\sum_{i=1}^{n} \sup_{\psi_i} J_i(\theta, \psi_i) \right)  = \arg\max_{\theta} \underbrace{\left(\frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta) \right)}_{\bar{J}_n(\theta)} 
-\end{equation}`
-$$
-where `\(\bar{J}_i(\theta) = \sup_{\psi_i} J_i(\theta,\psi_i)\)` is the *profiled* objective function.
-
----
-# Optimization of simple PLN models
-
-### Property of the objective function
-  
-The ELBO `\(J(\theta, \psi)\)` is bi-concave, i.e.
-  - concave wrt `\(\psi = (\mathbf{M}, \mathbf{S})\)` for given `\(\theta\)` 
-  - convace wrt `\(\theta = (\boldsymbol\Sigma, \mathbf{B})\)` for given `\(\psi\)` 
-
-but .important[not jointly concave] in general.
-
-### M-step: analytical
-
-`$$\hat{{\mathbf{B}}} = \left(\mathbf{X}^\top \mathbf{X}\right)^{-1} \mathbf{X} \mathbf{M}, \quad 
-   \hat{{\boldsymbol\Sigma}} = \frac{1}{n} \left(\mathbf{M}-\mathbf{X}\hat{{\mathbf{B}}}\right)^\top \left(\mathbf{M}-\mathbf{X}\hat{\mathbf{B}}\right) + \frac{1}{n} \mathrm{diag}(\mathbf{1}^\intercal\mathbf{S}^2)$$`
-
-### VE-step: gradient ascent
-
-`$$\frac{\partial J(\psi)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (\mathbf{M} - \mathbf{X}{\mathbf{B}}) \mathbf{\Omega}\right), \qquad \frac{\partial J(\psi)}{\partial \mathbf{S}} = \frac{1}{\mathbf{S}} - \mathbf{S} \circ \mathbf{A} - \mathbf{S} \mathrm{D}_{\boldsymbol\Omega} .$$`
-`\(\rightsquigarrow\)` Same routine for other PLN variants.
-
----
-# Implementations
-
-#### Medium scale problems (R/C++ package)
-
-  - **algorithm**: conservative convex separable approximations [Sva02]
-  - **implementation**: `NLopt` nonlinear-optimization library [Joh11] &lt;br/&gt;
-`\(\rightsquigarrow\)` Up to thousands of sites ( `\(n \approx 1000s\)` ), hundreds of species ( `\(p\approx 100s\)` )
-
-#### Large scale problems  (Python/Pytorch module)
-
-  - **algorithm**: Rprop (gradient sign + adaptive variable-specific update) [RB93]
-  - **implementation**: `torch` with GPU auto-differentiation [FL22; Pas+17] &lt;br/&gt;
-`\(\rightsquigarrow\)` Up to  `\(n \approx 100,000\)` and `\(p\approx 10,000s\)`
-
-&lt;div class="figure" style="text-align: center"&gt;
-&lt;img src="figs/final_n=10000,p=2000.png" alt="n = 10,000, p = 2,000, d = 2 (running time: 1 min 40s)" width="30%" /&gt;
-&lt;p class="caption"&gt;n = 10,000, p = 2,000, d = 2 (running time: 1 min 40s)&lt;/p&gt;
-&lt;/div&gt;
-
 
 ---
 class: inverse, center, middle

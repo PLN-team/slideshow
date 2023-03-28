@@ -1,6 +1,6 @@
 
 ---
-# Inference: general ingredients
+# PLN Inference: general ingredients
   
 Estimate $\theta = (\mathbf{B}, \boldsymbol\Sigma)$, predict the $\mathbf{Z}_i$, while  the model marginal likelihood is
 
@@ -90,7 +90,7 @@ $\rightsquigarrow$ Up to thousands of sites ( $n \approx 1000s$ ), hundreds of s
 
 #### Large scale problems  (Python/Pytorch module)
 
-  - **algorithm**: Rprop (gradient sign + adaptive variable-specific update) `r Citep(myBib, "rprop")`
+  - **algorithm**: `Rprop` (gradient sign + adaptive variable-specific update) `r Citep(myBib, "rprop")`
   - **implementation**: `torch` with GPU auto-differentiation `r Citep(myBib, c("torch", "pytorch"))` <br/>
 $\rightsquigarrow$ Up to  $n \approx 100,000$ and $p\approx 10,000s$
 
@@ -98,3 +98,28 @@ $\rightsquigarrow$ Up to  $n \approx 100,000$ and $p\approx 10,000s$
 knitr::include_graphics("figs/final_n=10000,p=2000.png")
 ```
 
+---
+# Availability
+
+### Help and documentation
+
+- github group <https://github.com/pln-team>
+- PLNmodels website <https://pln-team.github.io/PLNmodels> 
+
+### R/C++ Package `PLNmodels`
+
+Last stable release on CRAN,  development version available on GitHub).
+
+```{r install, eval=FALSE, tidy=FALSE}
+install.packages("PLNmodels")
+remotes::install_github("PLN-team/PLNmodels@dev")
+```
+
+```{r loading package, message=FALSE}
+library(PLNmodels)
+packageVersion("PLNmodels")
+```
+
+### Python module `pyPLNmodels`
+
+A PyTorch implementation is available in pyPI [https://pypi.org/project/pyPLNmodels/](https://pypi.org/project/pyPLNmodels/)

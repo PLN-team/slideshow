@@ -24,6 +24,58 @@ Routinely gathered in ecology/microbiology/genomics
 
 ---
 
+# Illustration in genomics
+
+## scRNA data set 
+
+The dataset `scRNA` contains the counts of the 500 most varying transcripts in the mixtures of 5 cell lines in human liver (obtained with standard 10x scRNAseq Chromium protocol).
+
+We subsample 500 random cells and the keep the 200 most varying genes
+
+```{r init-data, echo = FALSE}
+library(PLNmodels); library(ZIPLN)
+```
+
+```{r scRNA-dataset}
+data(scRNA); set.seed(1234)
+train_set <- sample.int(nrow(scRNA), 500)
+test_set  <- setdiff(1:nrow(scRNA), train_set)
+scRNA_train <- scRNA[train_set, ]
+scRNA_test  <- scRNA[test_set, ]
+scRNA_train$counts <- scRNA_train$counts[, 1:200]
+scRNA_test$counts  <- scRNA_test$counts[, 1:200]
+```
+
+### Covariates
+
+- `cell_line`: the cell line of the current row (among 5)
+- `total_counts`: Total number reads for that cell
+
+---
+
+# Table of Counts
+
+.pull-left[
+Matrix view (log-transform + total-counts normalization)
+
+```{r glance counts, fig.height=6, fig.cap="log-scaled counts", echo = FALSE}
+log_data <- sweep(log(1 + scRNA_train$counts), 1, log(scRNA_train$total_counts), "-")
+log_data %>% 
+  corrplot::corrplot(is.corr = FALSE,
+    addgrid.col = NA,  tl.cex = .5,  cl.pos = "n", tl.pos = "n")
+```
+]
+
+.pull-right[
+Histogram (log-transform + total-counts normalization)
+```{r glimpse Abundance, echo = FALSE, message=FALSE}
+ggplot(data.frame(counts = c(log_data)), aes(counts))  + 
+  geom_histogram() + theme_bw()
+```
+]
+
+---
+
 # Models for multivariate count data
 
 ### If we were in a Gaussian world...
@@ -78,28 +130,3 @@ Stacking all individuals together,
 - covariance: $\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).$
 
 
----
-
-# Natural extensions
-
-### Various tasks of multivariate analysis
-
-  - .important[Dimension Reduction]: rank constraint matrix $\boldsymbol\Sigma$.
-    
-    $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
-
-  - .important[Classification]: maximize separation between groups with means 
-
-  $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$
-
-  - .important[Clustering]: mixture model in the latent space 
-
-  $$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$
-
-  - .important[Network inference]: sparsity constraint on inverse covariance.
-  
-  $$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 < c.$$
-
-  - .important[Variable selection]: sparsity constraint on regression coefficients
-  
-  $$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\mathbf{B}, \boldsymbol\Sigma), \quad \|\mathbf{B} \|_1 < c.$$
