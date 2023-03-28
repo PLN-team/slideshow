@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Poisson lognormal models for count data</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others   MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty    Last update 28 mars, 2023" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="pln.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Poisson lognormal models for count data
+]
+.subtitle[
+## Focus on
+]
+.author[
+### J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others<br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty </small> <br /> <small>Last update 28 mars, 2023</small>
+]
+.date[
+### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
+]
+
+---
+
+
+class: inverse, middle
+
+# Outline 
+
+  1. .large[**Framework** of multivariate Poisson lognormal models] 
+  &lt;br/&gt;
+
+  2. .large[**Focus** on factor analysis with PLN (PCA, LDA)] 
+  &lt;br/&gt;
+  
+  3. .large[**Optimization** with Variational inference] 
+  &lt;br/&gt;
+  
+  4. .large[**Ongoing extension** for factor models] 
+
+---
+class: inverse, center, middle
+
+# Multivariate Poisson lognormal models &lt;br/&gt; .small[Motivations, Framework]
+
+
+
+&lt;!-- STATISTICAL MODEL --&gt;
+
+
+---
+
+# Generic form of data sets
+
+Routinely gathered in ecology/microbiology/genomics
+
+### Data tables
+
+  - .important[Abundances]: read counts of species/transcripts `\(j\)` in sample `\(i\)`
+  - .important[Covariates]: value of environmental variable `\(k\)` in sample `\(i\)`
+  - .important[Offsets]: sampling effort for species/transcripts `\(j\)` in sample `\(i\)`
+
+### Need frameworks to model _dependencies between counts_
+
+  - understand **environmental effects** &lt;br/&gt;
+      `\(\rightsquigarrow\)` explanatory models (multivariate regression, classification)
+  - exhibit **patterns of diversity** &lt;br/&gt;
+      `\(\rightsquigarrow\)` summarize the information (clustering, dimension reduction)
+  - understand **between-species interactions** &lt;br /&gt;
+      `\(\rightsquigarrow\)` 'network' inference (variable/covariance selection)
+  - correct for technical and **confounding effects** &lt;br/&gt;
+      `\(\rightsquigarrow\)` account for covariables and sampling effort
+
+---
+
+# Models for multivariate count data
+
+### If we were in a Gaussian world...
+
+The .important[general linear model] [MKB79] would be appropriate! For each sample `\(i = 1,\dots,n\)`, 
+
+`$$\underbrace{\mathbf{Y}_i}_{\text{abundances}} =  \underbrace{\mathbf{x}_i^\top \mathbf{B}}_{\text{covariates}} + \underbrace{\mathbf{o}_i}_{\text{sampling effort}} + \boldsymbol\varepsilon_i, \quad \boldsymbol\varepsilon_i \sim \mathcal{N}(\mathbf{0}_p, \underbrace{\boldsymbol\Sigma}_{\text{between-species dependencies}})$$`
+
+null covariance `\(\Leftrightarrow\)` independence `\(\rightsquigarrow\)` uncorrelated species/transcripts do not interact
+
+.content-box-red[This model gives birth to Principal Component Analysis,
+ Discriminant Analysis, Gaussian Graphical Models, Gaussian Mixture models and many others `\(\dots\)`]
+
+### With count data...
+
+There is no generic model for multivariate counts
+  - Data transformation (log, `\(\sqrt{}\)`) : quick and dirty
+  - Non-Gaussian multivariate distributions [Ino+17]: do not scale to data dimension yet
+  - .important[Latent variable models]: interaction occur in a latent (unobserved) layer
+
+---
+
+# The Poisson Lognormal model (PLN)
+
+The PLN model [AH89] is a .important[multivariate generalized linear model], where 
+
+- the counts `\(\mathbf{Y}_i\)` are the response variables
+- the main effect is due to a linear combination of the covariates `\(\mathbf{x}_i\)`
+- a vector of offsets `\(\mathbf{o}_i\)` can be specified for each sample.
+
+.content-box-red[
+$$
+\mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma), \\
+$$
+]
+.pull-left[The unkwown parameters are 
+- `\(\mathbf{B}\)`, the regression parameters
+- `\(\boldsymbol\Sigma\)`, the variance-covariance matrix
+]
+
+.pull-right[
+Stacking all individuals together, 
+  - `\(\mathbf{Y}\)` is the `\(n\times p\)` matrix of counts  
+  - `\(\mathbf{X}\)` is the `\(n\times d\)` matrix of design
+  - `\(\mathbf{O}\)` is the `\(n\times p\)` matrix of offsets
+]
+
+### Properties: .small[.important[over-dispersion, arbitrary-signed covariances]]
+
+- mean: `\(\mathbb{E}(Y_{ij}) =  \exp \left( o_{ij} + \mathbf{x}_i^\top {\mathbf{B}}_{\cdot j} + \sigma_{jj}/2\right) &gt;  0\)`
+- variance: `\(\mathbb{V}(Y_{ij}) = \mathbb{E}(Y_{ij}) + \mathbb{E}(Y_{ij})^2 \left( e^{\sigma_{jj}} - 1 \right) &gt; \mathbb{E}(Y_{ij})\)`
+- covariance: `\(\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).\)`
+
+
+---
+
+# Natural extensions
+
+### Various tasks of multivariate analysis
+
+  - .important[Dimension Reduction]: rank constraint matrix `\(\boldsymbol\Sigma\)`.
+    
+    `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$`
+
+  - .important[Classification]: maximize separation between groups with means 
+
+  `$$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.$$`
+
+  - .important[Clustering]: mixture model in the latent space 
+
+  `$$\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.$$`
+
+  - .important[Network inference]: sparsity constraint on inverse covariance.
+  
+  `$$\mathbf{Z}_i \sim \mathcal{N}(\boldsymbol\mu, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 &lt; c.$$`
+
+  - .important[Variable selection]: sparsity constraint on regression coefficients
+  
+  `$$\mathbf{Z}_i \sim \mathcal{N}(\mathbf{x}_i^\top\mathbf{B}, \boldsymbol\Sigma), \quad \|\mathbf{B} \|_1 &lt; c.$$`
+
+&lt;!-- ILLUSTRATION --&gt;
+
+
+
+
+
+---
+
+# Illustration in genomics
+
+## scRNA data set 
+
+The dataset `scRNA` contains the counts of the 500 most varying transcripts in the mixtures of 5 cell lines in human liver (obtained with standard 10x scRNAseq Chromium protocol).
+
+We subsample 500 random cells and the keep the 200 most varying genes
+
+
+
+
+```r
+data(scRNA); set.seed(1234)
+train_set &lt;- sample.int(nrow(scRNA), 500)
+test_set  &lt;- setdiff(1:nrow(scRNA), train_set)
+scRNA_train &lt;- scRNA[train_set, ]
+scRNA_test  &lt;- scRNA[test_set, ]
+scRNA_train$counts &lt;- scRNA_train$counts[, 1:200]
+scRNA_test$counts  &lt;- scRNA_test$counts[, 1:200]
+```
+
+### Covariates
+
+- `cell_line`: the cell line of the current row (among 5)
+- `total_counts`: Total number reads for that cell
+
+---
+
+# Table of Counts
+
+.pull-left[
+Matrix view (log-transform + total-counts normalization)
+
+![log-scaled counts](slides_files/figure-html/glance counts-1.png)
+]
+
+.pull-right[
+Histogram (log-transform + total-counts normalization)
+
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+![](slides_files/figure-html/glimpse Abundance-1.png)&lt;!-- --&gt;
+]
+
+---
+#  PLN with offsets and covariates
+
+- Cell-line effect is in the regression coefficient (groupwise or common mean)
+- Spurious effect regarding the interactions between genes (full or diagonal covariance).
+
+## Offset: .small[modeling sampling effort]
+
+The predefined offset uses the total sum of reads.
+
+
+```r
+M01_scRNA &lt;- PLN(counts ~ 1 + offset(log(total_counts)), scRNA_train)
+M02_scRNA &lt;- PLN(counts ~ 1 + offset(log(total_counts)), scRNA_train,
+                 control = PLN_param(covariance = "diagonal"))
+```
+
+## Covariates: .small[cell-line effect ('ANOVA'-like) ]
+
+The `cell_line` is a natural candidate for explaining a large of the variance.
+
+
+```r
+M11_scRNA &lt;- PLN(counts ~ 0 + cell_line + offset(log(total_counts)), scRNA_train)
+M12_scRNA &lt;- PLN(counts ~ 0 + cell_line + offset(log(total_counts)), scRNA_train,
+                 control = PLN_param(covariance = "diagonal"))
+```
+
+---
+#  PLN with offsets and covariates (2)
+
+There is a clear gain in introducing the cell_line covariate in the model:
+
+
+```r
+rbind(M01 = M01_scRNA$criteria, M02 = M02_scRNA$criteria, 
+      M11 = M11_scRNA$criteria, M12 = M12_scRNA$criteria) %&gt;% 
+  knitr::kable(format = "html")
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; nb_param &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; loglik &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; BIC &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; ICL &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; M01 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20300 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -203322.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -266401.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -294418.7 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; M02 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 400 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -258421.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -259664.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -342792.9 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; M11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21100 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -199113.4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -264677.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -289668.8 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; M12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1200 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -216456.9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -220185.7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -275120.3 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+#  PLN with offsets and covariates (3)
+
+Looking at the coefficients `\(\mathbf{B}\)` associated with `cell_line` bring additional insights:
+
+&lt;img src="slides_files/figure-html/scRNA matrix plot-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Discriminant Analysis  (scRNA, 1)
+
+Use the `cell-line` variable for grouping (`grouping` is a factor of group to be considered)
+
+
+```r
+myLDA_cell_line &lt;- 
+  PLNLDA(counts ~ 1 + offset(log(total_counts)), grouping = cell_line,
+         data = scRNA_train)
+```
+
+.pull-left[
+![](slides_files/figure-html/plot-lda-oaks1-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+![](slides_files/figure-html/plot-lda-oaks2-1.png)&lt;!-- --&gt;
+]
+
+---
+# Discriminant Analysis  (scRNA, 2)
+
+Consider now a diagonal covariance.
+
+
+```r
+myLDA_cell_line_diag &lt;- 
+  PLNLDA(counts ~ 1 + offset(log(total_counts)), grouping = cell_line,
+         data = scRNA_train, control = PLN_param(covariance = "diagonal"))
+```
+
+.pull-left[
+![](slides_files/figure-html/plot-lda-diag-oaks1-1.png)&lt;!-- --&gt;
+]
+
+.pull-right[
+![](slides_files/figure-html/plot-lda-diag-oaks2-1.png)&lt;!-- --&gt;
+]
+
+---
+# Discriminant Analysis (scRNA, 3)
+
+We can prediction cell-line of some new data: let us try either diagonal or fully parametrized covariance.
+
+
+```r
+pred_cell_line      &lt;- predict(myLDA_cell_line     ,
+                               newdata = scRNA_test, type = "response")
+pred_cell_line_diag &lt;- predict(myLDA_cell_line_diag,
+                               newdata = scRNA_test, type = "response")
+```
+
+The ARI on the test set is impressive.footnote[The problem should be easy though...]
+
+
+```r
+aricode::ARI(pred_cell_line, scRNA_test$cell_line)
+```
+
+```
+## [1] 0.9764383
+```
+
+```r
+aricode::ARI(pred_cell_line_diag, scRNA_test$cell_line)
+```
+
+```
+## [1] 0.9683799
+```
+
+---
+# Discriminant Analysis  (scRNA, 4)
+
+Let us explore the discriminant groups: 
+
+
+```r
+heatmap(exp(myLDA_cell_line$group_means))
+```
+
+&lt;img src="slides_files/figure-html/LDA-heatmap-factors-1.png" style="display: block; margin: auto;" /&gt;
+
+Indeed, some groups of gene caracterize well the cell-lines.
+
+---
+# A PCA analysis of the scRNA data set (1)
+
+
+```r
+PCA_scRNA &lt;- PLNPCA(counts ~ 1 + offset(log(total_counts)), data = scRNA_train,
+                    ranks = c(1, 2, seq(5, 40, 5)))
+```
+
+### Model Selection
+&lt;img src="slides_files/figure-html/PCA offset vizu cell-line-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+# A PCA analysis of the scRNA data set  (2)
+
+### Biplot
+
+Individual + Factor map - 40 most contributing genes
+
+&lt;small&gt;
+&lt;img src="slides_files/figure-html/PCA offset vizu tree-1.png" style="display: block; margin: auto;" /&gt;
+&lt;/small&gt;
+
+---
+# Availability
+
+### Help and documentation
+
+- github group &lt;https://github.com/pln-team&gt;
+- PLNmodels website &lt;https://pln-team.github.io/PLNmodels&gt; 
+
+### R/C++ Package `PLNmodels`
+
+Last stable release on CRAN,  development version available on GitHub).
+
+
+```r
+install.packages("PLNmodels")
+remotes::install_github("PLN-team/PLNmodels@dev")
+```
+
+
+```r
+library(PLNmodels)
+packageVersion("PLNmodels")
+```
+
+```
+## [1] '1.0.1'
+```
+
+### Python module `pyPLNmodels`
+
+A PyTorch implementation is available in pyPI [https://pypi.org/project/pyPLNmodels/](https://pypi.org/project/pyPLNmodels/)
+
+---
+# Simple torch example in `R` 
+
+
+```r
+data("oaks")
+system.time(myPLN_torch &lt;-
+              PLN(Abundance ~ 1  + offset(log(Offset)),
+                  data = oaks, control = PLN_param(backend = "torch", trace = 0)))
+```
+
+```
+##    user  system elapsed 
+##   1.949   0.654   1.697
+```
+
+```r
+system.time(myPLN_nlopt &lt;-
+              PLN(Abundance ~ 1  + offset(log(Offset)),
+                  data = oaks, control = PLN_param(backend = "nlopt", trace = 0)))
+```
+
+```
+##    user  system elapsed 
+##   6.705   1.347   3.964
+```
+
+
+```r
+myPLN_torch$loglik
+```
+
+```
+## [1] -32231.25
+```
+
+```r
+myPLN_nlopt$loglik
+```
+
+```
+## [1] -32087.39
+```
+
+
+---
+class: inverse, center, middle
+
+# Variational inference for standard PLN&lt;br/&gt; .small[Optimisation]
+
+&lt;!-- VARIATIONAL INFERENCE --&gt;
+
+
+---
+# Inference: general ingredients
+  
+Estimate `\(\theta = (\mathbf{B}, \boldsymbol\Sigma)\)`, predict the `\(\mathbf{Z}_i\)`, while  the model marginal likelihood is
+
+`$$p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i$$`
+
+### Expectation-Maximization
+
+With `\(\mathcal{H}(p) = -\mathbb{E}_p(\log(p))\)` the entropy of `\(p\)`,
+
+`$$\log p_\theta(\mathbf{Y}) = \mathbb{E}_{p_\theta(\mathbf{Z}\,|\,\mathbf{Y})} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})]$$` 
+
+EM requires to evaluate (some moments of) `\(p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})\)`, but there is no close form!
+
+### Variational approximation [WJ08]
+
+Use a proxy `\(q_\psi\)` of `\(p_\theta(\mathbf{Z}\,|\,\mathbf{Y})\)` minimizing a divergence in a class `\(\mathcal{Q}\)` .small[(e.g, Küllback-Leibler divergence)]
+
+`$$q_\psi(\mathbf{Z})^\star  \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right), \, \text{e.g.}, D(.,.) = KL(., .) = \mathbb{E}_{q_\psi}\left[\log \frac{q(z)}{p(z)}\right].$$`
+
+---
+# Inference: specific ingredients
+
+Consider `\(\mathcal{Q}\)` the class of diagonal multivariate Gaussian distributions:
+
+`$$\Big\{q: \, q(\mathbf{Z}) = \prod_i q_i(\mathbf{Z}_i), \, q_i(\mathbf{Z}_i) = \mathcal{N}\left(\mathbf{Z}_i; \mathbf{m}_i, \mathrm{diag}(\mathbf{s}_i \circ \mathbf{s}_i)\right), \boldsymbol\psi_i = (\mathbf{m}_i, \mathbf{s}_i) \in\mathbb{R}_p\times\mathbb{R}_p \Big\}$$`
+
+and maximize the ELBO (Evidence Lower BOund)
+
+`$$\begin{aligned}J(\theta, \psi) &amp; = \log p_\theta(\mathbf{Y}) - KL[q_\psi (\mathbf{Z}) ||  p_\theta(\mathbf{Z} | \mathbf{Y})] \\ &amp; = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q_\psi(\mathbf{Z})] \\  &amp; 
+= \frac{1}{n} \sum_{i = 1}^n J_i(\theta, \psi_i),\end{aligned}$$`
+
+where, letting `\(\mathbf{A}_i = \mathbb{E}_{q_i}[\exp(Z_i)] = \exp\left( \mathbf{o}_i + \mathbf{m}_i + \frac{1}{2}\mathbf{s}^2_i\right)\)`, we have
+
+`$$\begin{aligned}
+J_i(\theta, \psi_i) = &amp;\mathbf{Y}_i^\intercal(\mathbf{o}_i + \mathbf{m}_i) - \left(\mathbf{A}_i - \frac{1}{2}\log(\mathbf{s}^2_i)\right) ^\intercal \mathbf{1}_p + \frac{1}{2} |\log|{\boldsymbol\Omega}|  \\
+&amp; - \frac{1}{2}(\mathbf{m}_i - \boldsymbol{\Theta}\mathbf{x}_i)^\intercal \boldsymbol{\Omega} (\mathbf{m}_i - \boldsymbol{\Theta}\mathbf{x}_i) - \frac{1}{2} \mathrm{diag}(\boldsymbol\Omega)^\intercal\mathbf{s}^2_i + \mathrm{cst} 
+\end{aligned}$$`
+
+---
+# Resulting Variational EM
+
+.important[Alternate] until convergence between
+
+  - VE step: optimize `\(\boldsymbol{\psi}\)` (can be written individually)
+`$$\psi_i^{(h)} = \arg \max J_{i}(\theta^{(h)}, \psi_i) \left( = \arg\min_{q_i} KL[q_i(\mathbf{Z}_i) \,||\, p_{\theta^h}(\mathbf{Z}_i\,|\,\mathbf{Y}_i)] \right)$$`
+  - M step: optimize `\(\theta\)`
+`$$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \psi_i^{(h)})$$`
+
+We end up with a `\(M\)`-estimator:
+
+$$
+`\begin{equation}
+\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \left( \frac{1}{n}\sum_{i=1}^{n} \sup_{\psi_i} J_i(\theta, \psi_i) \right)  = \arg\max_{\theta} \underbrace{\left(\frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta) \right)}_{\bar{J}_n(\theta)} 
+\end{equation}`
+$$
+where `\(\bar{J}_i(\theta) = \sup_{\psi_i} J_i(\theta,\psi_i)\)` is the *profiled* objective function.
+
+---
+# Optimization of simple PLN models
+
+### Property of the objective function
+  
+The ELBO `\(J(\theta, \psi)\)` is bi-concave, i.e.
+  - concave wrt `\(\psi = (\mathbf{M}, \mathbf{S})\)` for given `\(\theta\)` 
+  - convace wrt `\(\theta = (\boldsymbol\Sigma, \mathbf{B})\)` for given `\(\psi\)` 
+
+but .important[not jointly concave] in general.
+
+### M-step: analytical
+
+`$$\hat{{\mathbf{B}}} = \left(\mathbf{X}^\top \mathbf{X}\right)^{-1} \mathbf{X} \mathbf{M}, \quad 
+   \hat{{\boldsymbol\Sigma}} = \frac{1}{n} \left(\mathbf{M}-\mathbf{X}\hat{{\mathbf{B}}}\right)^\top \left(\mathbf{M}-\mathbf{X}\hat{\mathbf{B}}\right) + \frac{1}{n} \mathrm{diag}(\mathbf{1}^\intercal\mathbf{S}^2)$$`
+
+### VE-step: gradient ascent
+
+`$$\frac{\partial J(\psi)}{\partial \mathbf{M}} =  \left(\mathbf{Y} - \mathbf{A} - (\mathbf{M} - \mathbf{X}{\mathbf{B}}) \mathbf{\Omega}\right), \qquad \frac{\partial J(\psi)}{\partial \mathbf{S}} = \frac{1}{\mathbf{S}} - \mathbf{S} \circ \mathbf{A} - \mathbf{S} \mathrm{D}_{\boldsymbol\Omega} .$$`
+`\(\rightsquigarrow\)` Same routine for other PLN variants.
+
+---
+# Implementations
+
+#### Medium scale problems (R/C++ package)
+
+  - **algorithm**: conservative convex separable approximations [Sva02]
+  - **implementation**: `NLopt` nonlinear-optimization library [Joh11] &lt;br/&gt;
+`\(\rightsquigarrow\)` Up to thousands of sites ( `\(n \approx 1000s\)` ), hundreds of species ( `\(p\approx 100s\)` )
+
+#### Large scale problems  (Python/Pytorch module)
+
+  - **algorithm**: Rprop (gradient sign + adaptive variable-specific update) [RB93]
+  - **implementation**: `torch` with GPU auto-differentiation [FL22; Pas+17] &lt;br/&gt;
+`\(\rightsquigarrow\)` Up to  `\(n \approx 100,000\)` and `\(p\approx 10,000s\)`
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="figs/final_n=10000,p=2000.png" alt="n = 10,000, p = 2,000, d = 2 (running time: 1 min 40s)" width="30%" /&gt;
+&lt;p class="caption"&gt;n = 10,000, p = 2,000, d = 2 (running time: 1 min 40s)&lt;/p&gt;
+&lt;/div&gt;
+
+
+---
+class: inverse, center, middle
+
+# Some on-going extensions
+
+
+---
+# Conclusion
+
+## Summary
+
+  - PLN = generic model for multivariate count data analysis
+  - Flexible modeling of the covariance structure, allows for covariates
+  - Efficient V-EM algorithm
+  - Variational estimator is asymptotically normal (and hopefully unbiased) with computable covariance matrix. 
+  - ZI-PLN reduces (some) problems induced by high sparsity in the data
+
+## Work in progress
+
+  - Caracterisation of Variational Estimator
+  - with .important[J. Stoehr] Direct likelihood optim (SGD with Important Sampling)
+  - with .important[J. Kwon]: optimisation guarantees coupling adaptive SGD + variance reduction
+  - Connection/Comparison with VAE with e.g Poisson neg log-likelihood as loss
+  
+## Advertisement 
+
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.
+
+---
+# References
+
+
+
+&lt;small&gt;
+Aitchison, J. and C. Ho (1989). "The multivariate Poisson-log normal
+distribution". In: _Biometrika_ 76.4, pp. 643-653.
+
+Chiquet, J., M. Mariadassou, and S. Robin (2018). "Variational
+inference for probabilistic Poisson PCA". In: _The Annals of Applied
+Statistics_ 12, pp. 2674-2698. URL:
+[http://dx.doi.org/10.1214/18-AOAS1177](http://dx.doi.org/10.1214/18-AOAS1177).
+
+Chiquet, J., M. Mariadassou, and S. Robin (2019). "Variational
+inference for sparse network reconstruction from count data". In:
+_Proceedings of the 19th International Conference on Machine Learning
+(ICML 2019)_.
+
+Chiquet, J., M. Mariadassou, and S. Robin (2021). "The
+Poisson-Lognormal Model as a Versatile Framework for the Joint Analysis
+of Species Abundances". In: _Frontiers in Ecology and Evolution_ 9.
+DOI:
+[10.3389/fevo.2021.588292](https://doi.org/10.3389%2Ffevo.2021.588292).
+
+Facon, B., A. Hafsi, M. C. de la Masselière, et al. (2021). "Joint
+species distributions reveal the combined effects of host plants,
+abiotic factors and species competition as drivers of species
+abundances in fruit flies". In: _Ecological Letters_. DOI:
+[10.1111/ele.13825](https://doi.org/10.1111%2Fele.13825).
+
+Falbel, D. and J. Luraschi (2022). _torch: Tensors and Neural Networks
+with 'GPU' Acceleration_. https://torch.mlverse.org/docs,
+https://github.com/mlverse/torch.
+
+Inouye, D. I., E. Yang, G. I. Allen, et al. (2017). "A review of
+multivariate distributions for count data derived from the Poisson
+distribution". In: _Wiley Interdisciplinary Reviews: Computational
+Statistics_ 9.3.
+
+Johnson, S. G. (2011). _The NLopt nonlinear-optimization package_. URL:
+[http://ab-initio.mit.edu/nlopt](http://ab-initio.mit.edu/nlopt).
+
+Lejal, E., J. Chiquet, J. Aubert, et al. (2021). "Temporal patterns in
+Ixodes ricinus microbial communities: an insight into tick-borne
+microbe interactions". In: _Microbiome_ 9.153. DOI:
+[10.1186/s40168-021-01051-8](https://doi.org/10.1186%2Fs40168-021-01051-8).
+
+Mardia, K., J. Kent, and J. Bibby (1979). _Multivariate analysis_.
+Academic press.
+
+Paszke, A., S. Gross, S. Chintala, et al. (2017). "Automatic
+differentiation in pytorch".
+
+Riedmiller, M. and H. Braun (1993). "A direct adaptive method for
+faster backpropagation learning: The RPROP algorithm". In: _IEEE
+international conference on neural networks_. IEEE. , pp. 586-591.
+
+Svanberg, K. (2002). "A class of globally convergent optimization
+methods based on conservative convex separable approximations". In:
+_SIAM journal on optimization_ 12.2, pp. 555-573.
+
+Wainwright, M. J. and M. I. Jordan (2008). "Graphical Models,
+Exponential Families, and Variational Inference". In: _Found. Trends
+Mach. Learn._ 1.1-2, pp. 1-305.
+&lt;/small&gt;
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

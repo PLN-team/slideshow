@@ -1,0 +1,109 @@
+---
+title: "Poisson lognormal models for count data"
+subtitle: "Focus on "
+author: "J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others<br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty </small> <br /> <small>Last update `r format(Sys.time(), '%d %B, %Y')`</small>"
+date: "<br/>https://pln-team.github.io/PLNmodels"
+output:
+  xaringan::moon_reader:
+    css: ["pln.css", default, metropolis, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+class: inverse, middle
+
+# Outline 
+
+  1. .large[**Framework** of multivariate Poisson lognormal models] 
+  <br/>
+
+  2. .large[**Focus** on factor analysis with PLN (PCA, LDA)] 
+  <br/>
+  
+  3. .large[**Optimization** with Variational inference] 
+  <br/>
+  
+  4. .large[**Ongoing extension** for factor models] 
+
+---
+class: inverse, center, middle
+
+# Multivariate Poisson lognormal models <br/> .small[Motivations, Framework]
+
+```{r setup, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+options(htmltools.dir.version = FALSE)
+library(RefManageR) # reference manager
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           cite.style = 'alphabetic', 
+           style = "markdown",
+           hyperlink = FALSE, 
+           dashed = FALSE)
+myBib <- ReadBib("./PLNreferences.bib", check = FALSE)
+```
+
+<!-- STATISTICAL MODEL -->
+```{r PLN_stat_model, child='PLN_stat_model.Rmd'}
+```
+
+<!-- ILLUSTRATION -->
+```{r PLN_scRNA_analysis, child='PLN_scRNA_analysis.Rmd'}
+```
+
+---
+class: inverse, center, middle
+
+# Variational inference for standard PLN<br/> .small[Optimisation]
+
+<!-- VARIATIONAL INFERENCE -->
+```{r PLN_var_inference, child='PLN_var_inference.Rmd'}
+```
+
+---
+class: inverse, center, middle
+
+# Some on-going extensions
+
+
+---
+# Conclusion
+
+## Summary
+
+  - PLN = generic model for multivariate count data analysis
+  - Flexible modeling of the covariance structure, allows for covariates
+  - Efficient V-EM algorithm
+  - Variational estimator is asymptotically normal (and hopefully unbiased) with computable covariance matrix. 
+  - ZI-PLN reduces (some) problems induced by high sparsity in the data
+
+## Work in progress
+
+  - Caracterisation of Variational Estimator
+  - with .important[J. Stoehr] Direct likelihood optim (SGD with Important Sampling)
+  - with .important[J. Kwon]: optimisation guarantees coupling adaptive SGD + variance reduction
+  - Connection/Comparison with VAE with e.g Poisson neg log-likelihood as loss
+  
+## Advertisement 
+
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.
+
+---
+# References
+
+```{r, results='hide', echo = FALSE}
+RefManageR::Cite(myBib, 'PLNmodels')
+RefManageR::Cite(myBib, 'PLNPCA')
+RefManageR::Cite(myBib, 'PLNnetwork')
+RefManageR::Cite(myBib, 'Facon2021')
+RefManageR::Cite(myBib, 'Lejal2021')
+```
+
+<small>
+```{r, 'refs', results='asis', echo=FALSE}
+PrintBibliography(myBib)
+```
+</small>
+

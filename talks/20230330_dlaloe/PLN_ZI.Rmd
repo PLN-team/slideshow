@@ -1,0 +1,162 @@
+
+---
+
+# A zero-inflated PLN
+
+### Motivations 
+
+- account for a large amount of zero, i.e. with single-cell data,
+- try to separate "true" zeros from "technical"/dropouts
+
+### The Model
+
+Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure 
+$$\begin{aligned}
+   \mathbf{Z}_i & \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma) \\
+    W_{ij} & \sim \mathcal{B}(\text{logit}^{-1}(\mathbf{x}_i^\top{\mathbf{B}}_j^0)) \\
+    Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim W_{ij}\delta_0 + (1-W_{ij}) \mathcal{P}\left(\exp\{Z_{ij}\}\right), \\
+\end{aligned}$$
+  
+The unkwown parameters are 
+- $\mathbf{B}$, the regression parameters (from the PLN component)
+- $\mathbf{B}^0$, the regression parameters (from the Bernoulli component)
+- $\boldsymbol\Sigma$, the variance-covariance matrix
+
+$\rightsquigarrow$ ZI-PLN is a mixture of PLN and Bernoulli distribution with shared covariates.
+
+---
+
+# ZI-PLN Inference
+
+Same routine...
+
+### Variational approximation
+
+\begin{equation*}
+p(\mathbf{Z}_i, \mathbf{W}_i  \mathbf{Y}_i) \approx q_{\psi}(\mathbf{Z}_i, \mathbf{W}_i) \approx q_{\psi_1}(\mathbf{Z}_i) q_{\psi_2}(\mathbf{W}_i)
+\end{equation*}
+
+with
+
+\begin{equation*}
+q_{\psi_1}(\mathbf{Z}_i) = \mathcal{N}(\mathbf{Z}_i; \mathbf{m}_{i}, \mathrm{diag}(\mathbf{s}_{i} \circ \mathbf{s}_{i})), \qquad q_{\psi_2}(\mathbf{W}_i) = \otimes_{j=1}^p \mathcal{B}(W_{ij}, \pi_{ij})
+\end{equation*}
+
+### Variational lower bound
+
+Let $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Sigma})$ and $\psi= (\mathbf{M}, \mathbf{S}, \mathbf{\Pi})$, then
+
+\begin{align*}
+J(\theta, \psi) & =  \log p_\theta(\mathbf{Y}) - KL(p_\theta(. | \mathbf{Y}) \| q_\psi(.) ) \\
+& = \mathbb{E}_{q_{\psi}} \log p_\theta(\mathbf{Z}, \mathbf{W}, \mathbf{Y}) - \mathbb{E}_{q_{\psi}} \log q_\psi(\mathbf{Z}, \mathbf{W}) \\
+& = \mathbb{E}_{q_{\psi}} \log p_\theta (\mathbf{Y} | \mathbf{Z}, \mathbf{W}) + \mathbb{E}_{q_{\psi_1}} \log p_\theta (\mathbf{Z}) + \mathbb{E}_{q_{\psi_2}} \log p_\theta (\mathbf{W}) \\
+&  \qquad - \mathbb{E}_{q_{\psi_1}} \log q_{\psi_{1}} (\mathbf{Z}) - \mathbb{E}_{q_{\psi_2}} \log q_{\psi_2} (\mathbf{W}) \\
+\end{align*}
+
+**Property**: $J$ is separately concave in $\theta$, $\psi_1$ and $\psi_2$.
+
+---
+
+# Sparse regularization
+
+### Criterion
+
+Recall that $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Omega} = \mathbf{\Sigma}^{-1})$. Sparsity allows to control the number of parameters: 
+
+\begin{equation*}
+ \arg\min_{\theta, \psi} J(\theta, \psi)  + \lambda_1 \| \mathbf{B}  \|_1 + \lambda_2 \|  \mathbb{\Omega}  \|_1 \color{#ddd}{ \left( + \lambda_1 \| \mathbf{B}^0  \|_1 \right)}
+\end{equation*}
+
+### Alternate optimization
+
+  - (Stochastic) Gradient-descent on $\mathbf{B}^0, \mathbf{M}, \mathbf{S}$
+  - Closed-form for posterior probabilities $\mathbf{\Pi}$
+  - Inverse covariance $\mathbf{\Omega}$ 
+    - if $\lambda_2=0$, $\hat{\mathbf{\Sigma}} = n^{-1} \left[ (\mathbf{M} - \mathbf{XB})^\top(\mathbf{M} - \mathbf{XB}) + \bar{\mathbf{S}}^2 \right]$
+    - if $\lambda_2 > 0$, $\ell_1$ penalized MLE ( $\rightsquigarrow$ Graphical-Lasso with $\hat{\mathbf{\Sigma}}$ as input)
+  - PLN regression coefficient $\mathbf{B}$ 
+    - if $\lambda_1=0$, $\hat{\mathbf{B}} = [\mathbf{X}^\top \mathbf{X}]^{-1} \mathbf{X}^\top \mathbf{M}$
+    - if $\lambda_1 > 0$, vectorize and solve a $\ell_1$ penalized least-squared problem
+
+**Initialize** $B^0$ with logistic regression on $\delta_0(\mathbf{Y})$, $\mathbf{B}$ with Poisson regression
+
+---
+
+# A quick example in genomics (1)
+
+### scRNA data set 
+
+The dataset `scRNA` contains the counts of the 500 most varying transcripts in the mixtures of 5 cell lines in human liver (obtained with standard 10x scRNAseq Chromium protocol).
+
+We subsample 500 random cells and the keep the 200 most varying genes
+
+```{r scRNA data set}
+library(PLNmodels); library(ZIPLN)
+data(scRNA); set.seed(1234)
+scRNA        <- scRNA[sample.int(nrow(scRNA), 500), ]
+scRNA$counts <- scRNA$counts[, 1:200]
+scRNA$counts %>% as_tibble() %>% rmarkdown::paged_table()
+```
+
+---
+
+# A quick example in genomics (2)
+
+## Model fits
+
+We adjust the standard PLN model and the ZI-PLN model with some sparsity on the precision matrix:
+
+```{r PLN-scRNA, cache = TRUE}
+system.time(myPLN <- 
+    PLN(counts ~ 1 + offset(log(total_counts)),
+        data = scRNA, control = list(trace = 0, xtol_rel = 1e-4)))
+```
+
+```{r ZIPLN-scRNA, cache = TRUE}
+system.time(myZIPLN <- 
+    ZIPLN(counts ~ 1 + offset(log(total_counts)), rho = .2,
+          data = scRNA, control = list(trace = 0)))
+```
+
+---
+
+# A quick example in genomics (3)
+
+```{r, echo = FALSE, out.width='85%', fig.height=5, fig.width=7, fig.align='center', fig.cap="ZI-PLN seems to be less variant for predicting small counts", warning=FALSE, message=FALSE}
+data.frame(
+  fitted   = c(as.vector(fitted(myZIPLN)), as.vector(fitted(myPLN))),
+  observed = rep(as.vector(scRNA$counts), 2),
+  method   = factor(rep(c("ZIPLN", "PLN"), each = length(scRNA$counts)))
+) %>%
+  ggplot(aes(x = observed, y = fitted)) +
+    geom_point(size = .5, alpha =.25 ) +
+    facet_wrap( ~ method) +
+    scale_x_log10() +
+    scale_y_log10() +
+    theme_bw() + annotation_logticks()
+```
+
+---
+
+# A quick example in genomics (4)
+
+```{r}
+prcomp(myZIPLN$latent) %>% factoextra::fviz_pca_ind(col.ind = scRNA$cell_line)
+```
+
+---
+
+# A quick example in genomics (5)
+
+See .important[Sophie Donnet]'s talk for more about Stochastic Block Models
+
+```{r, results='hide', cache = TRUE}
+library(sbm)
+A <- myZIPLN$model_par$Omega != 0; diag(A) <- 0
+mySBM <- estimateSimpleSBM(A, estimOptions=list(plot=FALSE))
+```
+
+```{r plotSBM, out.width='60%', fig.height=6, fig.align='center', fig.cap='Omega support reordered according to SBM memberships', echo = FALSE}
+p <- plot(mySBM); print(p)
+```
+
