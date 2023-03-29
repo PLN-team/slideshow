@@ -125,7 +125,132 @@ class: inverse, center, middle
 ---
 class: inverse, center, middle
 
-# Some on-going extensions
+# On-going works
+
+---
+# Optimisation, Algorithms
+
+With .important[Bastien Batardière, Joon Kwon, Julien Stoehr]
+
+## Exact Maximization
+
+Direct likelihood optim (SGD with Important Sampling)
+
+## Optimization
+
+Optimisation guarantees coupling adaptive SGD + variance reduction
+
+---
+# PLN LDA: Ongoing Extension
+
+With .important[Nicolas Jouvin]
+
+### Quadratic Discriminant Analysis
+
+- Relax assumption of common covariance between groups
+- Tests Linear vs Quadratic Discriminant
+
+### Regularized Discriminant Analysis
+
+- Ridge-like regularized Covariance
+- Sparse Covariance
+- Block-wise Covariance
+
+$\rightsquigarrow$ better assess the structure of the sub-population
+
+---
+# PLN PCA: Ongoing Extension
+
+With .important[Nicolas Jouvin]
+
+## Mixture of PLN PCA
+
+- Assume several sub-population in the latent space
+- Each sub-population has is represented by a different linear combinasion of the initial variables
+- In the PLN setup, several variational approximation are possible
+
+## Functional PCA
+
+PhD of Barbara Bricout (S. Robin, S. Donnet)
+
+Features are time points
+
+---
+# Temporal/Spatial dependencies
+
+With .important[Stéphane Robin, Mahendra Mariadassou]
+
+## 'In-row' dependency structure
+
+Consider, e.g., a multivariate Gaussian auto-regressive process on the latent variable $\mathbf{Z}$
+
+$$\mathbf{Z}_1 \sim \mathcal{N}(0, {\boldsymbol\Sigma}), \quad \mathbf{Z}_t = \mathbf{A} \mathbf{Z}_{t-1} + {\boldsymbol\varepsilon}_t \quad
+({\boldsymbol\varepsilon})_t \text{ iid } \sim \mathcal{N}(0, \Delta^{-1})$$
+
+The counts are described by $(\mathbf{Y}_t) \in \mathbb{N}^p$ with time $t\geq 0$
+
+$$(\mathbf{Y}_t) \text{ indep. } \mathbf{Z}_t: \quad \mathbf{Y}_t \sim \mathcal{P}\left(\exp\left\{ \mathbf{x}_t^\top \mathbf{B} + \mathbf{Z}_t\right\}\right)$$
+
+$\rightsquigarrow$ Camille Mondon's MsC
+
+## Inference
+
+Based on Kalman Filter in the latent layer + variational approximation
+
+---
+
+# A zero-inflated PLN
+
+With .important[Bastien Batardière, Mahendra Mariadassou]
+
+### Motivations 
+
+- account for a large amount of zero, i.e. with single-cell data,
+- try to separate "true" zeros from "technical"/dropouts
+
+### The Model
+
+Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure 
+$$\begin{aligned}
+   \mathbf{Z}_i & \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma) \\
+    W_{ij} & \sim \mathcal{B}(\text{logit}^{-1}(\mathbf{x}_i^\top{\mathbf{B}}_j^0)) \\
+    Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim W_{ij}\delta_0 + (1-W_{ij}) \mathcal{P}\left(\exp\{Z_{ij}\}\right), \\
+\end{aligned}$$
+  
+The unkwown parameters are 
+- $\mathbf{B}$, the regression parameters (from the PLN component)
+- $\mathbf{B}^0$, the regression parameters (from the Bernoulli component)
+- $\boldsymbol\Sigma$, the variance-covariance matrix
+
+$\rightsquigarrow$ ZI-PLN is a mixture of PLN and Bernoulli distribution with shared covariates.
+
+---
+
+# ZI-PLN Inference
+
+### Variational approximation 1.
+
+\begin{equation*}
+p(\mathbf{Z}_i, \mathbf{W}_i  \mathbf{Y}_i) \approx q_{\psi}(\mathbf{Z}_i, \mathbf{W}_i) \approx q_{\psi_1}(\mathbf{Z}_i) q_{\psi_2}(\mathbf{W}_i)
+\end{equation*}
+
+with
+
+\begin{equation*}
+q_{\psi_1}(\mathbf{Z}_i) = \mathcal{N}(\mathbf{Z}_i; \mathbf{m}_{i}, \mathrm{diag}(\mathbf{s}_{i} \circ \mathbf{s}_{i})), \qquad q_{\psi_2}(\mathbf{W}_i) = \otimes_{j=1}^p \mathcal{B}(W_{ij}, \pi_{ij})
+\end{equation*}
+
+.important[Tested, works _partially_] Too rough variational approximation
+
+### Variational approximation 1.
+
+\begin{equation*}
+p(\mathbf{Z}_i, \mathbf{W}_i  \mathbf{Y}_i) \approx q_{\psi}(\mathbf{Z}_i, \mathbf{W}_i) \approx q_{\psi_1}(\mathbf{Z}_i|\mathbf{W}_i) q_{\psi_2}(\mathbf{W}_i)
+\end{equation*}
+
+\begin{equation*}
+q_{\psi_1}(\mathbf{Z}_i | \mathbf{W}_i) = \text{ mixture of Gaussians}, \quad  q_{\psi_2}(\mathbf{W}_i) = \otimes_{j=1}^p \mathcal{B}(W_{ij}, \pi_{ij})
+\end{equation*}
 
 
 ---
@@ -136,16 +261,7 @@ class: inverse, center, middle
   - PLN = generic model for multivariate count data analysis
   - Flexible modeling of the covariance structure, allows for covariates
   - Efficient V-EM algorithm
-  - Variational estimator is asymptotically normal (and hopefully unbiased) with computable covariance matrix. 
-  - ZI-PLN reduces (some) problems induced by high sparsity in the data
 
-## Work in progress
-
-  - Caracterisation of Variational Estimator
-  - with .important[J. Stoehr] Direct likelihood optim (SGD with Important Sampling)
-  - with .important[J. Kwon]: optimisation guarantees coupling adaptive SGD + variance reduction
-  - Connection/Comparison with VAE with e.g Poisson neg log-likelihood as loss
-  
 ## Advertisement 
 
 [https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.

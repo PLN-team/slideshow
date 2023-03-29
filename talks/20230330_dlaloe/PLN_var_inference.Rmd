@@ -56,7 +56,7 @@ $$
 \hat{\theta}^{\text{ve}} = \arg\max_{\theta} \left( \frac{1}{n}\sum_{i=1}^{n} \sup_{\psi_i} J_i(\theta, \psi_i) \right)  = \arg\max_{\theta} \underbrace{\left(\frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta) \right)}_{\bar{J}_n(\theta)} 
 \end{equation}
 $$
-where $\bar{J}_i(\theta) = \sup_{\psi_i} J_i(\theta,\psi_i)$ is the *profiled* objective function.
+$\hat{\theta}^{\text{ve}}$ is asymptotically unbiased. .important[Variance can be estimated with bootstrap/Jackknife.]
 
 ---
 # Optimization of simple PLN models
@@ -123,3 +123,4 @@ packageVersion("PLNmodels")
 ### Python module `pyPLNmodels`
 
 A PyTorch implementation is available in pyPI [https://pypi.org/project/pyPLNmodels/](https://pypi.org/project/pyPLNmodels/)
+

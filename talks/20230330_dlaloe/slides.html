@@ -3,7 +3,7 @@
   <head>
     <title>Poisson lognormal models for count data</title>
     <meta charset="utf-8" />
-    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others   MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty    Last update 28 mars, 2023" />
+    <meta name="author" content="J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others   MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty    Last update 29 mars, 2023" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
@@ -21,7 +21,7 @@ class: center, middle, inverse, title-slide
 ## Focus on some probabilistic factor models: Poisson LDA and Poisson PCA
 ]
 .author[
-### J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others<br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty </small> <br /> <small>Last update 28 mars, 2023</small>
+### J. Chiquet, M. Mariadassou, S. Robin, B. Batardière + others<br /><br /> <small>MIA Paris-Saclay, AgroParisTech, INRAE, Sorbonne Universyty </small> <br /> <small>Last update 29 mars, 2023</small>
 ]
 .date[
 ### <br/><a href="https://pln-team.github.io/PLNmodels" class="uri">https://pln-team.github.io/PLNmodels</a>
@@ -243,7 +243,7 @@ $$
 \hat{\theta}^{\text{ve}} = \arg\max_{\theta} \left( \frac{1}{n}\sum_{i=1}^{n} \sup_{\psi_i} J_i(\theta, \psi_i) \right)  = \arg\max_{\theta} \underbrace{\left(\frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta) \right)}_{\bar{J}_n(\theta)} 
 \end{equation}`
 $$
-where `\(\bar{J}_i(\theta) = \sup_{\psi_i} J_i(\theta,\psi_i)\)` is the *profiled* objective function.
+`\(\hat{\theta}^{\text{ve}}\)` is asymptotically unbiased. .important[Variance can be estimated with bootstrap/Jackknife.]
 
 ---
 # Optimization of simple PLN models
@@ -320,6 +320,7 @@ A PyTorch implementation is available in pyPI [https://pypi.org/project/pyPLNmod
 
 
 
+
 ---
 #  PLN with offsets and covariates
 
@@ -374,9 +375,9 @@ rbind(M01 = M01_scRNA$criteria, M02 = M02_scRNA$criteria,
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M01 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 20300 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -203322.8 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -266401.0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -294418.7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -203318.4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -266396.7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -294420.7 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M02 &lt;/td&gt;
@@ -388,16 +389,16 @@ rbind(M01 = M01_scRNA$criteria, M02 = M02_scRNA$criteria,
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M11 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 21100 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -199113.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -264677.5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -289668.8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -199111.2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -264675.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -289661.4 &lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt;
    &lt;td style="text-align:left;"&gt; M12 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 1200 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -216456.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -220185.7 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; -275120.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -216457.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -220186.3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -275057.6 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -422,7 +423,7 @@ system.time(myPLN_torch &lt;-
 
 ```
 ##    user  system elapsed 
-##   2.978   0.461   2.360
+##   3.378   0.438   3.067
 ```
 
 ```r
@@ -433,7 +434,7 @@ system.time(myPLN_nlopt &lt;-
 
 ```
 ##    user  system elapsed 
-##   6.532   1.311   3.855
+##   7.466   0.613   6.900
 ```
 
 
@@ -442,7 +443,7 @@ myPLN_torch$loglik
 ```
 
 ```
-## [1] -32208.86
+## [1] -32224.15
 ```
 
 ```r
@@ -450,7 +451,7 @@ myPLN_nlopt$loglik
 ```
 
 ```
-## [1] -32087.39
+## [1] -32097.67
 ```
 
 
@@ -634,7 +635,7 @@ aricode::ARI(pred_cell_line, scRNA_test$cell_line)
 ```
 
 ```
-## [1] 0.9764383
+## [1] 0.9770576
 ```
 
 ```r
@@ -658,6 +659,7 @@ heatmap(exp(myLDA_cell_line$group_means))
 &lt;img src="slides_files/figure-html/LDA-heatmap-factors-1.png" style="display: block; margin: auto;" /&gt;
 
 Indeed, some groups of gene caracterize well the cell-lines.
+
 
 
 
@@ -724,7 +726,7 @@ Deviance based criterion.
 - Define `\(\lambda_{ij}^{\min} = \exp( \tilde{Z}_{ij}^0)\)` and `\(\lambda_{ij}^{\max} = Y_{ij}\)`
 - Compute the Poisson log-likelihood `\(\ell_k = \log \mathbb{P}(\mathbf{Y}; \lambda^{(k)})\)`
 
-### Pseudo-$R^2$
+### Pseudo R²
 
 `$$R_k^2 = \frac{\ell_k - \ell_{\min}}{\ell_{\max} - \ell_{\min}}$$`
 
@@ -751,10 +753,136 @@ Individual + Factor map - 40 most contributing genes
 &lt;img src="slides_files/figure-html/PCA offset vizu tree-1.png" style="display: block; margin: auto;" /&gt;
 &lt;/small&gt;
 
+
 ---
 class: inverse, center, middle
 
-# Some on-going extensions
+# On-going works
+
+---
+# Optimisation, Algorithms
+
+With .important[Bastien Batardière, Joon Kwon, Julien Stoehr]
+
+## Exact Maximization
+
+Direct likelihood optim (SGD with Important Sampling)
+
+## Optimization
+
+Optimisation guarantees coupling adaptive SGD + variance reduction
+
+---
+# PLN LDA: Ongoing Extension
+
+With .important[Nicolas Jouvin]
+
+### Quadratic Discriminant Analysis
+
+- Relax assumption of common covariance between groups
+- Tests Linear vs Quadratic Discriminant
+
+### Regularized Discriminant Analysis
+
+- Ridge-like regularized Covariance
+- Sparse Covariance
+- Block-wise Covariance
+
+`\(\rightsquigarrow\)` better assess the structure of the sub-population
+
+---
+# PLN PCA: Ongoing Extension
+
+With .important[Nicolas Jouvin]
+
+## Mixture of PLN PCA
+
+- Assume several sub-population in the latent space
+- Each sub-population has is represented by a different linear combinasion of the initial variables
+- In the PLN setup, several variational approximation are possible
+
+## Functional PCA
+
+PhD of Barbara Bricout (S. Robin, S. Donnet)
+
+Features are time points
+
+---
+# Temporal/Spatial dependencies
+
+With .important[Stéphane Robin, Mahendra Mariadassou]
+
+## 'In-row' dependency structure
+
+Consider, e.g., a multivariate Gaussian auto-regressive process on the latent variable `\(\mathbf{Z}\)`
+
+`$$\mathbf{Z}_1 \sim \mathcal{N}(0, {\boldsymbol\Sigma}), \quad \mathbf{Z}_t = \mathbf{A} \mathbf{Z}_{t-1} + {\boldsymbol\varepsilon}_t \quad
+({\boldsymbol\varepsilon})_t \text{ iid } \sim \mathcal{N}(0, \Delta^{-1})$$`
+
+The counts are described by `\((\mathbf{Y}_t) \in \mathbb{N}^p\)` with time `\(t\geq 0\)`
+
+`$$(\mathbf{Y}_t) \text{ indep. } \mathbf{Z}_t: \quad \mathbf{Y}_t \sim \mathcal{P}\left(\exp\left\{ \mathbf{x}_t^\top \mathbf{B} + \mathbf{Z}_t\right\}\right)$$`
+
+`\(\rightsquigarrow\)` Camille Mondon's MsC
+
+## Inference
+
+Based on Kalman Filter in the latent layer + variational approximation
+
+---
+
+# A zero-inflated PLN
+
+With .important[Bastien Batardière, Mahendra Mariadassou]
+
+### Motivations 
+
+- account for a large amount of zero, i.e. with single-cell data,
+- try to separate "true" zeros from "technical"/dropouts
+
+### The Model
+
+Use two latent vectors `\(\mathbf{W}_i\)` and `\(\mathbf{Z}_i\)` to model excess of zeroes and dependence structure 
+`$$\begin{aligned}
+   \mathbf{Z}_i &amp; \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma) \\
+    W_{ij} &amp; \sim \mathcal{B}(\text{logit}^{-1}(\mathbf{x}_i^\top{\mathbf{B}}_j^0)) \\
+    Y_{ij} \, | \, W_{ij}, Z_{ij} &amp; \sim W_{ij}\delta_0 + (1-W_{ij}) \mathcal{P}\left(\exp\{Z_{ij}\}\right), \\
+\end{aligned}$$`
+  
+The unkwown parameters are 
+- `\(\mathbf{B}\)`, the regression parameters (from the PLN component)
+- `\(\mathbf{B}^0\)`, the regression parameters (from the Bernoulli component)
+- `\(\boldsymbol\Sigma\)`, the variance-covariance matrix
+
+`\(\rightsquigarrow\)` ZI-PLN is a mixture of PLN and Bernoulli distribution with shared covariates.
+
+---
+
+# ZI-PLN Inference
+
+### Variational approximation 1.
+
+`\begin{equation*}
+p(\mathbf{Z}_i, \mathbf{W}_i  \mathbf{Y}_i) \approx q_{\psi}(\mathbf{Z}_i, \mathbf{W}_i) \approx q_{\psi_1}(\mathbf{Z}_i) q_{\psi_2}(\mathbf{W}_i)
+\end{equation*}`
+
+with
+
+`\begin{equation*}
+q_{\psi_1}(\mathbf{Z}_i) = \mathcal{N}(\mathbf{Z}_i; \mathbf{m}_{i}, \mathrm{diag}(\mathbf{s}_{i} \circ \mathbf{s}_{i})), \qquad q_{\psi_2}(\mathbf{W}_i) = \otimes_{j=1}^p \mathcal{B}(W_{ij}, \pi_{ij})
+\end{equation*}`
+
+.important[Tested, works _partially_] Too rough variational approximation
+
+### Variational approximation 1.
+
+`\begin{equation*}
+p(\mathbf{Z}_i, \mathbf{W}_i  \mathbf{Y}_i) \approx q_{\psi}(\mathbf{Z}_i, \mathbf{W}_i) \approx q_{\psi_1}(\mathbf{Z}_i|\mathbf{W}_i) q_{\psi_2}(\mathbf{W}_i)
+\end{equation*}`
+
+`\begin{equation*}
+q_{\psi_1}(\mathbf{Z}_i | \mathbf{W}_i) = \text{ mixture of Gaussians}, \quad  q_{\psi_2}(\mathbf{W}_i) = \otimes_{j=1}^p \mathcal{B}(W_{ij}, \pi_{ij})
+\end{equation*}`
 
 
 ---
@@ -765,16 +893,7 @@ class: inverse, center, middle
   - PLN = generic model for multivariate count data analysis
   - Flexible modeling of the covariance structure, allows for covariates
   - Efficient V-EM algorithm
-  - Variational estimator is asymptotically normal (and hopefully unbiased) with computable covariance matrix. 
-  - ZI-PLN reduces (some) problems induced by high sparsity in the data
 
-## Work in progress
-
-  - Caracterisation of Variational Estimator
-  - with .important[J. Stoehr] Direct likelihood optim (SGD with Important Sampling)
-  - with .important[J. Kwon]: optimisation guarantees coupling adaptive SGD + variance reduction
-  - Connection/Comparison with VAE with e.g Poisson neg log-likelihood as loss
-  
 ## Advertisement 
 
 [https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.

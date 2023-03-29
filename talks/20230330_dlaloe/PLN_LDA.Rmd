@@ -143,3 +143,4 @@ heatmap(exp(myLDA_cell_line$group_means))
 ```
 
 Indeed, some groups of gene caracterize well the cell-lines.
+

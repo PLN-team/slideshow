@@ -62,7 +62,7 @@ Deviance based criterion.
 - Define $\lambda_{ij}^{\min} = \exp( \tilde{Z}_{ij}^0)$ and $\lambda_{ij}^{\max} = Y_{ij}$
 - Compute the Poisson log-likelihood $\ell_k = \log \mathbb{P}(\mathbf{Y}; \lambda^{(k)})$
 
-### Pseudo-$R^2$
+### Pseudo R²
 
 $$R_k^2 = \frac{\ell_k - \ell_{\min}}{\ell_{\max} - \ell_{\min}}$$
 
@@ -95,3 +95,4 @@ myPCA_scRNA %>% factoextra::fviz_pca_biplot(
   ) + labs(col = "tree status") + scale_color_viridis_d()
 ```
 </small>
+
