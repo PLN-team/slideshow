@@ -1,0 +1,87 @@
+
+---
+
+## Motivation: multivariate count data
+
+### Routinely gathered in ecology/microbiology/genomics
+
+#### Data tables
+
+  - [Abundances]{.alert}: read counts of species/transcripts $j$ in sample $i$
+  - [Covariates]{.alert}: value of environmental variable $k$ in sample $i$
+  - [Offsets]{.alert}: sampling effort for species/transcripts $j$ in sample $i$
+
+#### Goals
+
+  - understand [environmental effects]{.alert} (regression, classification)
+  - exhibit [patterns of diversity]{.alert} (clustering, dimension reduction)
+  - understand [between-species interactions]{.alert} (covariance selection)
+
+#### Illustration: microcosm data set [@microcosm]
+
+- Study carried out at INRAE _"Domaine Expérimental du Pin"_
+- [microbiotas]{.alert} of 44 lactating cows at 4 body [site]{.alert} (mouth, nose, vagina, milk) $\times$ 4 [time points]{.alert}
+- Abundances of $\approx$ 1200 "species" (Amplicon Sequence Variants) with known taxonomy
+
+---
+
+## Model fo multivariate count data
+
+### The Poisson Lognormal model (PLN) [@AiH89]
+
+PLN is a [multivariate generalized linear model]{.alert}, where 
+
+- the counts $\mathbf{Y}_i$ are the response variables
+- the main effect is due to a linear combination of the covariates $\mathbf{x}_i$
+- a vector of offsets $\mathbf{o}_i$ can be specified for each sample.
+
+$$
+\mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma),
+$$
+
+<!-- #### Properties: .small[.important[over-dispersion, arbitrary-signed covariances]] -->
+
+<!-- - mean: $\mathbb{E}(Y_{ij}) =  \exp \left( o_{ij} + \mathbf{x}_i^\top {\mathbf{B}}_{\cdot j} + \sigma_{jj}/2\right) >  0$ -->
+<!-- - variance: $\mathbb{V}(Y_{ij}) = \mathbb{E}(Y_{ij}) + \mathbb{E}(Y_{ij})^2 \left( e^{\sigma_{jj}} - 1 \right) > \mathbb{E}(Y_{ij})$ -->
+<!-- - covariance: $\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).$ -->
+
+#### Estimation 
+
+Parameters $\mathbf{\theta} = (\mathbf{B}, \boldsymbol\Sigma)$ are estimated by inference techniques from latent-variable models
+
+- (Bayesian) Variational inference [@PLNmodels]
+- MCMC-like approaches: important sampling, MCMC + composite-likelihood etc
+
+---
+
+## Analysis of microcosm with standard PLN
+
+#### Retrieve microcosm data
+
+```{r load reduced microcosm, echo = TRUE}
+microcosm <- readRDS("microcosm_reduced.rds")
+microcosm$Abundance <- microcosm$Abundance[, colMeans(microcosm$Abundance > 0) > 0.05]
+microcosm$site_time <- droplevels(microcosm$site_time)
+sum(microcosm$Abundance == 0) / length(microcosm$Abundance) ## 
+```
+
+Still 90% of zeros !
+
+#### Assess environnemental effects
+
+```{r microcosm-PLN, echo = TRUE, message=FALSE, results='hide'}
+PLN           <- PLN(Abundance ~ 1             + offset(log(Offset)), data = microcosm)
+PLN_site      <- PLN(Abundance ~ 0 + site      + offset(log(Offset)), data = microcosm)
+PLN_time      <- PLN(Abundance ~ 0 + time      + offset(log(Offset)), data = microcosm)
+PLN_site_time <- PLN(Abundance ~ 0 + site_time + offset(log(Offset)), data = microcosm)
+```
+
+```{r microcosm-PLN-criteria, echo = FALSE}
+#| tbl-cap: Model selection criteria
+rbind(
+  PLN$criteria, PLN_site$criteria, PLN_time$criteria, PLN_site_time$criteria
+) %>%
+  as.data.frame(row.names = c("PLN", "PLN site", "PLN time", "PLN site * time")) %>%
+  knitr::kable() %>% kableExtra::kable_classic()
+```
+

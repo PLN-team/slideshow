@@ -1,0 +1,38 @@
+---
+title: Zero-inflation in the Poisson lognormal family
+subtitle: Statistiques aux sommets, Rochebrune
+format: 
+  clean-revealjs:
+    smaller: false
+author:
+  - name: Bastien Batardière
+    affiliations: PhD - UMR MIA Paris-Saclay
+  - name: Julien Chiquet
+    orcid: 0000-0002-3629-3429
+    affiliations: UMR MIA Paris-Saclay
+  - name: François Gindraud
+    affiliations: IR INRIA
+  - name: Mahendra Mariadassou
+    orcid: 0000-0003-2986-354X
+    affiliations: MaIAGE
+date: 03/25/2024
+bibliography: PLNreferences.bib
+execute: 
+  cache: true
+---
+
+```{r setup, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)  # data manipulation
+library(PLNmodels)  # PLNmodels
+```
+
+{{< include introduction.qmd >}}
+
+{{< include zi-pln.qmd >}}
+
+{{< include inference.qmd >}}
+
+{{< include microcosm.qmd >}}
+
+## References
+

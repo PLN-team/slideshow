@@ -1,0 +1,46 @@
+
+# Handling zeros in multivariate count table {background-color="#40666e"}
+
+## A zero-inflated PLN
+
+### Mixture of PLN and Bernoulli distribution
+
+Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure 
+
+$$\begin{array}{rrl}
+  \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
+   \text{excess of zero} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
+  \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim^\text{indep} W_{ij}\delta_0 + (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
+\end{array}$$
+
+$\rightsquigarrow$ Better handling of zeros +additional interpretable parameters 
+
+#### Basic properties
+
+Letting $A_{ij} \triangleq \exp \left( o_{ij} + \mu_{ij} + \sigma_{jj}/2\right)$ with $\mu_{ij} = \mathbf{x}_i^\intercal \mathbf{B}_j$, then
+
+- $\mathbb{E}\left(Y_{ij}\right) =  (1-\pi_{ij}) A_{ij} \leq A_{ij}$ (PLN's mean),
+- $\mathbb{V}\left(Y_{ij}\right) = (1-\pi_{ij})A_{ij} + (1-\pi_{ij})A_{ij}^2 \left( e^{\sigma_{jj}} - (1-\pi_{ij}) \right)$.
+
+---
+
+## ZI-PLN: refinements
+
+### Modeling of the pure zero component 
+
+$$\begin{align*}
+\pi_{ij} & = \pi \in [0,1] & \text{(single global parameter)} \\
+\pi_{ij} & = \pi_j \in [0,1] & \text{(species dependent)} \\
+\pi_{ij} & = \pi_i \in [0,1] & \text{(site dependent)} \\
+\pi_{ij} & = \mathrm{logit}^{-1}( \boldsymbol X^{0}\boldsymbol B^0)_{ij}, ~ \boldsymbol X^0 \in \mathbb R^{n \times d_0}, ~ \boldsymbol B^0 \in \mathbb R^{d_0\times p}  &  \text{(site covariates)} \\
+\pi_{ij} & = \mathrm{logit}^{-1}(\bar{\boldsymbol{B}}^0 \bar{\boldsymbol{X}}^{0})_{ij}, ~ \bar{\boldsymbol{B}}^0 \in \mathbb R^{n \times d_0}, ~ \bar{\boldsymbol X}^0 \in \mathbb R^{d_0\times p} & \text{(species covariates)} 
+\end{align*}$$
+
+::: {#prp-identifiability1}
+
+## Identifiability of ZI-PLN
+- The "single global parameter" ZI-PLN model with parameter $\mathbf{\theta} = (\mathbf{\Omega}, \mathbf{\mu}, \mathbf{\pi})$ and parameter space $\mathbb{S}_p^{++} \times  \mathbb{R}^p \times (0,1)^{p}$ is identifiable (moment-based proof)
+- The site-dependent covariates zero-inflation model with parameter $\mathbf{\theta} = (\mathbf{\Omega}, \mathbf{B}, \mathbf{B}^0)$ and parameter space $\mathbb{S}_p^{++} \times \mathcal{M}_{p,d}(\mathbb{R}) \times \mathcal{M}_{p,d}(\mathbb{R})$ is identifiable  if and only if both $n\times d$ and $n \times d_0$ matrices of covariates $\mathbf{X}$ and $\mathbf{X}^0$ are full rank.
+
+:::
+
