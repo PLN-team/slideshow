@@ -54,7 +54,7 @@ $$
 Parameters $\mathbf{\theta} = (\mathbf{B}, \boldsymbol\Sigma)$ are estimated by inference techniques from latent-variable models
 
 - (Bayesian) Variational inference [@PLNmodels]
-- MCMC-like approaches: important sampling, MCMC + composite-likelihood, etc
+- MCMC-like approaches: SGD + important sampling [Bastien], MCMC + composite-likelihood [@pln-composite], etc
 
 ::: footer
 ![](figs/vache10.jpg){height=70px}

@@ -1,5 +1,5 @@
 ---
-title: Zero-inflation in the Poisson lognormal family
+title: Zero-inflation in the 🐟 lognormal family
 subtitle: Statistiques aux sommets, Rochebrune
 title-slide-attributes:
     data-background-image: figs/vache8.jpg

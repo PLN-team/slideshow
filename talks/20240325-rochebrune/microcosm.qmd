@@ -80,8 +80,100 @@ $\rightsquigarrow$ Ok, let us keep model with `site` and `time` with main and in
 ![](figs/vache10.jpg){height=70px}
 :::
 
+## Model fits 
 
-## Latent means of the PLN component (w/wo covariate effects)
+### ZI-PLN
+
+```{r zipln-fit}
+sigma <- sigma(ZI_PLN_site_time)
+counts_tibble <- microcosm$Abundance |> as("matrix") |> 
+  as_tibble(rownames = "sample") |> 
+  pivot_longer(-sample, names_to = "ASV", values_to = "count", names_ptypes = factor(levels = asv_ordering))
+p <- inner_join(plot_data, counts_tibble, by = join_by(sample, ASV)) |> 
+  inner_join(plot_data_zi |> select(sample, ASV, ZI = M), by = join_by(sample, ASV)) |> 
+  inner_join(tibble(ASV = factor(asv_ordering, levels = asv_ordering), 
+                    S2  = diag(sigma)[asv_ordering]), 
+             by = join_by(ASV)) |> 
+  ggplot(aes(x = count, y = (1 - ZI)*exp(M + 0.5*S2))) + 
+  geom_point(alpha = 0.1) +
+  geom_abline(slope = 1, intercept = 0, color = "grey60", linetype = "dashed") + 
+  scale_x_log10() + scale_y_log10() + 
+  labs(x = "Observed", y = "Fitted") + 
+  facet_wrap(~site_time) + 
+  theme_bw()
+p
+```
+
+::: footer
+![](figs/vache3.jpg){height=150px}
+:::
+
+## Model fits
+
+### PLN seems to do just as well...
+
+```{r pln-fit}
+latent_means_PLN <- PLN_site_time$latent
+colnames(latent_means_PLN) <- colnames(microcosm$Abundance)
+sigma_PLN <- sigma(PLN_site_time)
+
+plot_data_PLN <- latent_means_PLN |> 
+  as_tibble(rownames = "sample") |> mutate(sample = microcosm$sample) %>% 
+  pivot_longer(-sample, names_to = "ASV", values_to = "M", names_ptypes = factor(levels = asv_ordering)) |> 
+  inner_join(microcosm, by = "sample")
+
+counts_tibble <- microcosm$Abundance |> as("matrix") |> 
+  as_tibble(rownames = "sample") |> 
+  pivot_longer(-sample, names_to = "ASV", values_to = "count", names_ptypes = factor(levels = asv_ordering))
+p <- inner_join(plot_data_PLN, counts_tibble, by = join_by(sample, ASV)) |> 
+  inner_join(tibble(ASV = factor(asv_ordering, levels = asv_ordering), 
+                    S2  = diag(sigma)[asv_ordering]), 
+             by = join_by(ASV)) |> 
+  ggplot(aes(x = count, y = exp(M + 0.5*S2))) + 
+  geom_point(alpha = 0.1) +
+  geom_abline(slope = 1, intercept = 0, color = "grey60", linetype = "dashed") + 
+  scale_x_log10() + scale_y_log10() + 
+  labs(x = "Observed", y = "Fitted") + 
+  facet_wrap(~site_time) + 
+  theme_bw()
+p
+```
+
+::: footer
+![](figs/vache4.jpg){height=150px}
+:::
+
+## Fits of zeros
+
+### But zeros are not well predicted 
+
+```{r fit-zeros}
+# distribution of zeros
+true_zeros <- microcosm$Abundance == 0
+n_zeros <- sum(true_zeros)
+n_nzeros <- sum(!true_zeros)
+distr_zeros <-
+    data.frame(
+        fitted   = c(as.vector(fitted(PLN_site_time)[true_zeros]), as.vector(fitted(ZI_PLN_site_time)[true_zeros])),
+        obs      = rep(1:n_zeros, 2),
+        method   = factor(rep(c("PLN site_time", "ZI site_time"), each = n_zeros))
+    ) %>%
+    ggplot() +
+    geom_rug(aes(x = fitted, color = method)) +
+    geom_point(aes(x = obs, y = fitted, color = method), size = 0.3, alpha = 0.1) +
+    ggtitle("Distribution of observed zeros as fitted by the models") +
+    xlab(label = "observations #") +
+    scale_color_viridis_d() + theme_bw()
+distr_zeros
+```
+
+::: footer
+![](figs/vache5.jpg){height=150px}
+:::
+
+## ZI-PLN: latent layer
+
+### Latent means of the PLN component (w/wo covariate effects)
 
 ```{r palette, include = FALSE}
 library(ggtext)
@@ -137,7 +229,9 @@ pca_PLN_latent_means + pca_PLN_latent_means_wcov + plot_annotation(
 
 ---
 
-## Same for standard PLN 😊^[Happiness is a warm gun: bang bang PLN]
+## PLN: latent layer
+
+### Same for standard PLN 😊^[Happiness is a warm gun: bang bang PLN]
 
 ```{r pca_pln, fig.height=5, fig.width=10}
 pca_PLN_latent_means <- prcomp(PLN_site_time$latent) %>% factoextra::fviz_pca_ind(axes = c(1,2), col.ind = microcosm$site_time, palette = site_time_palette)
@@ -154,7 +248,9 @@ pca_PLN_latent_means + pca_PLN_latent_means_wcov + plot_annotation(
 
 ---
 
-## Clustering of the latent means vs probability of zero inflation
+## ZI PLN
+
+### Clustering of the latent means vs probability of zero inflation
 
 ```{r heatmap_zipln, fig.height=5, fig.width=10}
 latent_means <- ZI_PLN_site_time$latent
@@ -208,7 +304,9 @@ p_heatmap_zi <- plot_data_zi |>
 
 ---
 
-## Latent means vs probability of zero inflation
+## ZI PLN
+
+### Latent means vs probability of zero inflation
 
 ```{r means_vs_zi}
 plot_data |> 
@@ -225,58 +323,6 @@ plot_data |>
 
 ::: footer
 ![](figs/vache2.jpg){height=150px}
-:::
-
-## Model fits 
-
-```{r zipln-fit}
-sigma <- sigma(ZI_PLN_site_time)
-counts_tibble <- microcosm$Abundance |> as("matrix") |> 
-  as_tibble(rownames = "sample") |> 
-  pivot_longer(-sample, names_to = "ASV", values_to = "count", names_ptypes = factor(levels = asv_ordering))
-p <- inner_join(plot_data, counts_tibble, by = join_by(sample, ASV)) |> 
-  inner_join(plot_data_zi |> select(sample, ASV, ZI = M), by = join_by(sample, ASV)) |> 
-  inner_join(tibble(ASV = factor(asv_ordering, levels = asv_ordering), 
-                    S2  = diag(sigma)[asv_ordering]), 
-             by = join_by(ASV)) |> 
-  ggplot(aes(x = count, y = (1 - ZI)*exp(M + 0.5*S2))) + 
-  geom_point(alpha = 0.1) +
-  geom_abline(slope = 1, intercept = 0, color = "grey60", linetype = "dashed") + 
-  scale_x_log10() + scale_y_log10() + 
-  labs(x = "Observed", y = "Fitted") + 
-  facet_wrap(~site_time) + 
-  theme_bw()
-p
-```
-
-::: footer
-![](figs/vache3.jpg){height=150px}
-:::
-
-## Fits of zeros
-
-```{r fit-zeros}
-# distribution of zeros
-true_zeros <- microcosm$Abundance == 0
-n_zeros <- sum(true_zeros)
-n_nzeros <- sum(!true_zeros)
-distr_zeros <-
-    data.frame(
-        fitted   = c(as.vector(fitted(PLN_site_time)[true_zeros]), as.vector(fitted(ZI_PLN_site_time)[true_zeros])),
-        obs      = rep(1:n_zeros, 2),
-        method   = factor(rep(c("PLN site_time", "ZI site_time"), each = n_zeros))
-    ) %>%
-    ggplot() +
-    geom_rug(aes(x = fitted, color = method)) +
-    geom_point(aes(x = obs, y = fitted, color = method), size = 0.3, alpha = 0.1) +
-    ggtitle("Distribution of observed zeros as fitted by the models") +
-    xlab(label = "observations #") +
-    scale_color_viridis_d() + theme_bw()
-distr_zeros
-```
-
-::: footer
-![](figs/vache5.jpg){height=150px}
 :::
 
 ## Residual covariance
@@ -296,9 +342,9 @@ hist(sigma_PLN, main = "histogramm of PLN covariances")
 ![](figs/vache9.jpg){height=150px}
 :::
 
-## Network
+## Network analysis
 
-Inference + SBM
+Sparse reconstruction + SBM
 
 ```{r zipln-net, results='hide', echo = TRUE}
 network <- ZIPLN(Abundance ~ 0 + site_time + offset(log(Offset)) | 0 + site_time, data = microcosm,
@@ -311,7 +357,44 @@ mySBM <- sbm::estimateSimpleSBM(adjacency_mat, dimLabels = "ASV", estimOptions =
 plot(mySBM)
 ```
 
-$\rightsquigarrow$ To Jeanne's work!
+## Cluster: means vs covariance
 
-<!-- split(colnames(microcosm$Abundance), mySBM$memberships) -->
+### With respect to taxonomy
+
+```{r ari-clustering}
+library(aricode)
+taxonomy <- read_tsv("affiliations.tsv")
+taxo_reference <- taxonomy[match(colnames(microcosm$Abundance),taxonomy$ASV), ]
+cluster_covariance <- mySBM$memberships
+cluster_means <- asv_clust
+
+ARI_means <- data.frame(
+  Kingdom = map(1:10, function(k) {mySBM$setModel(k); return(mySBM$memberships)}) %>% map_dbl(aricode::ARI, taxo_reference$Kingdom), 
+  Phylum = map(1:10, function(k) {mySBM$setModel(k); return(mySBM$memberships)}) %>% map_dbl(aricode::ARI, taxo_reference$Phylum), 
+  Class   = map(1:10, function(k) {mySBM$setModel(k); mySBM$memberships}) %>% map_dbl(aricode::ARI, taxo_reference$Class),
+  Order   = map(1:10, function(k) {mySBM$setModel(k); mySBM$memberships}) %>% map_dbl(aricode::ARI, taxo_reference$Order), 
+  Family  = map(1:10, function(k) {mySBM$setModel(k); mySBM$memberships}) %>% map_dbl(aricode::ARI, taxo_reference$Family),
+  Genus  = map(1:10, function(k) {mySBM$setModel(k); mySBM$memberships}) %>% map_dbl(aricode::ARI, taxo_reference$Genus),
+  Species  = map(1:10, function(k) {mySBM$setModel(k); mySBM$memberships}) %>% map_dbl(aricode::ARI, taxo_reference$Species)
+) %>% rownames_to_column("nb_grp") %>% pivot_longer(-nb_grp, values_to = "ARI", names_to = "taxonomy") %>% 
+  mutate(source = "means")
+
+ARI_covariance <- data.frame(
+  Kingdom = cutree(cluster_means, 1:10) %>% as_data_frame() %>%  map_dbl(aricode::ARI, taxo_reference$Kingdom),
+  Phylum = cutree(cluster_means, 1:10) %>% as_data_frame() %>%  map_dbl(aricode::ARI, taxo_reference$Phylum),
+  Class   = cutree(cluster_means, 1:10) %>% as_data_frame() %>%  map_dbl(aricode::ARI, taxo_reference$Class),
+  Order   = cutree(cluster_means, 1:10) %>% as_data_frame() %>%  map_dbl(aricode::ARI, taxo_reference$Order),
+  Family  = cutree(cluster_means, 1:10) %>% as_data_frame() %>%  map_dbl(aricode::ARI, taxo_reference$Family),
+  Genus  = cutree(cluster_means, 1:10) %>% as_data_frame() %>%  map_dbl(aricode::ARI, taxo_reference$Genus),
+  Species  = cutree(cluster_means, 1:10) %>% as_data_frame() %>%  map_dbl(aricode::ARI, taxo_reference$Species)
+) %>% rownames_to_column("nb_grp") %>% pivot_longer(-nb_grp, values_to = "ARI", names_to = "taxonomy") %>% 
+  mutate(source = "covariance")
+
+res_ARI <- bind_rows(ARI_means, ARI_covariance)
+
+res_ARI %>% ggplot() + 
+aes(x = nb_grp, y = ARI, group = taxonomy, color = taxonomy) + geom_line() + facet_wrap(~source) + scale_color_viridis_d() + theme_bw()
+```
+
+$\rightsquigarrow$ To Jeanne's work!
 

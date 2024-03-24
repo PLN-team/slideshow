@@ -70,12 +70,12 @@ $$p(\mathbf{Z}_i, \mathbf{W}_i | \mathbf{Y}_i) \approx q(\mathbf{Z}_i, \mathbf{W
 One can show that
 
 $$
-W_{ij}| Y_{ij},Z_{ij} \sim\mathcal B \left( \mathrm{logit}^{-1} \left( \log\left(\frac{\pi_{ij}}{1- \pi_{ij}}\right) + Z_{ij} \right)\right) \boldsymbol 1_{\{Y_{ij} = 0\}}
+W_{ij}| Y_{ij},Z_{ij} \sim\mathcal B \left(  \frac{\pi_{ij}}{\pi_{ij} + (1-\pi_{ij})\exp(-Z_{ij})}\right) \boldsymbol 1_{\{Y_{ij} = 0\}}
 $$
 
 Sadly, the resulting ELBO involves the [untractable entropy term]{.alert} $\tilde{\mathbb{E}}[\log q_{\psi}(\mathbf{W} | \mathbf{Z})]$
 
-$\rightsquigarrow$ requires computing $\tilde{\mathbb{E}}\left[ \log\left( \mathrm{logit}^{-1}\left(U\right) \right)\mathrm{logit}^{-1}\left(U\right) \right]$ for arbitrary univariate Gaussians $U$
+$\rightsquigarrow$ requires computing $\tilde{\mathbb{E}}\left[ -\frac{\log(1+\exp(-U))}{1+\exp(-U)} \right]$ for arbitrary univariate Gaussians $U$
 
 ::: footer
 ![](figs/vache10.jpg){height=70px}
