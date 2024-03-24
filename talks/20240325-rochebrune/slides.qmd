@@ -1,9 +1,14 @@
 ---
 title: Zero-inflation in the Poisson lognormal family
 subtitle: Statistiques aux sommets, Rochebrune
+title-slide-attributes:
+    data-background-image: figs/vache8.jpg
+    data-background-size: contain
+    data-background-opacity: "0.5"
 format: 
   clean-revealjs:
     smaller: false
+    embed-resources: true
 author:
   - name: Bastien Batardière
     affiliations: PhD - UMR MIA Paris-Saclay

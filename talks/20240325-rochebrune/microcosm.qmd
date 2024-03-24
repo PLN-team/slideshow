@@ -1,5 +1,5 @@
 
-# Microcosm data analysis {background-color="#40666e"}
+# Microcosm data analysis {background-image="figs/vache7.png" background-size=cover background-opacity=0.6}
 
 ## Fit various ZI-PLN models
 
@@ -20,13 +20,19 @@ ZI_site_time  <- ZIPLN(Abundance ~ 1 + offset(log(Offset)) | 0 + site_time,  dat
 
 #### Include covariates both in PLN and ZI components
 
-Then both in Poisson by include covariate in the zero-inflatino component only. 
-
 ```{r microcosm-ZIPLN, echo = TRUE, message=FALSE, results='hide'}
 ZI_site_PLN_site <- ZIPLN(Abundance ~ 0 + site      + offset(log(Offset)) | 0 + site,  data = microcosm)
 ZI_time_PLN_time <- ZIPLN(Abundance ~ 0 + time      + offset(log(Offset)) | 0 + time,  data = microcosm)
 ZI_PLN_site_time <- ZIPLN(Abundance ~ 0 + site_time + offset(log(Offset)) | 0 + site_time, data = microcosm)
 ```
+
+Other possible combinaisons (still less effective).
+
+::: footer
+![](figs/vache4.jpg){height=70px}
+:::
+
+---
 
 ## Locate the best model
 
@@ -68,7 +74,12 @@ rbind(
     ))
 ```
 
-$\rightsquigarrow$ Ok, let us keep model with `site` and `time` with main and interaction effects in both ZI an PLN components/
+$\rightsquigarrow$ Ok, let us keep model with `site` and `time` with main and interaction effects in both ZI an PLN components.
+
+::: footer
+![](figs/vache10.jpg){height=70px}
+:::
+
 
 ## Latent means of the PLN component (w/wo covariate effects)
 
@@ -120,6 +131,12 @@ pca_PLN_latent_means + pca_PLN_latent_means_wcov + plot_annotation(
 )
 ```
 
+::: footer
+![](figs/vache4.jpg){height=70px}
+:::
+
+---
+
 ## Same for standard PLN 😊^[Happiness is a warm gun: bang bang PLN]
 
 ```{r pca_pln, fig.height=5, fig.width=10}
@@ -131,6 +148,11 @@ pca_PLN_latent_means + pca_PLN_latent_means_wcov + plot_annotation(
 )
 ```
 
+::: footer
+![](figs/vache10.jpg){height=70px}
+:::
+
+---
 
 ## Clustering of the latent means vs probability of zero inflation
 
@@ -180,6 +202,12 @@ p_heatmap_zi <- plot_data_zi |>
   )
 ```
 
+::: footer
+![](figs/vache1.jpg){height=150px}
+:::
+
+---
+
 ## Latent means vs probability of zero inflation
 
 ```{r means_vs_zi}
@@ -194,6 +222,10 @@ plot_data |>
   labs(x = "Latent mean", y = "Proba of zero inflation") + 
   NULL
 ```
+
+::: footer
+![](figs/vache2.jpg){height=150px}
+:::
 
 ## Model fits 
 
@@ -217,6 +249,10 @@ p <- inner_join(plot_data, counts_tibble, by = join_by(sample, ASV)) |>
 p
 ```
 
+::: footer
+![](figs/vache3.jpg){height=150px}
+:::
+
 ## Fits of zeros
 
 ```{r fit-zeros}
@@ -239,9 +275,43 @@ distr_zeros <-
 distr_zeros
 ```
 
+::: footer
+![](figs/vache5.jpg){height=150px}
+:::
+
 ## Residual covariance
 
+### Reordered by hierarchical clustering with complete linkage
+
 ```{r zipln-covariance}
-sigma |> cov2cor() |> corrplot::corrplot(method = "color", tl.pos = "n", order = "hclust")
+sigma_PLN <- sigma(PLN_site_time)
+par(mfrow = c(2,2))
+sigma |> cov2cor() %>% corrplot::corrplot(method = "color", tl.pos = "n", order = "hclust", is.corr = TRUE, hclust.method = "complete", title = "\nCorrelation matrix ZIPLN")
+sigma_PLN |> cov2cor() %>%  corrplot::corrplot(method = "color", tl.pos = "n", order = "hclust", is.corr = TRUE, hclust.method = "complete", title = "\nCorrelation matrix PLN")
+hist(sigma, main = "histogramm of ZIPLN covariances")
+hist(sigma_PLN, main = "histogramm of PLN covariances")
 ```
+
+::: footer
+![](figs/vache9.jpg){height=150px}
+:::
+
+## Network
+
+Inference + SBM
+
+```{r zipln-net, results='hide', echo = TRUE}
+network <- ZIPLN(Abundance ~ 0 + site_time + offset(log(Offset)) | 0 + site_time, data = microcosm,
+                 control = ZIPLN_param(penalty = 0.3, inception = ZI_PLN_site_time))
+adjacency_mat <- plot(network, plot = FALSE, type = "support", output = "corrplot") %>% as.matrix()
+mySBM <- sbm::estimateSimpleSBM(adjacency_mat, dimLabels = "ASV", estimOptions = list(plot=FALSE))
+```
+
+```{r zipln-net-plot}
+plot(mySBM)
+```
+
+$\rightsquigarrow$ To Jeanne's work!
+
+<!-- split(colnames(microcosm$Abundance), mySBM$memberships) -->
 

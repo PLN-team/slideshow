@@ -1,5 +1,5 @@
 
-# Handling zeros in multivariate count table {background-color="#40666e"}
+#  <br/> <br/> Handling <br/> zeros in  <br/> multivariate  <br/> count tables { background-image="figs/vache3.jpg" background-size=cover background-opacity=0.7}
 
 ## A zero-inflated PLN
 
@@ -9,7 +9,7 @@ Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zero
 
 $$\begin{array}{rrl}
   \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
-   \text{excess of zero} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
+   \text{excess of zeros} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
   \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim^\text{indep} W_{ij}\delta_0 + (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
 \end{array}$$
 
@@ -21,6 +21,10 @@ Letting $A_{ij} \triangleq \exp \left( o_{ij} + \mu_{ij} + \sigma_{jj}/2\right)$
 
 - $\mathbb{E}\left(Y_{ij}\right) =  (1-\pi_{ij}) A_{ij} \leq A_{ij}$ (PLN's mean),
 - $\mathbb{V}\left(Y_{ij}\right) = (1-\pi_{ij})A_{ij} + (1-\pi_{ij})A_{ij}^2 \left( e^{\sigma_{jj}} - (1-\pi_{ij}) \right)$.
+
+::: footer
+![](figs/vache4.jpg){height=70px}
+:::
 
 ---
 
@@ -40,7 +44,10 @@ $$\begin{align*}
 
 ## Identifiability of ZI-PLN
 - The "single global parameter" ZI-PLN model with parameter $\mathbf{\theta} = (\mathbf{\Omega}, \mathbf{\mu}, \mathbf{\pi})$ and parameter space $\mathbb{S}_p^{++} \times  \mathbb{R}^p \times (0,1)^{p}$ is identifiable (moment-based proof)
-- The site-dependent covariates zero-inflation model with parameter $\mathbf{\theta} = (\mathbf{\Omega}, \mathbf{B}, \mathbf{B}^0)$ and parameter space $\mathbb{S}_p^{++} \times \mathcal{M}_{p,d}(\mathbb{R}) \times \mathcal{M}_{p,d}(\mathbb{R})$ is identifiable  if and only if both $n\times d$ and $n \times d_0$ matrices of covariates $\mathbf{X}$ and $\mathbf{X}^0$ are full rank.
+- The site-covariates zero-inflation model with parameter $\mathbf{\theta} = (\mathbf{\Omega}, \mathbf{B}, \mathbf{B}^0)$ and parameter space $\mathbb{S}_p^{++} \times \mathcal{M}_{p,d}(\mathbb{R}) \times \mathcal{M}_{p,d}(\mathbb{R})$ is identifiable  if and only if both $n\times d$ and $n \times d_0$ matrices of covariates $\mathbf{X}$ and $\mathbf{X}^0$ are full rank.
 
 :::
 
+::: footer
+![](figs/vache10.jpg){height=70px}
+:::

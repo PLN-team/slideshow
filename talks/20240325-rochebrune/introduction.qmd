@@ -23,6 +23,10 @@
 - [microbiotas]{.alert} of 44 lactating cows at 4 body [site]{.alert} (mouth, nose, vagina, milk) $\times$ 4 [time points]{.alert}
 - Abundances of $\approx$ 1200 "species" (Amplicon Sequence Variants) with known taxonomy
 
+::: footer
+![](figs/vache4.jpg){height=70px}
+:::
+
 ---
 
 ## Model fo multivariate count data
@@ -33,10 +37,10 @@ PLN is a [multivariate generalized linear model]{.alert}, where
 
 - the counts $\mathbf{Y}_i$ are the response variables
 - the main effect is due to a linear combination of the covariates $\mathbf{x}_i$
-- a vector of offsets $\mathbf{o}_i$ can be specified for each sample.
+- a vector of offsets $\mathbf{o}_i$ can be specified for each sample
 
 $$
-\mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma),
+\mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}},\boldsymbol\Sigma).
 $$
 
 <!-- #### Properties: .small[.important[over-dispersion, arbitrary-signed covariances]] -->
@@ -50,11 +54,15 @@ $$
 Parameters $\mathbf{\theta} = (\mathbf{B}, \boldsymbol\Sigma)$ are estimated by inference techniques from latent-variable models
 
 - (Bayesian) Variational inference [@PLNmodels]
-- MCMC-like approaches: important sampling, MCMC + composite-likelihood etc
+- MCMC-like approaches: important sampling, MCMC + composite-likelihood, etc
+
+::: footer
+![](figs/vache10.jpg){height=70px}
+:::
 
 ---
 
-## Analysis of microcosm with standard PLN
+## Analysis of microcosm with standard PLN {background-image="figs/vache9.jpg" background-size=cover background-opacity=0.2}
 
 #### Retrieve microcosm data
 
@@ -62,7 +70,7 @@ Parameters $\mathbf{\theta} = (\mathbf{B}, \boldsymbol\Sigma)$ are estimated by 
 microcosm <- readRDS("microcosm_reduced.rds")
 microcosm$Abundance <- microcosm$Abundance[, colMeans(microcosm$Abundance > 0) > 0.05]
 microcosm$site_time <- droplevels(microcosm$site_time)
-sum(microcosm$Abundance == 0) / length(microcosm$Abundance) ## 
+sum(microcosm$Abundance == 0) / length(microcosm$Abundance)
 ```
 
 Still 90% of zeros !
@@ -84,4 +92,3 @@ rbind(
   as.data.frame(row.names = c("PLN", "PLN site", "PLN time", "PLN site * time")) %>%
   knitr::kable() %>% kableExtra::kable_classic()
 ```
-

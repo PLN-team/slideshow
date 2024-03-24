@@ -1,5 +1,5 @@
 
-# Variational Inference {background-color="#40666e"}
+# Variational <br/> Inference { background-image="figs/vache6.jpg" background-size=cover background-opacity=0.7}
 
 ## Standard mean-field
 
@@ -9,7 +9,7 @@
 p(\mathbf{Z}_i, \mathbf{W}_i | \mathbf{Y}_i) \approx q_{\psi_i}(\mathbf{Z}_i, \mathbf{W}_i) \triangleq q_{\psi_i}(\mathbf{Z}_i) q_{\psi_i}(\mathbf{W}_i) = \otimes_{j=1}^p q_{\psi_i}(Z_{ij}) q_{\psi_i}(W_{ij})
 \end{equation*}
 
-with Gaussian and Bernoulli distribution for $Z_{ij}$ and $W_{ij}$, then
+with Gaussian and Bernoulli distributions for $Z_{ij}$ and $W_{ij}$, then
 
 \begin{equation*}
 q_{\psi_i}(\mathbf{Z}_i, \mathbf{W}_i) = \otimes_{j=1}^p \mathcal N\left( M_{ij}, S_{ij}^2\right) \mathcal B\left(\rho_{ij} \right)
@@ -26,7 +26,11 @@ J(\theta, \psi) & =  \log p_\theta(\mathbf{Y}) - KL(p_\theta(. | \mathbf{Y}) \| 
 &  \qquad - \mathbb{E}_{q_{\psi}} \log q_{\psi} (\mathbf{Z}) - \mathbb{E}_{q_{\psi}} \log q_{\psi} (\mathbf{W}) \\
 \end{align*}
 
-**Property**: $J$ is separately concave in each element of $\theta, \psi$.
+**Property**: concave in each element of $\theta, \psi$.
+
+::: footer
+![](figs/vache4.jpg){height=70px}
+:::
 
 ---
 
@@ -55,10 +59,10 @@ Recall that $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Omega} = \mathbf{\Sigm
 
 Two paths of improvements to break less dependencies between the latent variables:
 
-$$p(\mathbf{Z}_i, \mathbf{W}_i | \mathbf{Y}_i) = 
+$$p(\mathbf{Z}_i, \mathbf{W}_i | \mathbf{Y}_i) \approx q(\mathbf{Z}_i, \mathbf{W}_i) \triangleq 
 \left\{\begin{array}{l}
-p(\mathbf{W}_i | \mathbf{Z}_i , \mathbf{Y}_i) p(\mathbf{Z}_i | \mathbf{Y}_i) \\[1ex]
-p(\mathbf{Z}_i | \mathbf{W}_i , \mathbf{Y}_i) p(\mathbf{W}_i | \mathbf{Y}_i) \\
+\prod_j q(W_{ij} | Z_{ij}) q(Z_ {ij}) \\[1ex]
+\prod_j q(Z_{ij} | W_{ij}) q(W_{ij}) \\
 \end{array}\right.$$
 
 #### The $W|Z,Y$ path
@@ -72,6 +76,10 @@ $$
 Sadly, the resulting ELBO involves the [untractable entropy term]{.alert} $\tilde{\mathbb{E}}[\log q_{\psi}(\mathbf{W} | \mathbf{Z})]$
 
 $\rightsquigarrow$ requires computing $\tilde{\mathbb{E}}\left[ \log\left( \mathrm{logit}^{-1}\left(U\right) \right)\mathrm{logit}^{-1}\left(U\right) \right]$ for arbitrary univariate Gaussians $U$
+
+::: footer
+![](figs/vache10.jpg){height=70px}
+:::
 
 --- 
 
@@ -98,6 +106,10 @@ $$\begin{aligned}
 
 We loose close-forms in M Step of VEM for $\hat{\mathbf{B}}$ and  $\hat{\mathbf{\Sigma}}$ in the corresponding ELBO...
 
+::: footer
+![](figs/vache4.jpg){height=70px}
+:::
+
 ---
 
 ## Additional refinement
@@ -119,7 +131,10 @@ with $\varphi(\mu,\sigma^2) = \mathbb E \left[ \exp(-X)\right], ~ X \sim \mathca
 
 The function $\varphi$ is intractable but an approximation [@lognormcharact] can be computed:
 
-$$\varphi(\mu, \sigma^2)\approx \tilde \varphi(\mu, \sigma^2)=  \frac{\exp \left(-\frac{W^2\left(\sigma^2 e^\mu\right)+2 W\left(\sigma^2 e^\mu\right)}{2
-\sigma^2}\right)}{\sqrt{1+W\left(\sigma^2 e^\mu\right)}},$$
-where $W(\cdot)$ is the Lambert function (i.e. $z = x \exp(x) \Leftrightarrow x = W(z), x,z \in \mathbb R$).
+$$\varphi(\mu, \sigma^2)\approx \tilde \varphi(\mu, \sigma^2)=  \frac{\exp \left(-\frac{L^2\left(\sigma^2 e^\mu\right)+2 L\left(\sigma^2 e^\mu\right)}{2
+\sigma^2}\right)}{\sqrt{1+L\left(\sigma^2 e^\mu\right)}},$$
+where $L(\cdot)$ is the Lambert function (i.e. $z = x \exp(x) \Leftrightarrow x = L(z), x,z \in \mathbb R$).
 
+::: footer
+![](figs/vache10.jpg){height=70px}
+:::
