@@ -17,4 +17,13 @@ slides_cache/
 *.utf8.md
 *.knit.md
 .Rproj.user
+talks/20240527_jds_zi/pres.log
+talks/20240527_jds_zi/pres.aux
+talks/20240527_jds_zi/pres.dvi
+talks/20240527_jds_zi/pres.bbl
+talks/20240527_jds_zi/pres.blg
+talks/20240527_jds_zi/pres.fdb_latexmk
+talks/20240527_jds_zi/pres.synctex.gz
+talks/20240527_jds_zi/pres.bbl
+talks/20240527_jds_zi/pres.out
 
