@@ -15,6 +15,8 @@
 \usepackage[ruled,algo2e]{algorithm2e}
 \usepackage{xfrac}
 \usepackage{tikz}
+\usepackage{mathabx}
+\usepackage{tcolorbox}
 \usecolortheme{orchid}
 
 
@@ -27,6 +29,7 @@
 % \setcitestyle{authoryear,open={(},close={)},citesep={,}}
 \usepackage[absolute,overlay]{textpos}
 \usepackage{graphicx}
+\usepackage{graphics}
 \title{\parbox{\linewidth}{
     \centering Zero-inflation in the Multivariate Poisson Lognormal Family}}
 \author{Bastien Batardière, François Gindraud, Julien Chiquet and Mahendra Mariadassou}
@@ -44,6 +47,23 @@
 % \newtheorem{Theorem}{Theorem}[section]
 % \newtheorem{prop}[Theorem]{Proposition}
 
+\newcommand*{\colorboxed}{}
+\def\colorboxed#1#{%
+  \colorboxedAux{#1}%
+}
+\newcommand*{\colorboxedAux}[3]{%
+  % #1: optional argument for color model
+  % #2: color specification
+  % #3: formula
+  \begingroup
+    \colorlet{cb@saved}{.}%
+    \color#1{#2}%
+    \boxed{%
+      \color{cb@saved}%
+      #3%
+    }%
+  \endgroup
+}
 
 
 \input{commands}
@@ -73,7 +93,7 @@
 \]
 \item $Y_{ij}$: count of transcript $j$ in cell $i$
 \item \textbf{Non-continuous data} $\implies$ Linear Gaussian models do not apply
-\item \textbf{High percentage of zeros ($\approx 90\%$)} $\implies$ zero-inflation is needed
+\item \textbf{High percentage of zeros ($\approx 80\%$)} $\implies$ zero-inflation is needed
 \end{itemize}
 \end{frame}
 
@@ -102,16 +122,74 @@
 % }\par
 \end{itemize}
 \end{frame}
-\begin{frame}[Modelling the zero inflation]
+\begin{frame}{Modelling the zero inflation}
     The zero-inflation can take several forms:
  \begin{subequations}
 \begin{align*}
-\pi_{ij}  & = \pi \in [0,1]& \text{(non-dependent)}  \\
-\pi_{ij} & = \sigma\left( \mathbf X\mathbf B^0\right)_{ij}, ~ \mathbf X \in \mathbb R^{n \times d}, ~ \mathbf B^0 \in \mathbb R^{d\times p} &  \text{(column-wise dependence )} \\
-\pi_{ij} & = \sigma\left(\widebar{\mathbf{B}}^0 \widebar{\mathbf{X}}\right)_{ij},  \widebar{\mathbf{B}}^0 \in \mathbb R^{n \times d}, ~ \widebar{\mathbf X} \in \mathbb R^{d\times p}& \text{(row-wise dependence )}
+\bullet ~ \pi_{ij}  & = \pi \in [0,1]& \text{(non-dependent)}  \\
+ \bullet ~ \pi_{ij} & = \sigma\left( \mathbf X\mathbf B^0\right)_{ij}, ~ \mathbf X \in \mathbb R^{n \times d}, ~ \mathbf B^0 \in \mathbb R^{d\times p} &  \text{(column-wise dependence )} \\
+\bullet ~ \pi_{ij} & = \sigma\left(\widebar{\mathbf{B}}^0 \widebar{\mathbf{X}}\right)_{ij},  \widebar{\mathbf{B}}^0 \in \mathbb R^{n \times d}, ~ \widebar{\mathbf X} \in \mathbb R^{d\times p}& \text{(row-wise dependence )}
 \end{align*}
 \end{subequations}
 \end{frame}
 
+
+\begin{frame}
+    \begin{itemize}
+        \item We aim at solving:
+\vspace{-0.6cm}
+    \begin{equation*}  \label{MLEequation}
+    \mathversion{bold}
+ \theta^{\star} = \argmax _{\theta} \sum _{i =1} ^n \operatorname{log} p_{\theta}(\boldsymbol{Y_i})\end{equation*}
+    \item Exact inference and Expectation-Maximization (EM) are untractable
+    \item Approximate solution via Variational EM (\textbf{VEM}), maximizing the tractable Evidence Lower BOund (\textbf{ELBO}):
+
+     \begin{equation*}
+     J_Y(\theta, q) \triangleq \log p_{\theta}(\matr Y)-K L\left[q(\cdot) \|  p_{\theta}(\cdot \mid   \matr Y)\right]
+\end{equation*}
+where $q$ is a variational distribution approximating $p_{\theta}(\cdot \mid \matr Y)$
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\begin{itemize}
+    \item VE step: update the variational parameters $\psi$: choose the best approximation $q_{\psi}$ of $p_{\theta}(\cdot |\boldsymbol Y)$
+        \begin{align*}
+            \psi^{(h+1)}& =\underset{\psi }{\arg \max } ~ J_Y(\theta^{(h)}, q_{\psi})\\
+                        & =\underset{\psi }{\arg \min } K L\left[q_{\psi}(Z,W) \| p_{\theta^{(h)}}(Z,W \mid Y)\right]
+\end{align*}
+    \item M step: update $\theta$ (usually via closed forms) :
+        \begin{align*}
+            \theta^{(h+1)}& =\underset{\theta}{\arg \max } ~ J_Y(\theta, q_{\psi^{(h+1)}})\\
+                          & =\underset{\theta}{\arg \max } ~   \mathbb{E}_{q_{\psi^{(h+1)}}}\left[\log p_{\theta}(Y, Z,W)\right]
+\end{align*}
+\end{itemize}
+\end{frame}
+\begin{frame}{Choice of the variational family}
+    \begin{itemize}
+    \item \textbf{\textcolor{red}{Standard}} variational approximation; assume independance between $\boldsymbol{Z|Y}$ and $\boldsymbol{W|Y}$:
+    \[ \scalebox{1.2}{$
+   q^{(1)}_{\psi_i}(\boldsymbol{Z}_i, \boldsymbol{W}_i) \triangleq q_{\psi_i}(\boldsymbol{Z}_i)
+q_{\psi_i}(\boldsymbol{W}_i)= \otimes_{j=1}^p q_{\psi_i}(Z_{ij})
+q_{\psi_i}(W_{ij}) = \mathbf{\colorboxed{red}{\otimes_{j=1}^p \mathcal N\left( M_{ij}, S_{ij}^2\right) \mathcal B\left(P_{ij} \right)}}.$}\]
+
+    \item \textbf{\textcolor{blue}{Enhanced}} variational approximation:
+    model the conditional dependency by using the decomposition
+
+        \[\scalebox{1.1}{$ Z_{ij}|
+    W_{ij}, Y_{ij} = \left(Z_{ij}|Y_{ij}, W_{ij} = 1 \right)^{ W_{ij}}\left(Z_{ij}|Y_{ij}, W_{ij} = 0 \right)^{1-
+W_{ij}}.$}\]
+gives the following variational approximation:
+
+\begin{align*}
+    q_{\psi_i}^{(2)}(\boldsymbol{Z}_i, \boldsymbol{W}_i) & = \colorboxed{blue}{\otimes_{j = 1}^p \mathcal
+    N(\mu_j, \Sigma_{jj})^{W_{ij}} \mathcal N(M_{ij},
+    S_{ij}^2)^{1-W_{ij}} W_{ij}},
+\end{align*}
+with $W_{ij} \sim^\text{indep} \mathcal B\left(P_{ij}\right)$. Variational parameters are $\psi_{ij} = \left(M_{ij}, S_{ij}, P_{ij}\right)$.
+\textbf{Bi-concavity} holds for the standard variational approximation.
+    \end{itemize}
+\end{frame}
 \end{document}
 
