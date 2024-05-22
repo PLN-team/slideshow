@@ -1,0 +1,117 @@
+\documentclass{beamer}
+
+\mode<presentation> {
+}
+\addtobeamertemplate{footline}{\insertframenumber/\inserttotalframenumber}
+
+%\bibliographystyle{abbrvnat}
+
+%\usepackage{comment}
+\usepackage{amsmath,amsfonts, amssymb, dsfont, amsthm}
+\usepackage{hyperref}
+\usepackage{nicematrix}
+\usepackage{tabstackengine}
+\usepackage{bm}
+\usepackage[ruled,algo2e]{algorithm2e}
+\usepackage{xfrac}
+\usepackage{tikz}
+\usecolortheme{orchid}
+
+
+\usepackage[english]{babel}
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage{caption}
+\usepackage{subcaption}
+% \usepackage[round]{natbib}
+% \bibliographystyle{abbrvnat}
+% \setcitestyle{authoryear,open={(},close={)},citesep={,}}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{graphicx}
+\title{\parbox{\linewidth}{
+    \centering Zero-inflation in the Multivariate Poisson Lognormal Family}}
+\author{Bastien Batardière, François Gindraud, Julien Chiquet and Mahendra Mariadassou}
+\date{\today}
+\institute{Université Paris-Saclay, AgroParisTech, INRAE, UMR MIA Paris-Saclay, MaIAGE}
+
+\newtheorem{Theorems}{Theorems}[section]
+\newtheorem{Assumption}[Theorems]{Assumption}
+\newtheorem{prop}[Theorems]{Proposition}
+\newtheorem{rem}[Theorems]{Remark}
+\newtheorem{cor}[Theorems]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[Theorems]{Remark}
+
+% \newtheorem{Theorem}{Theorem}[section]
+% \newtheorem{prop}[Theorem]{Proposition}
+
+
+
+\input{commands}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+
+
+
+\begin{document}
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+    \item In Single cell analysis, it is usual to deal with high-dimensional count data:
+\newline
+\vspace{-0.9cm}
+ \[
+  \boldsymbol{Y} =  \bordermatrix{~  &  &  &  &
+                        &   \cr
+                      & 12  & 0 & \cdots & 0 &  9  \cr
+                     & 2 & 0 & \cdots & 0 & 0  \cr
+                     & \vdots &  &  &  & \vdots  \cr
+                     & 341 & 5 & \cdots & 1 & 0  \cr
+                    }
+\]
+\item $Y_{ij}$: count of transcript $j$ in cell $i$
+\item \textbf{Non-continuous data} $\implies$ Linear Gaussian models do not apply
+\item \textbf{High percentage of zeros ($\approx 90\%$)} $\implies$ zero-inflation is needed
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{itemize}
+    \item Dataset:
+    \begin{itemize}
+        \item $\boldsymbol{Y}: n \times p$ count matrix ( $n \approx p \approx 10^4$)
+        \item $\boldsymbol{X}: n\times d $ or $d \times p$ covariates ($d \approx 10$)
+    \end{itemize}
+    \item Parameter $\theta = \left(\matr B,\matr  \Sigma, \matr \pi\right) $
+    \begin{itemize}
+        \item $\matr B \in \mathbb R^{d\times p} $ regression coefficient.
+        \item $\matr \Sigma \in \mathbb R^{p\times P }$ covariance matrix.
+        \item $\matr \pi \in \mathbb R^{n\times p}$ zero-inflation coefficient.
+    \end{itemize}
+    \item Model:%\vspace{-2.4cm}
+% \centering {
+% \Large
+\begin{align*}
+    \mathbf{W_{i}}  & \sim \mathbf{\mathcal{B}}\left(\pi_i\right) \\
+    \boldsymbol{Z_{i}} & \sim \mathcal  N\left( \matr X \matr B, \matr \Sigma \right)  \\
+    \left(Y_{ij}   \mid Z_{i j}, W_{ij} \right) & \sim \left( 1- W_{ij} \right) \mathcal{P}\left(\exp \left( Z_{i j}\right)\right)
+ \end{align*}
+ % \par
+% }\par
+\end{itemize}
+\end{frame}
+\begin{frame}[Modelling the zero inflation]
+    The zero-inflation can take several forms:
+ \begin{subequations}
+\begin{align*}
+\pi_{ij}  & = \pi \in [0,1]& \text{(non-dependent)}  \\
+\pi_{ij} & = \sigma\left( \mathbf X\mathbf B^0\right)_{ij}, ~ \mathbf X \in \mathbb R^{n \times d}, ~ \mathbf B^0 \in \mathbb R^{d\times p} &  \text{(column-wise dependence )} \\
+\pi_{ij} & = \sigma\left(\widebar{\mathbf{B}}^0 \widebar{\mathbf{X}}\right)_{ij},  \widebar{\mathbf{B}}^0 \in \mathbb R^{n \times d}, ~ \widebar{\mathbf X} \in \mathbb R^{d\times p}& \text{(row-wise dependence )}
+\end{align*}
+\end{subequations}
+\end{frame}
+
+\end{document}
+
