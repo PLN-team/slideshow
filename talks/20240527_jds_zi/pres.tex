@@ -76,8 +76,11 @@
 \begin{frame}
     \titlepage
 \end{frame}
-
-\begin{frame}
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+\section{Introduction}
+\begin{frame}{Motivation}
 \begin{itemize}
     \item In Single cell analysis, it is usual to deal with high-dimensional count data:
 \newline
@@ -96,8 +99,8 @@
 \item \textbf{High percentage of zeros ($\approx 80\%$)} $\implies$ zero-inflation is needed
 \end{itemize}
 \end{frame}
-
-\begin{frame}
+\section{ZIPLN model}
+\begin{frame}{Model}
 \begin{itemize}
     \item Dataset:
     \begin{itemize}
@@ -115,7 +118,7 @@
 % \Large
 \begin{align*}
     \mathbf{W_{i}}  & \sim \mathbf{\mathcal{B}}\left(\pi_i\right) \\
-    \boldsymbol{Z_{i}} & \sim \mathcal  N\left( \matr X \matr B, \matr \Sigma \right)  \\
+    \boldsymbol{Z_{i}} & \sim \mathcal  N\left( \matr X_i^{\top} \matr B, \matr \Sigma \right)  \\
     \left(Y_{ij}   \mid Z_{i j}, W_{ij} \right) & \sim \left( 1- W_{ij} \right) \mathcal{P}\left(\exp \left( Z_{i j}\right)\right)
  \end{align*}
  % \par
@@ -133,8 +136,8 @@
 \end{subequations}
 \end{frame}
 
-
-\begin{frame}
+\section{Inference}
+\begin{frame}{Inference}
     \begin{itemize}
         \item We aim at solving:
 \vspace{-0.6cm}
@@ -151,8 +154,7 @@ where $q$ is a variational distribution approximating $p_{\theta}(\cdot \mid \ma
 \end{itemize}
 \end{frame}
 
-
-\begin{frame}
+\begin{frame}{Variational EM}
 \begin{itemize}
     \item VE step: update the variational parameters $\psi$: choose the best approximation $q_{\psi}$ of $p_{\theta}(\cdot |\boldsymbol Y)$
         \begin{align*}
@@ -166,6 +168,7 @@ where $q$ is a variational distribution approximating $p_{\theta}(\cdot \mid \ma
 \end{align*}
 \end{itemize}
 \end{frame}
+\section{Variational family}
 \begin{frame}{Choice of the variational family}
     \begin{itemize}
     \item \textbf{\textcolor{red}{Standard}} variational approximation: $\boldsymbol{Z|Y} \indep \boldsymbol{W|Y}$:
@@ -201,17 +204,26 @@ with $\varphi$ given by the Lambert function
     \item bi-concavity lost due to non-concavity of $\varphi$.
 \end{itemize}
 \end{frame}
+\section{Simulations and application}
 \begin{frame}{Simulations}
     \includegraphics[scale=0.30]{figures/proba_stat.pdf}
 \end{frame}
-\begin{frame}
-    \centering{\Huge Thanks for your attention}
-\end{frame}
 \begin{frame}{Applications on real data: ZIPLN vs PLN}
     \begin{itemize}
-        \item
+        \item Data: Microbiota of 45 lactating cows $\implies n=899$ samples .
+        \item After removing Amplicon Sequence Variants (ASV) with more than 5 \% prevalence $\implies p = 259$ ASV.
+        \item Still 90 \% of zeros.
     \end{itemize}
-
+    \begin{figure}
+    \includegraphics[scale=0.45]{figures/microcosm_model_fit.png}
+    \caption{Model fits of PLN and ZIPLN in terms of fitted versus observed counts (left panel), fitted values for null counts (middle panel) and comparaison of $P_{ij}$ and $M_{ij}$ estimated for null counts by ZIPLN(right panel).}
+\end{figure}
+\end{frame}
+\begin{frame}{Applications on real data: PLN vs ZIPLN}
+    \hspace{-0.75cm}\includegraphics[scale=0.45]{figures/microcosm_pca.png}
+\end{frame}
+\begin{frame}
+    \centering{\Huge Thanks for your attention}
 \end{frame}
 \end{document}
 
