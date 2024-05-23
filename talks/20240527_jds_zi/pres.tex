@@ -168,28 +168,41 @@ where $q$ is a variational distribution approximating $p_{\theta}(\cdot \mid \ma
 \end{frame}
 \begin{frame}{Choice of the variational family}
     \begin{itemize}
-    \item \textbf{\textcolor{red}{Standard}} variational approximation; assume independance between $\boldsymbol{Z|Y}$ and $\boldsymbol{W|Y}$:
-    \[ \scalebox{1.2}{$
+    \item \textbf{\textcolor{red}{Standard}} variational approximation: $\boldsymbol{Z|Y} \indep \boldsymbol{W|Y}$:
+        \begin{align*}
    q^{(1)}_{\psi_i}(\boldsymbol{Z}_i, \boldsymbol{W}_i) \triangleq q_{\psi_i}(\boldsymbol{Z}_i)
-q_{\psi_i}(\boldsymbol{W}_i)= \otimes_{j=1}^p q_{\psi_i}(Z_{ij})
-q_{\psi_i}(W_{ij}) = \mathbf{\colorboxed{red}{\otimes_{j=1}^p \mathcal N\left( M_{ij}, S_{ij}^2\right) \mathcal B\left(P_{ij} \right)}}.$}\]
+   q_{\psi_i}(\boldsymbol{W}_i)& = \otimes_{j=1}^p q_{\psi_i}(Z_{ij})
+q_{\psi_i}(W_{ij}) \\&  = \colorboxed{red}{\otimes_{j=1}^p \mathcal N\left( M_{ij}, S_{ij}^2\right) \mathcal B\left(P_{ij} \right)}.\end{align*}
 
     \item \textbf{\textcolor{blue}{Enhanced}} variational approximation:
-    model the conditional dependency by using the decomposition
-
+        Use dependance
         \[\scalebox{1.1}{$ Z_{ij}|
     W_{ij}, Y_{ij} = \left(Z_{ij}|Y_{ij}, W_{ij} = 1 \right)^{ W_{ij}}\left(Z_{ij}|Y_{ij}, W_{ij} = 0 \right)^{1-
 W_{ij}}.$}\]
-gives the following variational approximation:
-
+giving
 \begin{align*}
     q_{\psi_i}^{(2)}(\boldsymbol{Z}_i, \boldsymbol{W}_i) & = \colorboxed{blue}{\otimes_{j = 1}^p \mathcal
     N(\mu_j, \Sigma_{jj})^{W_{ij}} \mathcal N(M_{ij},
     S_{ij}^2)^{1-W_{ij}} W_{ij}},
 \end{align*}
 with $W_{ij} \sim^\text{indep} \mathcal B\left(P_{ij}\right)$. Variational parameters are $\psi_{ij} = \left(M_{ij}, S_{ij}, P_{ij}\right)$.
-\textbf{Bi-concavity} holds for the standard variational approximation.
+\item \textbf{Bi-concavity} holds for the standard variational approximation.
     \end{itemize}
+\end{frame}
+\begin{frame}{Analytic law of $W_{ij}$}
+    The conditional law $W_{ij} | Y_{ij} = 0$ is known and given by:
+    \begin{align*}\displaystyle
+           W_{ij} | Y_{ij}  &\sim \mathcal B\left(\frac{\pi_{ij}}{ \varphi\left(\matr X_i^{\top} \beta_j, \Sigma_{jj}\right)
+       \left(1 - \pi_{ij}\right) + \pi_{ij}}\right) \mathbf 1_{Y_{ij} = 0},\end{align*}
+with $\varphi$ given by the Lambert function
+
+\begin{itemize}
+    \item $P_{ij}$ can be removed from optimization
+    \item bi-concavity lost due to non-concavity of $\varphi$.
+\end{itemize}
+\end{frame}
+\begin{frame}{Simulations}
+    \includegraphics[scale=0.35]{figures/proba_stat.pdf}
 \end{frame}
 \end{document}
 
