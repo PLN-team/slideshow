@@ -35,5 +35,21 @@ library(PLNmodels)  # PLNmodels
 
 {{< include microcosm.qmd >}}
 
+---
+
+## Conclusion
+
+### Take-home message
+
+- PLN = generic model for multivariate count data analysis
+- Flexible modeling of the covariance structure, allows for covariates
+- Efficient Vartiational EM algorithms
+- More extension to come (e.g. Kahlman-filter-like formulation)
+
+## Advertisement 
+
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.
+
+
 ## References
 
