@@ -46,7 +46,7 @@ library(PLNmodels)  # PLNmodels
 - Efficient Vartiational EM algorithms
 - More extension to come (e.g. Kahlman-filter-like formulation)
 
-## Advertisement 
+### Advertisement 
 
 [https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.
 

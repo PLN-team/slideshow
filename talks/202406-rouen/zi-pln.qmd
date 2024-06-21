@@ -1,5 +1,5 @@
 
-#  <br/> <br/> Handling <br/> zeros in  <br/> multivariate  <br/> count tables { background-image="figs/vache3.jpg" background-size=cover background-opacity=0.7}
+#  <br/> <br/> Handling <br/> zeros in  <br/> multivariate  <br/> count tables
 
 ## A zero-inflated PLN
 
