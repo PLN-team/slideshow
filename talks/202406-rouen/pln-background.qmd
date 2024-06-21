@@ -58,7 +58,7 @@ p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{
 
 #### Direct approach
 
-- Numerical integration: limited to a couple of variables
+- Numerical integration [@AiH89]: limited to a couple of variables
 - Gibbs Markov chain Monte Carlo (MCMC) sampling  [@tikhonov2020joint]. Last for ever
 - Stochastic gradient ascent [@baey2023efficient]: promising but too generic
 
@@ -79,7 +79,7 @@ EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y}
 Use a proxy $q_\psi$ of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$ minimizing a divergence in a class $\mathcal{Q}$ (e.g, Küllback-Leibler)
 
 \begin{equation*}
-q_\psi(\mathbf{Z})^\star  \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right), \, \text{e.g.}, D(.,.) = KL(., .) = \mathbb{E}_{q_\psi}\left[\log \frac{q(z)}{p(z)}\right].
+q_\psi(\mathbf{Z})^\star \in \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right), \, \text{e.g.}, D(.,.) = KL(., .) = \mathbb{E}_{q_\psi}\left[\log \frac{q(z)}{p(z)}\right].
 \end{equation*}
 
 and maximize the ELBO (Evidence Lower BOund)
