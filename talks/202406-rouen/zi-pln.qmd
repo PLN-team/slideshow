@@ -1,5 +1,5 @@
 
-#  <br/> <br/> Handling <br/> zeros in  <br/> multivariate  <br/> count tables
+# <br/> Handling zeros in  <br/> multivariate  count tables
 
 ## A zero-inflated PLN
 
@@ -135,7 +135,7 @@ $\rightsquigarrow$ Only an approximation of $Z_{ij} | Y_{ij}, W_{ij} = 0$ is nee
 $$\begin{aligned}
  q_{\psi_i}(\boldsymbol Z_i, \boldsymbol W_i) & = q_{\psi_i}(\boldsymbol Z_i | \boldsymbol W_i) q_{\psi_i}(\boldsymbol W_i) \\
  & = \otimes_{j = 1}^p \mathcal{N}(\boldsymbol x_i^\top \mathbf{B}_j, \Sigma_{jj})^{W_{ij}} \mathcal{N}(M_{ij},
-    S_{ij}^2)^{1-W_{ij}} W_{ij}, \quad W_{ij} \sim^\text{indep} \mathcal{B}\left(\rho_{ij}\right)\end{aligned}.$$
+    S_{ij}^2)^{1-W_{ij}}, \quad W_{ij} \sim^\text{indep} \mathcal{B}\left(\rho_{ij}\right)\end{aligned}.$$
     
 #### Counterpart
 

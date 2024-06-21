@@ -161,7 +161,7 @@ Do as if $\hat{\theta}^{\text{ve}}$ was a MLE and $\bar{J}_n$ the log-likelihood
 
 ### Variational Fisher Information
 
-The Fisher information matrix is given by (from the Hessian of $J$) by
+For standard PLN, the Fisher information matrix is given by (from the Hessian of $J$) by
 
 $$I_n(\hat{\theta}^{\text{ve}}) = \begin{pmatrix}
   \frac{1}{n}(\mathbf{I}_p \otimes 
@@ -170,7 +170,7 @@ $$I_n(\hat{\theta}^{\text{ve}}) = \begin{pmatrix}
 \mathbf{\Omega}^{-1} 
   \end{pmatrix}$$
 
-and can be inverted blockwise to estimate $\mathbb{V}(\hat{\theta})$.
+where $A_{ij} = \exp{M_{ij} + 1/2 S_{ij}}$. 
 
 ### Confidence intervals and coverage
 
@@ -186,7 +186,7 @@ $B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb
 
 ### Theorem [@Westling2015]
 
-Under additional regularity conditions (still satisfied for example when $\theta$ and $\psi_i$ are restricted to compact sets), we have 
+Under additional regularity conditions (satisfied when $\theta$ and $\psi_i$ are restricted to compact sets), we have 
 $$
 \sqrt{n}(\hat{\theta}^{\text{ve}} - \bar{\theta})  \xrightarrow[]{d} \mathcal{N}(0, V(\bar{\theta})), \quad \text{where } V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}
 $$
