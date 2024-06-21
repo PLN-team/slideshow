@@ -100,17 +100,23 @@ $$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \psi_i^{(h)})
 
 ## Implementations
 
+See <https://pln-team.github.io/repositories/>
+
 #### `PLNmodels` Medium scale problems (R/C++ package)
 
-  - **algorithm**: conservative convex separable approximations [@Svan02]
-  - **implementation**: `NLopt` nonlinear-optimization library [@nlopt] <br/>
+- V-EM: exact M-step + optimization for VE-stem 
+- **algorithm**: conservative convex separable approximations [@Svan02]
+- **implementation**: `NLopt` nonlinear-optimization library [@nlopt] <br/>
+
 $\rightsquigarrow$ Up to thousands of sites ( $n \approx 1000s$ ), hundreds of species ( $p\approx 100s$ )
 
 #### `pyPLNmodels` Large scale problems  (Python/Pytorch module)
 
-  - **algorithm**: Rprop (gradient sign + adaptive variable-specific update) [@rprop]
-  - **implementation**: `torch` with GPU auto-differentiation [@pytorch] <br/>
-$\rightsquigarrow$ Up to  $n \approx 100,000$ and $p\approx 10,000s$
+- V-EM: exact M-step + optimization for VE-stem 
+- **algorithm**: Rprop (gradient sign + adaptive variable-specific update) [@rprop]
+- **implementation**: `torch` with GPU auto-differentiation [@pytorch] <br/>
+
+$\rightsquigarrow$ Up to  $n \to 100,000$ and $p\approx 10,000s$
 
 
 ---
@@ -119,13 +125,13 @@ $\rightsquigarrow$ Up to  $n \approx 100,000$ and $p\approx 10,000s$
 
 ![](figs/vae_scheme.png){width=100%}
 
-- The Decoder is the generative model $p_{\theta}(\mathbf{Y}_i,(\mathbf{Z}_i)$
+- The Decoder is the generative model $p_{\theta}(\mathbf{Y}_i | \mathbf{Z}_i)$
 - The Encoder perform performs variational by approximating the posterior distribution with $q_\psi(\mu_i,\sigma^2_i)$
 - VAE maximize a lower bound of the marginal $\log p_{\theta}(\mathbf{Y})$
 
 $$
-\log p_{\theta}(\mathbf{X}_i) \geq \mathbb{E}_{q_{\psi}(\mathbf{Z}_i|\mathbf{X}_i)}\left[\log
-p_{\theta}(\mathbf{X}_i | \mathbf{Z}_i)\right] - D_{KL}(q_{\psi}(\mathbf{Z}_i|\mathbf{X}_i)||p_{\theta}(\mathbf{Z}_i))
+\log p_{\theta}(\mathbf{Y}_i) \geq \mathbb{E}_{q_{\psi}(\mathbf{Z}_i|\mathbf{X}_i)}\left[\log
+p_{\theta}(\mathbf{Y}_i | \mathbf{Z}_i)\right] - D_{KL}(q_{\psi}(\mathbf{Z}_i|\mathbf{Y}_i)||p_{\theta}(\mathbf{Z}_i))
 $$
 
 
