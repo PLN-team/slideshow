@@ -7,13 +7,15 @@
 
 PLN [@AiH89] is a [multivariate generalized linear model]{.alert}, where 
 
-- the counts $\mathbf{Y}_i$ are the response variables
-- the main effect is due to a linear combination of the covariates $\mathbf{x}_i$
-- a vector of offsets $\mathbf{o}_i$ can be specified for each sample
+- the counts $\mathbf{Y}_i\in\mathbb{N}^p$ are the response variables
+- the main effect is due to a linear combination of the covariates $\mathbf{x}_i\in\mathbb{R}^d$
+- a vector of offsets $\mathbf{o}_i\in\mathbb{R}^p$ can be specified for each sample
 
 $$
-\mathbf{Y}_i | \mathbf{Z}_i \sim \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\underbrace{\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}}}_{{\boldsymbol\mu}_i},\boldsymbol\Sigma).
+\quad \mathbf{Y}_i | \mathbf{Z}_i \sim^{\text{iid}} \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\underbrace{\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}}}_{{\boldsymbol\mu}_i},\boldsymbol\Sigma).
 $$
+
+Typically, $n\approx 10s \to 1000s$, $p\approx 10s \to 1000s$, $d \approx 1 \to 10$
 
 #### Properties: [over-dispersion, arbitrary-signed covariances]{.alert .small}
 
