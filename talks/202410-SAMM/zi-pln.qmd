@@ -1,0 +1,170 @@
+
+# <br/> Handling zeros in  <br/> multivariate  count tables
+
+## A zero-inflated PLN
+
+### Mixture of PLN and Bernoulli distribution
+
+Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure 
+
+$$\begin{array}{rrl}
+  \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
+   \text{excess of zeros} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
+  \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim^\text{indep} W_{ij}\delta_0 + (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
+\end{array}$$
+
+$\rightsquigarrow$ Better handling of zeros +additional interpretable parameters 
+
+#### Basic properties
+
+Letting $A_{ij} \triangleq \exp \left( o_{ij} + \mu_{ij} + \sigma_{jj}/2\right)$ with $\mu_{ij} = \mathbf{x}_i^\intercal \mathbf{B}_j$, then
+
+- $\mathbb{E}\left(Y_{ij}\right) =  (1-\pi_{ij}) A_{ij} \leq A_{ij}$ (PLN's mean),
+- $\mathbb{V}\left(Y_{ij}\right) = (1-\pi_{ij})A_{ij} + (1-\pi_{ij})A_{ij}^2 \left( e^{\sigma_{jj}} - (1-\pi_{ij}) \right)$.
+
+---
+
+## ZI-PLN: refinements
+
+### Modeling of the pure zero component 
+
+$$\begin{align*}
+\pi_{ij} & = \pi \in [0,1] & \text{(single global parameter)} \\
+\pi_{ij} & = \pi_j \in [0,1] & \text{(species dependent)} \\
+\pi_{ij} & = \pi_i \in [0,1] & \text{(site dependent)} \\
+\pi_{ij} & = \mathrm{logit}^{-1}( \boldsymbol X^{0}\boldsymbol B^0)_{ij}, ~ \boldsymbol X^0 \in \mathbb R^{n \times d_0}, ~ \boldsymbol B^0 \in \mathbb R^{d_0\times p}  &  \text{(site covariates)} \\
+\pi_{ij} & = \mathrm{logit}^{-1}(\bar{\boldsymbol{B}}^0 \bar{\boldsymbol{X}}^{0})_{ij}, ~ \bar{\boldsymbol{B}}^0 \in \mathbb R^{n \times d_0}, ~ \bar{\boldsymbol X}^0 \in \mathbb R^{d_0\times p} & \text{(species covariates)} 
+\end{align*}$$
+
+::: {#prp-identifiability1}
+
+## Identifiability of ZI-PLN
+- The "single global parameter" ZI-PLN model with parameter $\mathbf{\theta} = (\mathbf{\Omega}, \mathbf{\mu}, \mathbf{\pi})$ and parameter space $\mathbb{S}_p^{++} \times  \mathbb{R}^p \times (0,1)^{p}$ is identifiable (moment-based proof)
+- The site-covariates zero-inflation model with parameter $\mathbf{\theta} = (\mathbf{\Omega}, \mathbf{B}, \mathbf{B}^0)$ and parameter space $\mathbb{S}_p^{++} \times \mathcal{M}_{p,d}(\mathbb{R}) \times \mathcal{M}_{p,d}(\mathbb{R})$ is identifiable  if and only if both $n\times d$ and $n \times d_0$ matrices of covariates $\mathbf{X}$ and $\mathbf{X}^0$ are full rank.
+
+:::
+
+## Standard mean-field
+
+#### Variational approximation breaks all dependencies
+
+\begin{equation*}
+p(\mathbf{Z}_i, \mathbf{W}_i | \mathbf{Y}_i) \approx q_{\psi_i}(\mathbf{Z}_i, \mathbf{W}_i) \triangleq q_{\psi_i}(\mathbf{Z}_i) q_{\psi_i}(\mathbf{W}_i) = \otimes_{j=1}^p q_{\psi_i}(Z_{ij}) q_{\psi_i}(W_{ij})
+\end{equation*}
+
+with Gaussian and Bernoulli distributions for $Z_{ij}$ and $W_{ij}$, then
+
+\begin{equation*}
+q_{\psi_i}(\mathbf{Z}_i, \mathbf{W}_i) = \otimes_{j=1}^p \mathcal N\left( M_{ij}, S_{ij}^2\right) \mathcal B\left(\rho_{ij} \right)
+\end{equation*}
+
+#### Variational lower bound
+
+Let $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Sigma})$ and $\psi= (\mathbf{M}, \mathbf{S}, \mathbf{R})$, then
+
+\begin{align*}
+J(\theta, \psi) & =  \log p_\theta(\mathbf{Y}) - KL(p_\theta(. | \mathbf{Y}) \| q_\psi(.) ) \\
+& = \mathbb{E}_{q_{\psi}} \log p_\theta(\mathbf{Z}, \mathbf{W}, \mathbf{Y}) - \mathbb{E}_{q_{\psi}} \log q_\psi(\mathbf{Z}, \mathbf{W}) \\
+& = \mathbb{E}_{q_{\psi}} \log p_\theta (\mathbf{Y} | \mathbf{Z}, \mathbf{W}) + \mathbb{E}_{q_{\psi}} \log p_\theta (\mathbf{Z}) + \mathbb{E}_{q_{\psi}} \log p_\theta (\mathbf{W}) \\
+&  \qquad - \mathbb{E}_{q_{\psi}} \log q_{\psi} (\mathbf{Z}) - \mathbb{E}_{q_{\psi}} \log q_{\psi} (\mathbf{W}) \\
+\end{align*}
+
+**Property**: concave in each element of $\theta, \psi$.
+
+---
+
+## Sparse regularization
+
+Recall that $\theta = (\mathbf{B}, \mathbf{B}^0, \mathbf{\Omega} = \mathbf{\Sigma}^{-1})$. Sparsity allows to control the number of parameters: 
+
+\begin{equation*}
+ \arg\min_{\theta, \psi} J(\theta, \psi)  + \lambda_1 \| \mathbf{B}  \|_1 + \lambda_2 \|  \mathbb{\Omega}  \|_1 \color{#ddd}{ \left( + \lambda_1 \| \mathbf{B}^0  \|_1 \right)}
+\end{equation*}
+
+#### Alternate optimization
+
+  - (Stochastic) Gradient-descent on $\mathbf{B}^0, \mathbf{M}, \mathbf{S}$
+  - Closed-form for posterior probabilities $\mathbf{R}$
+  - Inverse covariance $\mathbf{\Omega}$ 
+    - if $\lambda_2=0$, $\hat{\mathbf{\Sigma}} = n^{-1} \left[ (\mathbf{M} - \mathbf{XB})^\top(\mathbf{M} - \mathbf{XB}) + \bar{\mathbf{S}}^2 \right]$
+    - if $\lambda_2 > 0$, $\ell_1$ penalized MLE ( $\rightsquigarrow$ Graphical-Lasso with $\hat{\mathbf{\Sigma}}$ as input)
+  - PLN regression coefficient $\mathbf{B}$ 
+    - if $\lambda_1=0$, $\hat{\mathbf{B}} = [\mathbf{X}^\top \mathbf{X}]^{-1} \mathbf{X}^\top \mathbf{M}$
+    - if $\lambda_1 > 0$, vectorize and solve a $\ell_1$ penalized least-squared problem
+
+**Initialize** With univariate zero-inflated Poisson regression models
+
+## Enhancing variational approximation (1)
+
+Two paths of improvements to break less dependencies between the latent variables:
+
+$$p(\mathbf{Z}_i, \mathbf{W}_i | \mathbf{Y}_i) \approx q(\mathbf{Z}_i, \mathbf{W}_i) \triangleq 
+\left\{\begin{array}{l}
+\prod_j q(W_{ij} | Z_{ij}) q(Z_ {ij}) \\[1ex]
+\prod_j q(Z_{ij} | W_{ij}) q(W_{ij}) \\
+\end{array}\right.$$
+
+#### The $W|Z,Y$ path
+
+One can show that
+
+$$
+W_{ij}| Y_{ij},Z_{ij} \sim\mathcal B \left(  \frac{\pi_{ij}}{\pi_{ij} + (1-\pi_{ij})\exp(-Z_{ij})}\right) \boldsymbol 1_{\{Y_{ij} = 0\}}
+$$
+
+Sadly, the resulting ELBO involves the [untractable entropy term]{.alert} $\tilde{\mathbb{E}}[\log q_{\psi}(\mathbf{W} | \mathbf{Z})]$
+
+$\rightsquigarrow$ requires computing $\tilde{\mathbb{E}}\left[ -\frac{\log(1+\exp(-U))}{1+\exp(-U)} \right]$ for arbitrary univariate Gaussians $U$
+
+--- 
+
+## Enhancing variational approximation (2)
+
+#### The $Z|W,Y$ path
+
+Since $W_{ij}$ only takes two values, the dependence between $Z_{ij}$ and $W_{ij}$ can easily be highlighted:
+
+$$Z_{ij} | W_{ij}, Y_{ij} = \left(Z_{ij}|Y_{ij}, W_{ij} = 1 \right)^{ W_{ij}}\left(Z_{ij}|Y_{ij}, W_{ij} = 0 \right)^{1- W_{ij}}.$$
+Then, $p(Z_{ij}| Y_{ij}, W_{ij} = 1) = p(Z_{ij} | (W_{ij} = 1) = p(Z_{ij})$ by independence of $Z_{ij}$ and $W_{ij}$. 
+
+$\rightsquigarrow$ Only an approximation of $Z_{ij} | Y_{ij}, W_{ij} = 0$ is needed.
+
+
+#### More accurate variational approximation
+
+$$\begin{aligned}
+ q_{\psi_i}(\boldsymbol Z_i, \boldsymbol W_i) & = q_{\psi_i}(\boldsymbol Z_i | \boldsymbol W_i) q_{\psi_i}(\boldsymbol W_i) \\
+ & = \otimes_{j = 1}^p \mathcal{N}(\boldsymbol x_i^\top \mathbf{B}_j, \Sigma_{jj})^{W_{ij}} \mathcal{N}(M_{ij},
+    S_{ij}^2)^{1-W_{ij}}, \quad W_{ij} \sim^\text{indep} \mathcal{B}\left(\rho_{ij}\right)\end{aligned}.$$
+    
+#### Counterpart
+
+We loose close-forms in M Step of VEM for $\hat{\mathbf{B}}$ and  $\hat{\mathbf{\Sigma}}$ in the corresponding ELBO...
+
+---
+
+## Additional refinement
+
+### Optimization using analytic law of $W_{ij}| Y_{ij}$
+
+::: {#prp-analytic}
+
+## Distribution of $W_{ij}| Y_{ij}$
+
+$$W_{ij} | Y_{ij}  \sim \mathcal{B}\left(\frac{\pi_{ij}}{ \varphi\left(\mathbf{x}_i^\top \boldsymbol B_j, \Sigma_{jj}\right)
+\left(1 - \pi_{ij}\right) + \pi_{ij}}\right) \boldsymbol 1_{\{Y_{ij} = 0\}}$$
+
+with $\varphi(\mu,\sigma^2) = \mathbb E \left[ \exp(-X)\right], ~ X \sim \mathcal L \mathcal N \left( \mu, \sigma^2\right)$.
+
+:::
+
+#### Approximation of $\varphi$
+
+The function $\varphi$ is intractable but an approximation [@lognormcharact] can be computed:
+
+$$\varphi(\mu, \sigma^2)\approx \tilde \varphi(\mu, \sigma^2)=  \frac{\exp \left(-\frac{L^2\left(\sigma^2 e^\mu\right)+2 L\left(\sigma^2 e^\mu\right)}{2
+\sigma^2}\right)}{\sqrt{1+L\left(\sigma^2 e^\mu\right)}},$$
+where $L(\cdot)$ is the Lambert function (i.e. $z = x \exp(x) \Leftrightarrow x = L(z), x,z \in \mathbb R$).
+
+##  {background-image="figs/simu_zipln.png" background-size=contain}
+
