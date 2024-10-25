@@ -70,9 +70,9 @@ p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{
 
 EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$, but there is no close form!
 
-- MCMC techniques on sampling space reducedwith composite likelihood [@pln-composite]
-- [Variational approaches]{.alert} [e.g. @blei2017variational]: use a surrogate of $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$
+- MCMC techniques on reduced sampling space: composite likelihood [@pln-composite], importance sampling in PLN-PCA [@plnpca-importance]
 
+<!-- - [Variational approaches]{.alert} [e.g. @blei2017variational]: use a surrogate of $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$ -->
 
 ## Variational Inference
 
