@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>pln-background</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="pln-background_files/libs/clipboard/clipboard.min.js"></script>
+<script src="pln-background_files/libs/quarto-html/quarto.js"></script>
+<script src="pln-background_files/libs/quarto-html/popper.min.js"></script>
+<script src="pln-background_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="pln-background_files/libs/quarto-html/anchor.min.js"></script>
+<link href="pln-background_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="pln-background_files/libs/quarto-html/quarto-syntax-highlighting-018089954d508eae8a473f0b7f0491f0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="pln-background_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="pln-background_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="pln-background_files/libs/bootstrap/bootstrap-b6de0292fc13a9646a2e618bf1ee539b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="background-on-the-poisson-lognormal-family-model-inference" class="level1">
+<h1>Background on <br> the Poisson-lognormal Family <br> Model, inference</h1>
+<section id="model-for-multivariate-count-data" class="level2">
+<h2 class="anchored" data-anchor-id="model-for-multivariate-count-data">Model for multivariate count data</h2>
+<section id="the-poisson-lognormal-model-pln" class="level3">
+<h3 class="anchored" data-anchor-id="the-poisson-lognormal-model-pln">The Poisson Lognormal model (PLN)</h3>
+<p>PLN <span class="citation" data-cites="AiH89">[@AiH89]</span> is a <span class="alert">multivariate generalized linear model</span>, where</p>
+<ul>
+<li>the counts <span class="math inline">\(\mathbf{Y}_i\in\mathbb{N}^p\)</span> are the response variables</li>
+<li>the main effect is due to a linear combination of the covariates <span class="math inline">\(\mathbf{x}_i\in\mathbb{R}^d\)</span></li>
+<li>a vector of offsets <span class="math inline">\(\mathbf{o}_i\in\mathbb{R}^p\)</span> can be specified for each sample</li>
+</ul>
+<p><span class="math display">\[
+\quad \mathbf{Y}_i | \mathbf{Z}_i \sim^{\text{iid}} \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\underbrace{\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}}}_{{\boldsymbol\mu}_i},\boldsymbol\Sigma).
+\]</span></p>
+<p>Typically, <span class="math inline">\(n\approx 10s \to 1000s\)</span>, <span class="math inline">\(p\approx 10s \to 1000s\)</span>, <span class="math inline">\(d \approx 1 \to 10\)</span></p>
+<section id="properties-over-dispersion-arbitrary-signed-covariances" class="level4">
+<h4 class="anchored" data-anchor-id="properties-over-dispersion-arbitrary-signed-covariances">Properties: <span class="alert small">over-dispersion, arbitrary-signed covariances</span></h4>
+<ul>
+<li>mean: <span class="math inline">\(\mathbb{E}(Y_{ij}) =  \exp \left( o_{ij} + \mathbf{x}_i^\top {\mathbf{B}}_{\cdot j} + \sigma_{jj}/2\right) &gt;  0\)</span></li>
+<li>variance: <span class="math inline">\(\mathbb{V}(Y_{ij}) = \mathbb{E}(Y_{ij}) + \mathbb{E}(Y_{ij})^2 \left( e^{\sigma_{jj}} - 1 \right) &gt; \mathbb{E}(Y_{ij})\)</span></li>
+<li>covariance: <span class="math inline">\(\mathrm{Cov}(Y_{ij}, Y_{ik}) = \mathbb{E}(Y_{ij}) \mathbb{E}(Y_{ik}) \left( e^{\sigma_{jk}} - 1 \right).\)</span></li>
+</ul>
+<hr>
+</section>
+</section>
+</section>
+<section id="natural-extensions-of-pln" class="level2">
+<h2 class="anchored" data-anchor-id="natural-extensions-of-pln">Natural extensions of PLN</h2>
+<section id="various-tasks-of-multivariate-analysis" class="level4">
+<h4 class="anchored" data-anchor-id="various-tasks-of-multivariate-analysis">Various tasks of multivariate analysis</h4>
+<ul>
+<li><p><span class="alert">Dimension Reduction</span>: rank constraint matrix <span class="math inline">\(\boldsymbol\Sigma\)</span>. <small><span class="citation" data-cites="PLNPCA">[@PLNPCA]</span></small></p>
+<p><span class="math display">\[\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.\]</span></p></li>
+<li><p><span class="alert">Classification</span>: maximize separation between groups with means <small><span class="citation" data-cites="PLNmodels">[@PLNmodels]</span></small></p></li>
+</ul>
+<p><span class="math display">\[\mathbf{Z}_i \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.\]</span></p>
+<ul>
+<li><span class="alert">Clustering</span>: mixture model in the latent space <small><span class="citation" data-cites="PLNmodels">[@PLNmodels]</span></small></li>
+</ul>
+<p><span class="math display">\[\mathbf{Z}_i \mid i \in k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships}.\]</span></p>
+<ul>
+<li><span class="alert">Network inference</span>: sparsity constraint on inverse covariance. <small><span class="citation" data-cites="PLNnetwork">[@PLNnetwork]</span></small></li>
+</ul>
+<p><span class="math display">\[\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 &lt; c.\]</span></p>
+<hr>
+</section>
+</section>
+<section id="estimation" class="level2">
+<h2 class="anchored" data-anchor-id="estimation">Estimation</h2>
+<p>Estimate <span class="math inline">\(\theta = (\mathbf{B}, {\boldsymbol\Sigma})\)</span>, predict the <span class="math inline">\(\mathbf{Z}_i\)</span>, while the model marginal likelihood is</p>
+<p><span class="math display">\[\begin{equation*}
+p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i
+\end{equation*}\]</span></p>
+<section id="direct-approach" class="level4">
+<h4 class="anchored" data-anchor-id="direct-approach">Direct approach</h4>
+<ul>
+<li>Numerical integration <span class="citation" data-cites="AiH89">[@AiH89]</span>: limited to a couple of variables</li>
+<li>Gibbs Markov chain Monte Carlo (MCMC) sampling <span class="citation" data-cites="tikhonov2020joint">[@tikhonov2020joint]</span>. Last for ever</li>
+<li>Stochastic gradient ascent <span class="citation" data-cites="baey2023efficient">[@baey2023efficient]</span>: promising but too generic</li>
+</ul>
+</section>
+<section id="expectation-maximization" class="level4">
+<h4 class="anchored" data-anchor-id="expectation-maximization">Expectation-Maximization</h4>
+<p><span class="math display">\[\begin{equation*}
+\log p_\theta(\mathbf{Y}) = \mathbb{E}_{p_\theta(\mathbf{Z}\,|\,\mathbf{Y})} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[p_\theta(\mathbf{Z}\,|\,\mathbf{Y})], \text{ with } \mathcal{H}(p) = -\mathbb{E}_p(\log(p)).
+\end{equation*}\]</span></p>
+<p>EM requires to evaluate (some moments of) <span class="math inline">\(p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})\)</span>, but there is no close form!</p>
+<ul>
+<li>MCMC techniques on sampling space reducedwith composite likelihood <span class="citation" data-cites="pln-composite">[@pln-composite]</span></li>
+<li><span class="alert">Variational approaches</span> <span class="citation" data-cites="blei2017variational">[e.g. @blei2017variational]</span>: use a surrogate of <span class="math inline">\(p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})\)</span></li>
+</ul>
+</section>
+</section>
+<section id="variational-inference" class="level2">
+<h2 class="anchored" data-anchor-id="variational-inference">Variational Inference</h2>
+<p>Use a proxy <span class="math inline">\(q_\psi\)</span> of <span class="math inline">\(p_\theta(\mathbf{Z}\,|\,\mathbf{Y})\)</span> minimizing a divergence in a class <span class="math inline">\(\mathcal{Q}\)</span> (e.g, Küllback-Leibler)</p>
+<p><span class="math display">\[\begin{equation*}
+q_\psi(\mathbf{Z})^\star \in \arg\min_{q\in\mathcal{Q}} D\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right), \, \text{e.g.}, D(.,.) = KL(., .) = \mathbb{E}_{q_\psi}\left[\log \frac{q(z)}{p(z)}\right].
+\end{equation*}\]</span></p>
+<p>and maximize the ELBO (Evidence Lower BOund)</p>
+<p><span class="math display">\[\begin{equation*}
+J(\theta, \psi) = \log p_\theta(\mathbf{Y}) - KL[q_\psi (\mathbf{Z}) ||  p_\theta(\mathbf{Z} | \mathbf{Y})] = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q_\psi(\mathbf{Z})] = \frac{1}{n} \sum_{i = 1}^n J_i(\theta, \psi_i)
+\end{equation*}\]</span></p>
+<section id="resulting-variational-em" class="level4">
+<h4 class="anchored" data-anchor-id="resulting-variational-em">Resulting Variational EM</h4>
+<ul>
+<li><p>VE step: optimize <span class="math inline">\(\boldsymbol{\psi}\)</span> (can be written individually) <span class="math display">\[\begin{equation*}
+\psi_i^{(h)} = \arg \max J_{i}(\theta^{(h)}, \psi_i) \left( = \arg\min_{q_i} KL[q_i(\mathbf{Z}_i) \,||\, p_{\theta^h}(\mathbf{Z}_i\,|\,\mathbf{Y}_i)] \right)
+\end{equation*}\]</span></p></li>
+<li><p>M step: optimize <span class="math inline">\(\theta\)</span> <span class="math display">\[\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \psi_i^{(h)})\]</span></p></li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="implementations" class="level2">
+<h2 class="anchored" data-anchor-id="implementations">Implementations</h2>
+<p>See <a href="https://pln-team.github.io/repositories/" class="uri">https://pln-team.github.io/repositories/</a></p>
+<section id="plnmodels-medium-scale-problems-rc-package" class="level4">
+<h4 class="anchored" data-anchor-id="plnmodels-medium-scale-problems-rc-package"><code>PLNmodels</code> Medium scale problems (R/C++ package)</h4>
+<ul>
+<li>V-EM: exact M-step + optimization for VE-stem</li>
+<li><strong>algorithm</strong>: conservative convex separable approximations <span class="citation" data-cites="Svan02">[@Svan02]</span></li>
+<li><strong>implementation</strong>: <code>NLopt</code> nonlinear-optimization library <span class="citation" data-cites="nlopt">[@nlopt]</span> <br></li>
+</ul>
+<p><span class="math inline">\(\rightsquigarrow\)</span> Up to thousands of sites ( <span class="math inline">\(n \approx 1000s\)</span> ), hundreds of species ( <span class="math inline">\(p\approx 100s\)</span> )</p>
+</section>
+<section id="pyplnmodels-large-scale-problems-pythonpytorch-module" class="level4">
+<h4 class="anchored" data-anchor-id="pyplnmodels-large-scale-problems-pythonpytorch-module"><code>pyPLNmodels</code> Large scale problems (Python/Pytorch module)</h4>
+<ul>
+<li>V-EM: exact M-step + optimization for VE-stem</li>
+<li><strong>algorithm</strong>: Rprop (gradient sign + adaptive variable-specific update) <span class="citation" data-cites="rprop">[@rprop]</span></li>
+<li><strong>implementation</strong>: <code>torch</code> with GPU auto-differentiation <span class="citation" data-cites="pytorch">[@pytorch]</span> <br></li>
+</ul>
+<p><span class="math inline">\(\rightsquigarrow\)</span> Up to <span class="math inline">\(n \to 100,000\)</span> and <span class="math inline">\(p\approx 10,000s\)</span></p>
+<hr>
+</section>
+</section>
+<section id="pln-pca-and-variational-auto-encoders" class="level2">
+<h2 class="anchored" data-anchor-id="pln-pca-and-variational-auto-encoders">PLN-PCA and Variational Auto-Encoders</h2>
+<p><img src="figs/vae_scheme.png" class="img-fluid" style="width:100.0%"></p>
+<ul>
+<li>The Decoder is the generative model <span class="math inline">\(p_{\theta}(\mathbf{Y}_i | \mathbf{Z}_i)\)</span></li>
+<li>The Encoder perform performs variational by approximating the posterior distribution with <span class="math inline">\(q_\psi(\mu_i,\sigma^2_i)\)</span></li>
+<li>VAE maximize a lower bound of the marginal <span class="math inline">\(\log p_{\theta}(\mathbf{Y})\)</span></li>
+</ul>
+<p><span class="math display">\[
+\log p_{\theta}(\mathbf{Y}_i) \geq \mathbb{E}_{q_{\psi}(\mathbf{Z}_i|\mathbf{X}_i)}\left[\log
+p_{\theta}(\mathbf{Y}_i | \mathbf{Z}_i)\right] - D_{KL}(q_{\psi}(\mathbf{Z}_i|\mathbf{Y}_i)||p_{\theta}(\mathbf{Z}_i))
+\]</span></p>
+</section>
+<section id="variational-estimator-properties" class="level2">
+<h2 class="anchored" data-anchor-id="variational-estimator-properties">Variational Estimator: properties</h2>
+<section id="m-estimation-framework-van2000asymptotic" class="level3">
+<h3 class="anchored" data-anchor-id="m-estimation-framework-van2000asymptotic">M-estimation framework <span class="citation" data-cites="van2000asymptotic">[@van2000asymptotic]</span></h3>
+<p>Let <span class="math inline">\(\hat{\psi}_i = \hat{\psi}_i(\theta, \mathbf{Y}_i) = \arg \max_{\psi} J_i(\theta, \psi)\)</span> and consider the stochastic map <span class="math inline">\(\bar{J}_n\)</span> defined by</p>
+<p><span class="math display">\[\bar{J}_n \; : \quad \theta \mapsto \frac{1}{n}\sum_{i=1}^{n} J_i(\theta, \hat{\psi}_i) \stackrel{\Delta}{=} \frac{1}{n}\sum_{i=1}^{n}
+\bar{J}_i(\theta)\]</span></p>
+<p>M-estimation suggests that <span class="math inline">\(\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \bar{J}_{n}(\theta)\)</span> should converge to <span class="math inline">\(\bar{\theta} = \arg\max_{\theta} \bar{J}(\theta)\)</span> where <span class="math inline">\(\bar{J}(\theta) = \mathbb{E}_{\theta^\star}[\bar{J}_Y(\theta)] =  \mathbb{E}_{\theta^\star}[J_Y(\theta, \hat{\psi}(\theta, Y))]\)</span>.</p>
+</section>
+<section id="theorem-westling2015" class="level3">
+<h3 class="anchored" data-anchor-id="theorem-westling2015">Theorem <span class="citation" data-cites="Westling2015">[@Westling2015]</span></h3>
+<p>In this line, <span class="citation" data-cites="Westling2015">[@Westling2015]</span> show that under regularity conditions ensuring that <span class="math inline">\(\bar{J}_n\)</span> is smooth enough (e.g.&nbsp;when <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\psi_i\)</span> are restricted to compact sets), <span class="math display">\[
+\hat{\theta}^{\text{ve}} \xrightarrow[n \to +\infty]{a.e.} \bar{\theta}
+\]</span></p>
+<p><span class="alert">Open question:</span> <span class="math inline">\(\bar{\theta} = \theta^\star\)</span> ? No formal results as <span class="math inline">\(\bar{J}\)</span> is untractable but numerical evidence suggests so.</p>
+</section>
+</section>
+<section id="variance-naïve-approach" class="level2">
+<h2 class="anchored" data-anchor-id="variance-naïve-approach">Variance: naïve approach</h2>
+<p>Do as if <span class="math inline">\(\hat{\theta}^{\text{ve}}\)</span> was a MLE and <span class="math inline">\(\bar{J}_n\)</span> the log-likelihood.</p>
+<section id="variational-fisher-information" class="level3">
+<h3 class="anchored" data-anchor-id="variational-fisher-information">Variational Fisher Information</h3>
+<p>For standard PLN, the Fisher information matrix is given by (from the Hessian of <span class="math inline">\(J\)</span>) by</p>
+<p><span class="math display">\[I_n(\hat{\theta}^{\text{ve}}) = \begin{pmatrix}
+  \frac{1}{n}(\mathbf{I}_p \otimes
+\mathbf{X}^\top)\mathrm{diag}(\mathrm{vec}(\mathbf{A}))(\mathbf{I}_p \otimes \mathbf{X}) &amp; \mathbf{0} \\
+  \mathbf{0} &amp; \frac12\mathbf{\Omega}^{-1} \otimes
+\mathbf{\Omega}^{-1}
+  \end{pmatrix}\]</span></p>
+<p>where <span class="math inline">\(A_{ij} = \exp{M_{ij} + 1/2 S_{ij}}\)</span>.</p>
+</section>
+<section id="confidence-intervals-and-coverage" class="level3">
+<h3 class="anchored" data-anchor-id="confidence-intervals-and-coverage">Confidence intervals and coverage</h3>
+<p><span class="math inline">\(\hat{\mathbb{V}}(B_{kj}) = [n (\mathbf{X}^\top \mathrm{diag}(\mathrm{vec}(\hat{A}_{.j})) \mathbf{X})^{-1}]_{kk}, \qquad \hat{\mathbb{V}}(\Omega_{kl}) = 2\hat{\Omega}_{kk}\hat{\Omega}_{ll}\)</span></p>
+<p>The confidence intervals at level <span class="math inline">\(\alpha\)</span> are given by</p>
+<p><span class="math inline">\(B_{kj} =  \hat{B}_{kj} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(B_{kj})}, \qquad \Omega_{kl} =  \hat{\Omega}_{kl} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{\hat{\mathbb{V}}(\Omega_{kl})}\)</span>.</p>
+<hr>
+</section>
+</section>
+<section id="variance-sandwich-estimator" class="level2">
+<h2 class="anchored" data-anchor-id="variance-sandwich-estimator">Variance : sandwich estimator</h2>
+<section id="theorem-westling2015-1" class="level3">
+<h3 class="anchored" data-anchor-id="theorem-westling2015-1">Theorem <span class="citation" data-cites="Westling2015">[@Westling2015]</span></h3>
+<p>Under additional regularity conditions (satisfied when <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\psi_i\)</span> are restricted to compact sets), we have <span class="math display">\[
+\sqrt{n}(\hat{\theta}^{\text{ve}} - \bar{\theta})  \xrightarrow[]{d} \mathcal{N}(0, V(\bar{\theta})), \quad \text{where } V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}
+\]</span> for <span class="math inline">\(C(\theta) = \mathbb{E}[\nabla_{\theta\theta} \bar{J}(\theta) ]\)</span> and <span class="math inline">\(D(\theta) = \mathbb{E}\left[(\nabla_{\theta} \bar{J}(\theta)) (\nabla_{\theta} \bar{J}(\theta)^\intercal \right]\)</span></p>
+<section id="practical-computations-chain-rule" class="level4">
+<h4 class="anchored" data-anchor-id="practical-computations-chain-rule">Practical computations (chain rule)</h4>
+<p><span class="math display">\[
+\begin{aligned}
+\hat{C}_n(\theta) &amp; = \frac{1}{n} \sum_{i=1}^n \left[ \nabla_{\theta\theta} J_i - \nabla_{\theta\psi_i} J_i (\nabla_{\psi_i\psi_i} J_i)^{-1} \nabla_{\theta\psi_i} J_i^\intercal \right](\theta, \hat{\psi}_i) \\
+\hat{D}_n(\theta) &amp; = \frac{1}{n} \sum_{i=1}^n \left[ \nabla_{\theta} J_i \nabla_{\theta} J_i^\intercal \right](\theta, \hat{\psi}_i)
+\end{aligned}
+\]</span></p>
+</section>
+<section id="caveat" class="level4">
+<h4 class="anchored" data-anchor-id="caveat">Caveat</h4>
+<ul>
+<li>For <span class="math inline">\(\theta = (\mathbf{B}, \boldsymbol\Omega)\)</span>, <span class="math inline">\(\hat{C}_n\)</span> requires the inversion of <span class="math inline">\(n\)</span> matrices with <span class="math inline">\((p^2 + p d)\)</span> rows/columns…</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="empirical-consistency" class="level2">
+<h2 class="anchored" data-anchor-id="empirical-consistency">Empirical consistency</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figs/sandwich-rmse.png" class="img-fluid figure-img"></p>
+<figcaption>Root mean square error</figcaption>
+</figure>
+</div>
+</section>
+<section id="empirical-coverage" class="level2">
+<h2 class="anchored" data-anchor-id="empirical-coverage">Empirical coverage</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figs/sandwich-coverage.png" class="img-fluid figure-img"></p>
+<figcaption>Coverage</figcaption>
+</figure>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
