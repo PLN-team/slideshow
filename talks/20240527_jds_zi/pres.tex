@@ -185,7 +185,7 @@ W_{ij}}.$}\]
 giving
 \begin{align*}
     q_{\psi_i}^{(2)}(\boldsymbol{Z}_i, \boldsymbol{W}_i) & = \colorboxed{blue}{\otimes_{j = 1}^p \mathcal
-    N(\mu_j, \Sigma_{jj})^{W_{ij}} \mathcal N(M_{ij},
+        N(\matr X_i^{\top} \beta_j, \Sigma_{jj})^{W_{ij}} \mathcal N(M_{ij},
     S_{ij}^2)^{1-W_{ij}} W_{ij}},
 \end{align*}
 with $W_{ij} \sim^\text{indep} \mathcal B\left(P_{ij}\right)$. Variational parameters are $\psi_{ij} = \left(M_{ij}, S_{ij}, P_{ij}\right)$.
@@ -214,16 +214,20 @@ with $\varphi$ given by the Lambert function
         \item After removing Amplicon Sequence Variants (ASV) with more than 5 \% prevalence $\implies p = 259$ ASV.
         \item Still 90 \% of zeros.
     \end{itemize}
-    \begin{figure}
-    \includegraphics[scale=0.45]{figures/microcosm_model_fit.png}
-    \caption{Model fits of PLN and ZIPLN in terms of fitted versus observed counts (left panel), fitted values for null counts (middle panel) and comparaison of $P_{ij}$ and $M_{ij}$ estimated for null counts by ZIPLN(right panel).}
-\end{figure}
 \end{frame}
 \begin{frame}{Applications on real data: PLN vs ZIPLN}
     \hspace{-0.75cm}\includegraphics[scale=0.45]{figures/microcosm_pca.png}
 \end{frame}
 \begin{frame}
-    \centering{\Huge Thanks for your attention}
+    \begin{itemize}
+    \item Submitted on Arxiv: Zero-inflation in the Multivariate Poisson Lognormal Family
+    \item \verb| pip install pyPLNmodels \verb|
+\end{itemize}
+
+\end{frame}
+\begin{frame}
+    \centering \Huge Thanks for your attention \\
+    % \verb |pip install pyPLNmodels
 \end{frame}
 \end{document}
 
