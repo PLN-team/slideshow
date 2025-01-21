@@ -1,0 +1,55 @@
+---
+title: Zero-inflation in the Poisson lognormal family [@batardiere2024zero]
+subtitle: Séminaire SAMM
+format: 
+  clean-revealjs:
+    smaller: true
+    embed-resources: true
+author:
+  - name: Bastien Batardière
+    affiliations: PhD - UMR MIA Paris-Saclay
+  - name: Julien Chiquet
+    orcid: 0000-0002-3629-3429
+    affiliations: MIA Paris-Saclay, INRAE 
+  - name: François Gindraud
+    affiliations: IR INRIA
+  - name: Mahendra Mariadassou
+    orcid: 0000-0003-2986-354X
+    affiliations: MaIAGE, INRAE 
+date: 10-25-2024
+bibliography: PLNreferences.bib
+execute:
+  cache: true
+---
+
+```{r setup, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)  # data manipulation
+library(PLNmodels)  # PLNmodels
+```
+
+{{< include introduction.qmd >}}
+
+{{< include pln-background.qmd >}}
+
+{{< include zi-pln.qmd >}}
+
+{{< include microcosm.qmd >}}
+
+---
+
+## Conclusion
+
+### Take-home message
+
+- PLN = generic model for multivariate count data analysis
+- Flexible modeling of the covariance structure, allows for covariates
+- Efficient Vartiational EM algorithms
+- More extension to come (e.g. 'Kalman filter'-like formulation)
+
+### Advertisement 
+
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.
+
+
+## References
+
