@@ -1,0 +1,66 @@
+title: Templates INRAE
+author: David Carayon
+version: 1.1.0
+quarto-version: ">=1.4.0"
+contributes:
+
+  ## Project definition
+  project:
+    project:
+      type: default
+     #type: website
+     #type: book
+    format: inrae-html
+
+  ## Formats definition
+  formats:
+    html:
+      toc: true
+      code-fold: true
+      code-summary: "Code"
+      primary-color: "#00A3A6"
+      toc-location: left
+      toc-title: " "
+      theme: [custom.scss]
+      include-after-body: "html/footer.html"
+      template-partials:
+        - html/title-block.html
+      css: css/style.css
+      smooth-scroll: true
+      code-annotations: hover
+      title-block-banner: true  
+      logo: "css/logo.png"
+    docx:
+      reference-doc: ressources/word-template.docx
+      toc-title: "Sommaire"
+    pdf:
+      minimal: true 
+      pdf-engine: weasyprint
+      template: "html/template.html"
+      css: "css/pdfreport.css"
+      embed_resources: true
+      toc: true
+    revealjs:
+      title-slide-attributes:
+        data-background-image: ressources/assets/sigle-inrae.png
+        data-background-size: 40%
+        data-background-position: left
+        data-background-opacity: "0.5"
+        data-footer: ""
+      include-after-body: ressources/revealjs-clean-title-slide.html
+      logo: ressources/assets/bloc-etat.png
+      footer: "Pied de page"
+      transition: fade
+      slide-number: "c/t"
+      auto-stretch: false
+      center-title-slide: true
+      theme: [default, ressources/revealjs-inrae.scss]
+      plugins:
+      - PdfExport
+    beamer: 
+      include-in-header: ressources/beamer-colorthemeinrae.sty
+      aspectratio: 169
+      keep-tex: false
+    pptx:
+      reference-doc: ressources/powerpoint-template.pptx
+      toc: true

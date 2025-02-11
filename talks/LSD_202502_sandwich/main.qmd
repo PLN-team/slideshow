@@ -1,0 +1,195 @@
+---
+title: "PLN: beyond prediction and theory"
+subtitle: "LSD"
+author: "Bastien Batardière"
+lang: fr
+date: today
+date-format: long
+format: inrae-beamer
+---
+
+
+##  Aperçu
+
+- \Large Normalité asymptotique et inférence variationnelle
+- \Large Optimisation et inférence variationnelle
+
+# Contexte et introduction
+
+## Contexte
+
+
+### Données
+
+\centering $\mathbf Y \in \mathbb R^{n \times p}$ : $n$ individus $\mathbf Y_i$ indépendants, de dimension $p$.
+
+### Modèle à variables latentes
+
+\begin{align*}
+  \mathbf{Z}_i & \overset{\text{indep}}{\sim}  p_{\theta}(\cdot)\\
+   Y_{ij} \, | \, Z_{ij} & \overset{\text{indep}}{\sim}  p_{\theta}\left(\cdot | Z_{ij}\right)
+\end{align*}
+
+### Vraisemblance
+
+$$p_{\theta}(\mathbf Y_i) = \int_{\mathbb R^p} p_{\theta}(\mathbf Y_i, \mathbf Z_i) \mathrm d\mathbf Z_i$$
+
+
+## Modèle Poisson Log Normal
+
+### Modèle
+- Etant donné des covariables :
+    - $\mathbf{x}_i$ covariables de taille $m$  pour $i = \{1, \dots, n\}$ (longueur de la séquence d'ADN, température, etc)
+
+- un paramètre $\theta = (\mathbf B, \boldsymbol \Sigma)$ :
+
+   - $\mathbf B \in \mathbb  R^{m \times p}$ un paramètre de régression
+   - $\boldsymbol \Sigma \in \mathcal S_p^{++}$ une matrice de covariance
+
+\begin{align*}
+  \mathbf{Z}_i & \overset{\text{indep}}{\sim}  \mathcal{N}( \mathbf{x}_i^{\top}\mathbf{B},\boldsymbol \Sigma)\\
+   Y_{ij} \, | \, Z_{ij} & \overset{\text{indep}}{\sim}  \mathcal{P}\left(\exp\{Z_{ij}\}\right)
+\end{align*}
+
+
+
+
+## Enjeux
+
+### Maximisation de la log vraisemblance
+
+$$\hat{\theta}^{\text{MLE}} = \operatorname{argmax}_{\theta} \log p_{\theta}(\mathbf Y) = \operatorname{argmax}_{\theta} \sum_{i=1}^n \log p_{\theta}(\mathbf Y_i)$$
+
+- Comment approcher $\hat{\theta}^{\text{MLE}}$  efficacement ?
+- Quelles garanties ?
+
+### Garanties de $\hat{\theta}^{\text{MLE}}$
+
+$$\sqrt{n}\left(\hat{\theta}^{\text{MLE}} - \theta^{\star}\right) \xrightarrow[]{d} \mathcal N(0,\mathcal I(\theta^{\star})^{-1}) $$
+
+
+
+## Rappel sur l'inférence variationnelle
+
+
+<div class="footer"></div>
+
+- Log vraisemblance intractable
+  - Estimation problématique
+  - Approche alternative: approximation
+
+- Borne inférieure de la vraisemblance (ELBO) : $$
+    J_{\mathbf Y}(\theta, \phi) \triangleq \log p_{\theta}(\mathbf Y)-\operatorname{KL}\left[\widetilde p_{\phi}(\cdot) \|  p_{\theta}(\cdot \mid   \mathbf Y)\right]
+$$
+avec $\widetilde p_{\phi}$ une distribution variationnelle connue approchant $p_{\theta}(\cdot \mid \mathbf Y)$.
+
+- Estimateur variationnel
+
+$$\hat{\theta}^{\text{VEM}}=\operatorname{argmax}_{\theta, \phi}J_{\mathbf Y}(\theta, \phi)$$
+
+## Algorithme VEM
+
+- EM Variationnel (VEM) :
+  - Maximisation alternée de $J_{\mathbf Y}(\theta, \phi)$.
+    - Etape VE :
+      $$\phi^{(t)} =\operatorname{argmax}_{\phi}  J_{\mathbf Y}(\theta^{(t)},  \phi)$$
+    - Etape de maximisation (M) :
+      $$\theta^{(t+1)}=\operatorname{argmax}_{\theta}  \; J_{\mathbf Y}(\theta,  \phi^{(t)})$$
+
+## Garanties de $\hat{\theta}^{\text{VEM}}$
+
+- ELBO:
+  \begin{align}
+  J_{\mathbf Y}(\theta, \phi) & = \log p_{\theta}(\mathbf Y)-\operatorname{KL}\left[\widetilde p_{\phi}(\cdot) \|  p_{\theta}(\cdot \mid   \mathbf Y)\right]\\
+  & =  \mathbb E_{\tilde p_{\phi}} [\log p_{\theta}(\mathbf Y, \mathbf Z)- \log \tilde p_{\phi}(\mathbf  Z)]
+  \end{align}
+
+- Estimateur variationnel
+$$\hat{\theta}^{\text{VEM}}, \hat{\phi}=\operatorname{argmax}_{\theta, \phi}J_{\mathbf Y}(\theta, \phi)$$
+
+- Quelles garanties sur $\hat{\theta}^{\text{VEM}}$ ?
+
+  $$ \sqrt{n}\left(\hat{\theta}^{\text{VEM}} - \theta^{\star}\right) \xrightarrow[]{d} ? $$
+
+## Un peu d'intuition
+
+\centering \includegraphics[width=0.9\textwidth]{fig/rejection_sampling_Poisson.pdf}
+
+## Estimateur biaisé ?
+
+\centering \includegraphics[width=0.9\textwidth]{fig/bias.png}
+
+
+## Estimation du bais
+
+\centering \includegraphics[width=0.6\textwidth]{fig/rmse_loglog.pdf}
+
+# Estimateur de la variance
+
+### Fonction objective profilé
+
+\begin{align*}
+  L(\theta;\mathbf Y) &  \triangleq \sup_{\phi} J_{\mathbf Y}(\theta, \phi) = J_{\mathbf Y}(\theta, \widehat{\phi})\\
+\end{align*}
+
+
+
+## Estimateur naif de la variance
+- Pour l'estimateur du maximum de vraisemblance:
+$$\sqrt{n}\left(\hat{\theta}^{\text{MLE}} - \theta^{\star}\right) \xrightarrow[]{d} mathcal N(0, \mathcal I(\theta^{\star})^{-1})$$
+- Si $\hat{\theta}^{\text{VEM}}$ est assez proche de $\theta^{\star}$, on peut approximer $\mathcal I(\theta^{\star})$ par $\mathcal I(\hat{\theta}^{\text{VEM}})$.
+
+\begin{align*}
+    \mathcal I(\hat{\theta}^{\text{VEM}}) & \approx -\frac 1 n \nabla^2_{\theta} \log p_{\theta}(\mathbf Y) \\
+    & \approx - \frac 1 n  \nabla_{\theta}^2 L(\theta)
+\end{align*}
+
+## Estimateur sandwich
+
+- Soit $\bar{\theta}^{\star \text{VEM}} = \lim_{n \to \infty} L(\theta)$, alors sous certaines conditions sur $L$,
+$$
+\sqrt{n}(\hat{\theta}^{\text{VEM}} - \theta^{\star \text{VEM}})  \xrightarrow[]{d} \mathcal{N}(0, V(\theta^{\star \text{VEM}}))
+$$
+avec $V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}$ et
+\begin{align*}
+ C(\theta) & = \mathbb E[\nabla_{\theta\theta} L(\theta; Y) ] \\
+ D(\theta) & = \mathbb E\left[(\nabla_{\theta} L(\theta; Y)) (\nabla_{\theta} L(\theta; Y))^\top \right] \\
+\end{align*}
+
+
+## Simulations
+
+\centering\includegraphics[width=0.5\textwidth]{fig/qqplots.pdf}
+
+## Simulations
+
+\centering \includegraphics[width=0.5\textwidth]{fig/ks.pdf}
+
+## Application
+
+\centering \includegraphics[width=0.52\textwidth]{fig/real_coverage.pdf}
+
+
+
+
+
+
+## Callouts
+
+::: {.callout-note}
+A note
+:::
+
+::: {.callout-tip}
+A tip
+:::
+
+::: {.callout-important}
+An important message
+:::
+
+## Slides
+
+$$\operatorname{argmax} L(\theta) \mapsto \operatorname{argmax} \log p_{\theta}(\mathbf Y)$$
+$$\hat{\theta}^{VEM} \mapsto \hat{\theta}^{MLE} \mapsto \theta^{\star}$$
+
