@@ -6,6 +6,20 @@ lang: fr
 date: today
 date-format: long
 format: inrae-beamer
+header-inclues:
+    - \newcommand{\bSig}{\boldsymbol \Sigma}
+    - \newcommand{\bC}{\mathbf C}
+    - \newcommand{\bZ}{\mathbf Z}
+    - \newcommand{\bI}{\mathbf I}
+    - \newcommand{\bW}{\mathbf W}
+    - \newcommand{\bX}{\mathbf X}
+    - \newcommand{\bY}{\mathbf Y}
+    - \newcommand{\bB}{\mathbf B}
+    - \newcommand{\BXi}{\mathbf B^{\top}\mathbf x_i}
+    - \newcommand{\mcN}{\mathcal N}
+    - \newcommand{\mcP}{\mathcal P}
+    - \newcommand{\matr}[1]{\mathbf #1}
+    - \newcommand{\tr}{^{\top}}
 ---
 
 
@@ -87,7 +101,47 @@ avec $\widetilde p_{\phi}$ une distribution variationnelle connue approchant $p_
 
 $$\hat{\theta}^{\text{VEM}}=\operatorname{argmax}_{\theta, \phi}J_{\mathbf Y}(\theta, \phi)$$
 
-## Algorithme VEM
+
+## Choix de la famille variationnelle
+
+### Famille gaussienne diagonale
+\begin{equation}
+    \tilde p_{\phi_i} = \mathcal N\left( \mathbf m_i,
+    \operatorname{Diag}(\mathbf s_i^2)  \right), \quad \phi_i = (\mathbf
+    m_i,\mathbf s_i),\quad \mathbf m_i \in \mathbb R^p, \~ \mathbf s_i \in
+    \mathbb R^q,
+\end{equation}
+
+$$\phi = (\phi_1, \dots, \phi_n) = (\mathbf m_1, \dots, \mathbf m_n, \mathbf s_i, \dots, \mathbf s_n)$$
+
+## Un peu d'intuition
+
+- ELBO:
+  \begin{align}
+  J_{\mathbf Y}(\theta, \phi) & = \log p_{\theta}(\mathbf Y)-\operatorname{KL}\left[\widetilde p_{\phi}(\cdot) \|  p_{\theta}(\cdot \mid   \mathbf Y)\right]\\
+  & =  \mathbb E_{\tilde p_{\phi}} [\log p_{\theta}(\mathbf Y, \mathbf Z)- \log \tilde p_{\phi}(\mathbf  Z)]
+  \end{align}
+
+## Un peu d'intuition
+
+\centering \includegraphics[width=0.9\textwidth]{fig/rejection_sampling_Poisson.pdf}
+
+# Optimisation et inférence variationnelle
+
+
+
+
+
+### Objectif
+$$
+\hat{\theta}^{\text{VEM}}, \_=\operatorname{argmax}_{\theta, \phi}J_{\mathbf Y}(\theta, \phi)
+$$
+
+### Leviers
+- Changement de paramétrisation
+- Méthodes d'optimisations
+
+## Algorithme Variational EM (VEM)
 
 - EM Variationnel (VEM) :
   - Maximisation alternée de $J_{\mathbf Y}(\theta, \phi)$.
@@ -95,6 +149,70 @@ $$\hat{\theta}^{\text{VEM}}=\operatorname{argmax}_{\theta, \phi}J_{\mathbf Y}(\t
       $$\phi^{(t)} =\operatorname{argmax}_{\phi}  J_{\mathbf Y}(\theta^{(t)},  \phi)$$
     - Etape de maximisation (M) :
       $$\theta^{(t+1)}=\operatorname{argmax}_{\theta}  \; J_{\mathbf Y}(\theta,  \phi^{(t)})$$
+  - $J_{\mathbf Y}(\theta^{(t+1)}, \phi^{(t+1)})> J_{\mathbf Y}(\theta^{(t)}, \phi^{(t)})$
+
+- Maximisation alternée de $J_{\mathbf Y}(\theta, \phi)$.
+- Un problème d'optimisation à chaque itération
+- Très couteux
+
+
+
+## Différentes paramétrisations
+
+Paramétrisations équivalentes du modèle PLN:
+
+\begin{align}
+    Y_{ij}| Z_{ij} & \sim \mathcal P(\exp(Z_{ij})),   &&\mathbf  Z_i \sim \mathcal N( \mathbf B^{\top}\mathbf x_i, \boldsymbol \Sigma),\tag{PLN-closed}\\
+    Y_{ij}| Z_{ij} & \sim \mathcal P(\exp(\mathbf B_j^{\top} \mathbf X_i + Z_{ij})),   &&\mathbf Z_i \sim \mathcal N(\mathbf  0_{p}, \boldsymbol \Sigma), \tag{PLN-0} \label{impl:eq:PLN-0}\\
+    Y_{ij}| \mathbf Z_i & \sim \mathcal P(\exp(\mathbf B_j^{\top} \mathbf x_i + \mathbf C_j^{\top}\mathbf Z_i)),
+       &&\mathbf Z_i\sim \mathcal N(\mathbf 0_{p}, \mathbf I_p).\tag{PLN-PF}
+    \label{impl:eq:PLN-PF}
+\end{align}
+
+
+## Formes close
+
+En fonction de la paramétrisation, l'étape de maximisation peut être plus ou moins complexe.
+
+- PLN-closed: Forme close sur  $\mathbf B$ et $\boldsymbol \Sigma$
+- PLN-0: Forme close pour $\mathbf B$
+- PLN-PF: Aucune forme close
+
+## Approche brutale
+
+- Montée de gradient directe:
+  $$\theta^{(t+1)}, \phi^{(t+1)} = (\theta^{(t)}, \phi^{(t)}) + \eta_t \nabla_{\theta, \phi}(J_{\mathbf Y}(\theta^{(t)}, \phi^{(t)}))$$
+
+  $\eta_t$>0 : pas d'apprentissage.
+
+- Pas de garantie sur le signe de $J_{\mathbf Y}(\theta^{(t+1)}, \phi^{(t+1)})- J_{\mathbf Y}(\theta^{(t)}, \phi^{(t)})$
+
+- Convergence plus rapide en pratique, avec le bon optimiseur (choix de $\eta_t$).
+- Très bon résultat avec l'optimiseur Rprop.
+
+## Approche mixte profilé
+
+- Si l'étape E est une forme close : $(\mathbf B^{(t+1)}, \boldsymbol{\Sigma}^{(t+1)}) = H(\phi)$ avec
+
+$$\nabla_{\theta}J(\theta,\phi)\mid_{\theta = H(\phi)}  = 0.$$
+
+- On peut définir l'ELBO profilé
+
+$$\tilde J_{\mathbf Y}(\phi) = J_{\mathbf Y}(H(\phi), \phi)$$
+
+- Réduction drastique du nombre de paramètres
+- Gagne une inversion de matrice
+
+
+## Simulations
+
+\centering \includegraphics[width=0.9\textwidth]{fig/parametrizations.png}
+
+
+
+# Normalité asymptotique (Soumis à JCGS)
+
+
 
 ## Garanties de $\hat{\theta}^{\text{VEM}}$
 
@@ -111,9 +229,6 @@ $$\hat{\theta}^{\text{VEM}}, \hat{\phi}=\operatorname{argmax}_{\theta, \phi}J_{\
 
   $$ \sqrt{n}\left(\hat{\theta}^{\text{VEM}} - \theta^{\star}\right) \xrightarrow[]{d} ? $$
 
-## Un peu d'intuition
-
-\centering \includegraphics[width=0.9\textwidth]{fig/rejection_sampling_Poisson.pdf}
 
 ## Estimateur biaisé ?
 
@@ -159,7 +274,7 @@ avec $V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}$ et
 
 ## Simulations
 
-\centering\includegraphics[width=0.5\textwidth]{fig/qqplots.pdf}
+\centering\includegraphics[width=0.8\textwidth]{fig/qqplots.pdf}
 
 ## Simulations
 
@@ -167,14 +282,21 @@ avec $V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}$ et
 
 ## Application
 
-\centering \includegraphics[width=0.52\textwidth]{fig/real_coverage.pdf}
+\centering \includegraphics[width=0.82\textwidth]{fig/real_coverage.pdf}
 
 
 
+## Limites et perspectives
 
+### Limites
+- Calcul de l'estimateur Sandwich laborieux
+- Estimateur biaisé pour certains modèles
 
+### Perspectives
+- Automatisation de l'estimation de la variance (autograd, \texttt{jax}, \texttt{functorch}) à d'autres modèles PLN.
+- Calcul pour d'autres paramètres que celui de la régression.
 
-## Callouts
+## Perspective
 
 ::: {.callout-note}
 A note
