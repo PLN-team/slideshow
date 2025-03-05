@@ -1,0 +1,105 @@
+
+# Background on <br/> the Poisson-lognormal Family <br/> Model, inference
+
+
+---
+
+### The Poisson Lognormal model (PLN)
+
+PLN [@AiH89] is a [multivariate generalized linear model]{.alert}, where
+
+- the counts $\mathbf{Y}_i\in\mathbb{N}^p$ are the response variables
+- the main effect is due to a linear combination of the covariates $\mathbf{x}_i\in\mathbb{R}^d$
+- a vector of offsets $\mathbf{o}_i\in\mathbb{R}^p$ can be specified
+
+$$
+\quad \mathbf{Y}_i | \mathbf{Z}_i \sim^{\text{iid}} \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\underbrace{\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}}}_{{\boldsymbol\mu}_i},\boldsymbol\Sigma).
+$$
+
+Typically, $n\approx 10s \to 1000s$, $p\approx 10s \to 1000s$, $d \approx 1 \to 10$
+
+## Natural extensions of PLN
+
+#### Various tasks of multivariate analysis
+
+  - **Dimension Reduction**: rank constraint matrix $\boldsymbol\Sigma$. <small>[@PLNPCA]</small>
+
+    $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
+
+  - **Network inference**: sparsity constraint on inverse covariance. <small>[@PLNnetwork]</small>
+  $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 < c.$$
+
+---
+
+#### Various tasks of multivariate analysis: Classification
+
+  - **Unsupervised**: mixture model in the latent space <small>[@PLNmodels]</small>
+
+  $$\mathbf{Z}_i \mid c_i = k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships } c_i.$$
+
+  - **Supervised**: maximize separation between groups with means <small>[@PLNmodels]</small>
+
+  $$\mathbf{Z}_i \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{c_i= k\}}, \boldsymbol\Sigma), \quad \text{for known memberships } c_i.$$
+
+
+---
+
+#### Various tasks of multivariate analysis: Zero-inflation
+
+  - **Zero-inflation**: Add a zero inflation latent variable <small>[@PLNmodels]</small>
+    $$\mathbf{W}_i \sim \mathcal{B}(\sigma(\boldsymbol{\mu}^{0}_i)), \quad  \mathbf Y_i \sim (1 - \mathbf W_i)\odot \mathcal P(\exp(\mathbf Z_i))$$
+
+  - **Dimension reduction** and **Zero Inflation**: Add a rank constraint on $\boldsymbol \Sigma$
+
+---
+
+#### Various tasks of multivariate analysis: autogressive models
+
+  - **Autoregressive**: Assume dependency between individuals
+
+  $$\mathbf{Z}_{i+1} = \Phi \mathbf Z_i  + \epsilon_i $$
+
+# Estimation
+
+## Estimation
+
+Estimate $\theta = (\mathbf{B}, {\boldsymbol\Sigma})$, predict the $\mathbf{Z}_i$, while  the model marginal likelihood is
+
+\begin{equation*}
+p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{ij}) \, p_\theta(\mathbf{Z}_i) \mathrm{d}\mathbf{Z}_i
+\end{equation*}
+
+- Untractable likelihood
+
+- EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$, but there is no close form!
+
+- $\implies$ variational EM
+
+## Variational Inference
+
+Use a proxy $q_\psi$ of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$ minimizing a divergence in a class $\mathcal{Q}$ (e.g, Küllback-Leibler)
+
+\begin{equation*}
+q_\psi(\mathbf{Z})^\star \in \arg\min_{q\in\mathcal{Q}} KL\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right).
+\end{equation*}
+
+and maximize the ELBO (Evidence Lower BOund)
+
+\begin{equation*}
+J(\theta, \psi) = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \mathcal{H}[q_\psi(\mathbf{Z})]
+\end{equation*}
+
+## Optimisation methods
+
+- Standard approach: alternative maximization of the ELBO: VE-step and M-step.
+
+- Brute-force approach:
+
+    $$(\theta^{(t+1)}, \psi^{(t+1)}) = (\theta^{(t+1)}, \psi^{(t+1)}) + \eta_t \nabla_{\theta, \psi} J(\theta^{(t)}, \psi^{(t)})$$
+
+## Estimator properties
+
+- Variance is available for the regression coefficient of PLN model (only)
+  $\implies$ **confidence intervals** and **hypothesis testing**.
+
+- May be biased for some models

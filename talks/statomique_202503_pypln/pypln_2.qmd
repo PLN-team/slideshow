@@ -1,0 +1,42 @@
+
+
+
+
+## predict newly observed data
+
+The `PlnLDA` allows to predict newly observed data.
+
+::: {.panel-tabset}
+
+### Training
+
+```{python}
+#| code-line-numbers: "4-7|8-9"
+#| echo: true
+from pyPLNmodels import PlnLDA, plot_confusion_matrix
+ntrain = 500
+endog_train, endog_test = rna["endog"][:ntrain],rna["endog"][ntrain:]
+labels_train, labels_test = rna["labels"][:ntrain], rna["labels"][ntrain:]
+lda = PlnLDA(endog_train, clusters = labels_train).fit()
+pred_test = lda.predict_clusters(endog_test)
+```
+
+### Confusion matrix
+
+```{python}
+# | echo: true
+plot_confusion_matrix(pred_test, labels_test)
+```
+
+:::
+
+## Zero-inflation investigation
+
+```{python}
+# | echo: true
+import seaborn as sns
+from pyPLNmodels import ZIPln
+zi = ZIPln(rna["endog"], exog = rna["labels_1hot"], add_const = False).fit()
+sns.heatmap(zi.latent_prob)
+plt.show()
+```

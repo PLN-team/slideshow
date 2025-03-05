@@ -1,11 +1,15 @@
 ---
-title: "pyPLNmodels: analyze multivariate count data"
+title: "`pyPLNmodels`: analyze multivariate count data"
 subtitle: "Groupe de travail StatOmique"
 author:
   - name: "**Bastien Batardière**"
+    affiliations: MIA Paris-Saclay, INRAE
   - name: Joon Kwon
+    affiliations: MIA Paris-Saclay, INRAE
   - name: Mahendra Mariadassou
+    affiliations: MaIAGE, INRAE
   - name: Julien Chiquet
+    affiliations: MIA Paris-Saclay, INRAE
 
 date: today
 date-format: long
@@ -13,35 +17,33 @@ mainfont: Poppins
 format:
   inrae-revealjs:
     lang: fr
+    height: 780
+    margin: 0.2
+bibliography: ref.bib
+execute:
+    cache: true
+
     ## Uncomment if you want a footer for title slide :
     # title-slide-attributes:
     #     data-footer: "<a rel='license' href='https://www.etalab.gouv.fr/licence-ouverte-open-licence/'><img alt='Creative Commons License' style='border-width:0; width:200px' src='https://www.etalab.gouv.fr/wp-content/uploads/2011/10/licence-ouverte-open-licence.gif' /><br></a>This work is licensed under an <a rel='license' href='https://www.etalab.gouv.fr/licence-ouverte-open-licence/'>Open Licence</a>."
 ---
 
-# Header 1
+{{< include introduction.qmd >}}
 
-## Header 2
 
-### Header 3
+{{< include plnbackground.qmd >}}
 
-Normal text
+{{< include pypln_1.qmd >}}
 
-**Bold text**
+{{< include pypln_2.qmd >}}
 
-*italics*
 
-~~strikethrough~~
+{{< include zipln.qmd > }}
 
-[links](https://www.xaringan.gallery/).
+{{< include arpln.qmd > }}
 
-## Code expressions
 
-Code chunks and output
 
-```{r}
-#| echo: true
-lm(mpg ~ disp, data = mtcars)
-```
 
 ## Block quotes
 
@@ -90,3 +92,6 @@ An important message
 | Oranges   | $2.10     | - cures            |
 |           |           | - tasty            |
 +-----------+-----------+--------------------+
+
+
+## References

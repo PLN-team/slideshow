@@ -1,0 +1,104 @@
+---
+
+## Motivation: multivariate count data
+
+---
+
+
+### Single cell RNA-seq data.
+
+<img src="figures/matrix.png" width="100%">
+
+---
+
+
+## Data tables
+
+ - `endog`: endogenous count variables (read counts of transcripts $j$ in sample $i$)
+ - `exog`: exogenous variables (available covariates)
+ - `offsets` sampling effort for transcripts $j$ in sample $i$
+
+## Goals
+
+  - understand covariates (regression, classification)
+  - exhibit patterns (clustering, dimension reduction)
+  - understand between-genes interactions (covariance analysis)
+  - explain zero inflation
+
+---
+
+#### Illustration: scMARK dataset [@scMARK]
+
+
+
+
+```{python}
+#| echo: true
+from pyPLNmodels import load_scrna
+rna = load_scrna(n_samples = 2000, dim = 3000)
+rna.keys()
+```
+
+## Data description
+
+```{python}
+import pandas as pd
+pd.set_option('display.float_format', lambda x: '%.0f' % x)
+rna["endog"].describe()
+```
+
+## Data description
+
+```{python}
+import pandas as pd
+pd.set_option('display.float_format', lambda x: '%.0f' % x)
+category_counts = rna["labels"].value_counts()
+print(category_counts)
+```
+
+## Data description
+
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+total_counts = rna['endog'].sum(axis=1)
+
+fig, axes = plt.subplots(1, 2, figsize = (15,8))
+
+# Plotting the histogram
+axes[0].hist(total_counts, bins=30)
+axes[1].hist(np.log(total_counts), bins=30)
+axes[0].set_xlabel('Sum of counts')
+axes[1].set_xlabel('Log sum of counts')
+axes[0].set_ylabel('Frequency')
+# plt.xlim(0,0.3)
+axes[0].grid(True)
+axes[1].grid(True)
+axes[0].set_title("Histogram of sum of counts")
+axes[1].set_title("Histogram of log sum of counts")
+plt.show()
+```
+
+
+## Data description
+
+```{python}
+import seaborn as sns
+fig, axes = plt.subplots(1, 2, figsize=(15, 8))
+sum_counts = rna['endog'].sum(axis=1)
+log_sum_counts = np.log(sum_counts)
+
+labels = rna['labels']
+
+df = pd.DataFrame({'Sum counts': sum_counts, 'Log sum counts': log_sum_counts, 'labels': labels})
+
+# Plotting the kdeplot
+sns.histplot(df, x='Sum counts', hue='labels', fill=True, ax=axes[0])
+
+# Plotting the kdeplot
+sns.histplot(df, x='Log sum counts', hue='labels', fill=True, ax=axes[1])
+
+plt.show()
+```

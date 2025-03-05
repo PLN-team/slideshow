@@ -1,0 +1,135 @@
+## `pyPLNmodels`: motivation
+
+#### Supervised learning: cell type classification
+
+
+```{python}
+import os
+import sys
+from contextlib import contextmanager
+from pyPLNmodels import PlnLDA, plot_confusion_matrix
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, 'w') as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
+
+```
+
+```{python}
+#| echo: true
+from sklearn.model_selection import train_test_split
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+
+def get_classif_error(data, y):
+    data_train, data_test, y_train, y_test = train_test_split(data, y, test_size=0.33, random_state=42)
+    lda = LDA()
+    lda.fit(data_train, y_train)
+    y_pred = lda.predict(data_test)
+    return np.mean(y_pred != y_test)
+```
+
+### Classif error on raw counts
+```{python}
+#| echo: true
+rna = load_scrna(n_samples = 1000)
+print('Classif error:',get_classif_error(rna["endog"], rna["labels"]))
+```
+---
+
+### Classif error on inferred latent space
+```{python}
+#| echo: true
+from pyPLNmodels import Pln
+latent_variables = Pln(rna["endog"]).fit().latent_variables
+print("Classif error: ", get_classif_error(latent_variables, rna["labels"]))
+```
+---
+
+### Qualitative assessment
+
+<img src="figures/plnpca_vs_pca_french.png" width="100%">
+
+
+# `pyPLNmodels`: introduction
+
+## How to fit a model
+
+
+
+
+#### Like R-formula
+
+
+```{python}
+# | echo: true
+from pyPLNmodels import Pln
+pln = Pln.from_formula("endog ~ labels ", data = rna)
+_ = pln.fit()
+```
+:::{.fragment}
+
+
+#### Explicitly
+
+
+```{python}
+# | echo: true
+from pyPLNmodels import Pln
+pln = Pln(rna["endog"], exog = rna["labels_1hot"], add_const = False)
+_ = pln.fit()
+```
+:::
+
+---
+
+### Attributes and method
+Available when calling `print(model)`:
+```{python}
+# | echo: true
+print(pln)
+```
+
+---
+## Insights
+
+
+```{python}
+# | echo: true
+pln.show(figsize = (10, 8))
+```
+
+
+## Insights
+
+```{python}
+# | echo: true
+pln.plot_regression_forest()
+```
+
+---
+
+:::{.panel-tabset}
+
+###  Genes correlation
+
+The `PlnNetwork` allows to infer genes that are highly correlated.
+
+
+
+### Network visualization
+
+```{python}
+# | echo: true
+from pyPLNmodels import PlnNetwork
+net = PlnNetwork(rna["endog"], penalty = 2000, compute_offsets_method = "logsum").fit()
+fig, ax = plt.subplots(1, 1, figsize = (12, 5))
+net.viz_network(ax=ax)
+```
+
+:::
