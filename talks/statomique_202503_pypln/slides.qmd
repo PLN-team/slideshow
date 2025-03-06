@@ -37,7 +37,6 @@ execute:
 
 {{< include pypln_2.qmd >}}
 
-
 {{< include zipln.qmd > }}
 
 {{< include arpln.qmd > }}

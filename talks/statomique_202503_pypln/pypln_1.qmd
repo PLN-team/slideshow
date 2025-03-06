@@ -1,8 +1,10 @@
 ## `pyPLNmodels`: motivation
 
+---
+
 ::: {.panel-tabset}
 
-### Supervised learning: cell type classification
+### Supervised learning
 
 
 ```{python}
@@ -18,7 +20,7 @@ def get_classif_error(data, y):
     return np.mean(y_pred != y_test)
 ```
 
-### Classif error on raw counts
+### Classif on $\mathbf Y$
 
 ```{python}
 #| echo: true
@@ -26,7 +28,7 @@ rna = load_scrna(n_samples = 1000)
 print('Classif error:',get_classif_error(rna["endog"], rna["labels"]))
 ```
 
-### Classif error on inferred latent space
+### Classif on $\mathbf Z$
 ```{python}
 #| echo: true
 from pyPLNmodels import Pln
@@ -34,6 +36,8 @@ latent_variables = Pln(rna["endog"]).fit().latent_variables
 print("Classif error: ", get_classif_error(latent_variables, rna["labels"]))
 ```
 :::
+
+---
 
 ### Qualitative assessment
 
@@ -106,7 +110,7 @@ pln.plot_regression_forest()
 
 - $$\| \Sigma^{-1} \|_1 \leq \text{penalty}$$
 
-- $$\Sigma_{ij} = \text{Corr}(Z_i, Z_j)$$
+- $$\Sigma^{-1}_{ij} = \text{Corr}(Z_i, Z_j)$$
 
 -  Still differentiable ELBO.
 

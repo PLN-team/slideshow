@@ -11,7 +11,7 @@ The `PlnLDA` allows to predict newly observed data. It performs LDA on the laten
 ### Training
 
 ```{python}
-#| code-line-numbers: "4-7|8-9"
+#| code-line-numbers: "8-9|4-7"
 #| echo: true
 from pyPLNmodels import PlnLDA, plot_confusion_matrix
 ntrain = 500

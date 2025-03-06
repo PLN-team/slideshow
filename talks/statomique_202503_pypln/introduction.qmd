@@ -1,9 +1,8 @@
 ---
 
-## Motivation: multivariate count data
+# Motivation: multivariate count data
 
 ---
-
 
 ### Single cell RNA-seq data.
 
