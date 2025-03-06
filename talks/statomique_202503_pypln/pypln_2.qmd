@@ -1,4 +1,3 @@
-
 ## predict newly observed data
 
 The `PlnLDA` allows to predict newly observed data. It performs LDA on the latent space.

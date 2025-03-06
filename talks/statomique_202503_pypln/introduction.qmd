@@ -13,9 +13,9 @@
 
 ## Data tables
 
- - `endog`: endogenous count variables (read counts of transcripts $j$ in sample $i$)
- - `exog`: exogenous variables (available covariates)
- - `offsets` sampling effort for transcripts $j$ in sample $i$
+ - `endog`: $\mathbf Y$,   endogenous count variables (read counts of transcripts $j$ in sample $i$)
+ - `exog`: $\mathbf X$,   exogenous variables (available covariates)
+ - `offsets` $\mathbf O$,  sampling effort for transcripts $j$ in sample $i$
 
 ## Goals
 

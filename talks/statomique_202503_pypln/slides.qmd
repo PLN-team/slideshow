@@ -16,6 +16,7 @@ date-format: long
 mainfont: Poppins
 format:
   inrae-revealjs:
+    incremental: true
     lang: fr
     height: 780
     margin: 0.2
@@ -37,10 +38,6 @@ execute:
 
 {{< include pypln_2.qmd >}}
 
-{{< include zipln.qmd > }}
-
-{{< include arpln.qmd > }}
-
 ## Zero Inflated PLN
 
 Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure
@@ -53,14 +50,141 @@ $$\begin{array}{rrl}
 
 $\rightsquigarrow$ Better handling of zeros +additional interpretable parameters.
 
-Still $\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}]$
+Still $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}]$$
 
 ## Zero-inflation modelling
 
 
 $$  \pi_{ij}  = \sigma( \boldsymbol X^{0}\boldsymbol B^0)_{ij}, ~ \boldsymbol X^0 \in \mathbb R^{n \times d_0}, ~ \boldsymbol B^0 \in \mathbb R^{d_0\times p}$$
 
+- Other modelling possibilities (one for all, one per dimension, etc. )
 
+
+## Identifiabiliy
+
+Identifiability of the model is ensured if the covariates $X^0$ are full rank.
+
+## Distribution of $W_{ij}| Y_{ij}$
+
+$$W_{ij} | Y_{ij}  \sim \mathcal{B}\left(\frac{\pi_{ij}}{ \varphi\left(\mathbf{x}_i^\top \boldsymbol B_j, \Sigma_{jj}\right)
+\left(1 - \pi_{ij}\right) + \pi_{ij}}\right) \boldsymbol 1_{\{Y_{ij} = 0\}}$$
+
+with $\varphi(\mu,\sigma^2) = \mathbb E \left[ \exp(-X)\right], ~ X \sim \mathcal L \mathcal N \left( \mu, \sigma^2\right)$.
+
+## Motivation: microcosm dataset
+
+---
+
+<div class="footer"></div>
+
+
+- Data: sequencing of the microbiota of 45 dairy cows
+
+::: {.column width="50%" .fragment .nonincremental}
+- from 4 sites:
+  - vagina
+  - mouth
+  - nose
+  - milk
+:::
+
+::: {.column width="50%" .fragment .nonincremental}
+- at 4 time points:
+  - 1 week before calving
+  - 1 month after
+  - 3 months after
+  - 7 months after
+:::
+
+
+## Data description
+
+- After data preprocessing $\implies p = 1209$ Amplicon Sequence Variants and $96$ \% zeros.
+
+```{python}
+from pyPLNmodels import load_microcosm
+micro = load_microcosm(n_samples = 1200, dim = 1300)
+total_counts = micro['endog'].sum(axis=1)
+
+fig, axes = plt.subplots(1, 2, figsize = (12,8))
+
+# Plotting the histogram
+axes[0].hist(total_counts, bins=30)
+axes[1].hist(np.log(total_counts), bins=30)
+axes[0].set_xlabel('Sum of counts')
+axes[1].set_xlabel('Log sum of counts')
+axes[0].set_ylabel('Frequency')
+# plt.xlim(0,0.3)
+axes[0].grid(True)
+axes[1].grid(True)
+axes[0].set_title("Histogram of sum of counts")
+axes[1].set_title("Histogram of log sum of counts")
+plt.show()
+```
+
+## `Pln` versus `ZIPln`
+
+---
+
+::: {.panel-tabset}
+
+### Fitting
+
+
+```{python}
+# | echo : true
+# | results: hide
+zi = ZIPln.from_formula("endog ~ site + time", micro).fit()
+pln = Pln.from_formula("endog ~ site + time", micro).fit()
+```
+
+### Expected vs counts
+
+
+```{python}
+fig, axes = plt.subplots(1,2, figsize = (12,8))
+zi.plot_expected_vs_true(ax = axes[0])
+pln.plot_expected_vs_true(ax = axes[1])
+plt.show()
+```
+
+### Latent space
+
+```{python}
+fig, axes = plt.subplots(1,2, figsize = (15,8))
+zi.viz(colors = micro["site"] + micro["time"], ax = axes[0])
+pln.viz(colors = micro["site"] + micro["time"], ax = axes[1])
+axes[0].set_xlabel("PCA 1", fontsize = 25)
+axes[1].set_xlabel("PCA 1", fontsize = 25)
+axes[0].set_ylabel("PCA 2", fontsize = 25)
+axes[0].set_title("ZIPLN")
+axes[1].set_title("PLN")
+axes[1].set_legend([])
+plt.show()
+```
+
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+{{< include arpln.qmd > }}
+
+
+## What's next?
+
+
+- Implement a `PlnAR` with full autorgressive structure.
+- Implement a collection of `PlnNetwork` and `PlnMixture` to directly find the BIC of the best model.
 
 ## Block quotes
 

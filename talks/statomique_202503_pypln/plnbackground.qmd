@@ -32,7 +32,6 @@ $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}] $$
 #### Various tasks of multivariate analysis
 
   - **Dimension Reduction**: rank constraint matrix $\boldsymbol\Sigma$. <small>[@PLNPCA]</small>
-
     $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
 
   - **Network inference**: sparsity constraint on inverse covariance. <small>[@PLNnetwork]</small>
@@ -43,11 +42,9 @@ $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}] $$
 #### Various tasks of multivariate analysis: Classification
 
   - **Unsupervised**: mixture model in the latent space <small>[@PLNmodels]</small>
-
   $$\mathbf{Z}_i \mid c_i = k  \sim \mathcal{N}(\boldsymbol\mu_k, \boldsymbol\Sigma_k), \quad \text{for unknown memberships } c_i.$$
 
   - **Supervised**: maximize separation between groups with means <small>[@PLNmodels]</small>
-
   $$\mathbf{Z}_i \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{c_i= k\}}, \boldsymbol\Sigma), \quad \text{for known memberships } c_i.$$
 
 
@@ -65,7 +62,6 @@ $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}] $$
 #### Various tasks of multivariate analysis: autogressive models
 
   - **Autoregressive**: Assume dependency between individuals
-
   $$\mathbf{Z}_{i+1} = \Phi \mathbf Z_i  + \epsilon_i $$
 
 # Estimation

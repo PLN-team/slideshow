@@ -6,6 +6,8 @@
 
 ### Supervised learning
 
+Suppose we aim to predict the cell type based on the scMARK dataset.
+
 
 ```{python}
 #| echo: true
@@ -102,7 +104,7 @@ pln.show(figsize = (10, 8))
 
 ```{python}
 # | echo: true
-pln.plot_regression_forest()
+pln.plot_regression_forest(figsize = (10,7))
 ```
 
 ---
