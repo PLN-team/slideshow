@@ -60,6 +60,11 @@ from pyPLNmodels import Pln
 pln = Pln.from_formula("endog ~ labels ", data = rna)
 _ = pln.fit()
 ```
+
+```{python}
+del(pln)
+```
+
 :::{.fragment}
 
 
@@ -123,6 +128,10 @@ from pyPLNmodels import PlnNetwork
 net = PlnNetwork(rna["endog"], penalty = 2000, compute_offsets_method = "logsum").fit()
 fig, ax = plt.subplots(1, 1, figsize = (12, 5))
 net.viz_network(ax=ax)
+```
+
+```{python}
+del(net)
 ```
 
 :::

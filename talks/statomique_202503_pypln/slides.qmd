@@ -41,6 +41,24 @@ execute:
 
 {{< include arpln.qmd > }}
 
+## Zero Inflated PLN
+
+Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure
+
+$$\begin{array}{rrl}
+  \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
+   \text{excess of zeros} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
+  \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
+\end{array}$$
+
+$\rightsquigarrow$ Better handling of zeros +additional interpretable parameters.
+
+Still $\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}]$
+
+## Zero-inflation modelling
+
+
+$$  \pi_{ij}  = \sigma( \boldsymbol X^{0}\boldsymbol B^0)_{ij}, ~ \boldsymbol X^0 \in \mathbb R^{n \times d_0}, ~ \boldsymbol B^0 \in \mathbb R^{d_0\times p}$$
 
 
 

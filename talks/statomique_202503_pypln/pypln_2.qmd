@@ -1,7 +1,4 @@
 
-
-
-
 ## predict newly observed data
 
 The `PlnLDA` allows to predict newly observed data. It performs LDA on the latent space.
@@ -11,7 +8,7 @@ The `PlnLDA` allows to predict newly observed data. It performs LDA on the laten
 ### Training
 
 ```{python}
-#| code-line-numbers: "8-9|4-7"
+#| code-line-numbers: "1-4|5-6"
 #| echo: true
 from pyPLNmodels import PlnLDA, plot_confusion_matrix
 ntrain = 500
@@ -19,6 +16,10 @@ endog_train, endog_test = rna["endog"][:ntrain],rna["endog"][ntrain:]
 labels_train, labels_test = rna["labels"][:ntrain], rna["labels"][ntrain:]
 lda = PlnLDA(endog_train, clusters = labels_train).fit()
 pred_test = lda.predict_clusters(endog_test)
+```
+
+```{python}
+del(lda)
 ```
 
 ### Confusion matrix
@@ -40,3 +41,10 @@ zi = ZIPln(rna["endog"], exog = rna["labels_1hot"], add_const = False).fit()
 sns.heatmap(zi.latent_prob)
 plt.show()
 ```
+
+```{python}
+del(zi)
+```
+
+
+---
