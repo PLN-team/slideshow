@@ -16,7 +16,9 @@ $$
 \quad \mathbf{Y}_i | \mathbf{Z}_i \sim^{\text{iid}} \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\underbrace{\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}}}_{{\boldsymbol\mu}_i},\boldsymbol\Sigma).
 $$
 
-Typically, $n\approx 10s \to 1000s$, $p\approx 10s \to 1000s$, $d \approx 1 \to 10$
+Typically, $n\approx 10s \to 10000s$, $p\approx 10s \to 10000s$, $d \approx 1 \to 10$
+
+$$\mathbb V[Y_{ij}] = $$
 
 ## Natural extensions of PLN
 
@@ -80,7 +82,7 @@ p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{
 Use a proxy $q_\psi$ of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$ minimizing a divergence in a class $\mathcal{Q}$ (e.g, Küllback-Leibler)
 
 \begin{equation*}
-q_\psi(\mathbf{Z})^\star \in \arg\min_{q\in\mathcal{Q}} KL\left(q(\mathbf{Z}), p(\mathbf{Z} | \mathbf{Y})\right).
+q_\psi(\mathbf{Z})^\star \in \arg\min_{q\in\mathcal{Q}} KL\left(q(\mathbf{Z}), p_{\theta}(\mathbf{Z} | \mathbf{Y})\right).
 \end{equation*}
 
 and maximize the ELBO (Evidence Lower BOund)
@@ -102,4 +104,4 @@ J(\theta, \psi) = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \m
 - Variance is available for the regression coefficient of PLN model (only)
   $\implies$ **confidence intervals** and **hypothesis testing**.
 
-- May be biased for some models
+- Estimator may be biased for some models

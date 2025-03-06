@@ -1,1 +1,19 @@
 # Zero Inflated PLN
+
+Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure
+
+$$\begin{array}{rrl}
+  \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
+   \text{excess of zeros} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
+  \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim^\text{indep} W_{ij}\delta_0 + (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
+\end{array}$$
+
+$\rightsquigarrow$ Better handling of zeros +additional interpretable parameters
+
+
+#### Basic properties
+
+Letting $A_{ij} \triangleq \exp \left( o_{ij} + \mu_{ij} + \sigma_{jj}/2\right)$ with $\mu_{ij} = \mathbf{x}_i^\intercal \mathbf{B}_j$, then
+
+- $\mathbb{E}\left(Y_{ij}\right) =  (1-\pi_{ij}) A_{ij} \leq A_{ij}$ (PLN's mean),
+- $\mathbb{V}\left(Y_{ij}\right) = (1-\pi_{ij})A_{ij} + (1-\pi_{ij})A_{ij}^2 \left( e^{\sigma_{jj}} - (1-\pi_{ij}) \right)$.

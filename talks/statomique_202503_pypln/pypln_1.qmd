@@ -1,25 +1,9 @@
 ## `pyPLNmodels`: motivation
 
-#### Supervised learning: cell type classification
+::: {.panel-tabset}
 
+### Supervised learning: cell type classification
 
-```{python}
-import os
-import sys
-from contextlib import contextmanager
-from pyPLNmodels import PlnLDA, plot_confusion_matrix
-
-@contextmanager
-def suppress_stdout():
-    with open(os.devnull, 'w') as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
-
-```
 
 ```{python}
 #| echo: true
@@ -35,12 +19,12 @@ def get_classif_error(data, y):
 ```
 
 ### Classif error on raw counts
+
 ```{python}
 #| echo: true
 rna = load_scrna(n_samples = 1000)
 print('Classif error:',get_classif_error(rna["endog"], rna["labels"]))
 ```
----
 
 ### Classif error on inferred latent space
 ```{python}
@@ -49,7 +33,7 @@ from pyPLNmodels import Pln
 latent_variables = Pln(rna["endog"]).fit().latent_variables
 print("Classif error: ", get_classif_error(latent_variables, rna["labels"]))
 ```
----
+:::
 
 ### Qualitative assessment
 
@@ -118,8 +102,13 @@ pln.plot_regression_forest()
 
 ###  Genes correlation
 
-The `PlnNetwork` allows to infer genes that are highly correlated.
+- The `PlnNetwork` allows to infer genes that are highly correlated, by imposing a constraint:
 
+- $$\| \Sigma^{-1} \|_1 \leq \text{penalty}$$
+
+- $$\Sigma_{ij} = \text{Corr}(Z_i, Z_j)$$
+
+-  Still differentiable ELBO.
 
 
 ### Network visualization

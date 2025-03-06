@@ -24,8 +24,8 @@ execute:
     cache: true
 
     ## Uncomment if you want a footer for title slide :
-    # title-slide-attributes:
-    #     data-footer: "<a rel='license' href='https://www.etalab.gouv.fr/licence-ouverte-open-licence/'><img alt='Creative Commons License' style='border-width:0; width:200px' src='https://www.etalab.gouv.fr/wp-content/uploads/2011/10/licence-ouverte-open-licence.gif' /><br></a>This work is licensed under an <a rel='license' href='https://www.etalab.gouv.fr/licence-ouverte-open-licence/'>Open Licence</a>."
+    title-slide-attributes:
+        data-footer: "<a rel='documentation' href='https://bbatardiere.pages.mia.inra.fr/pyplnmodels/'></a>."
 ---
 
 {{< include introduction.qmd >}}
