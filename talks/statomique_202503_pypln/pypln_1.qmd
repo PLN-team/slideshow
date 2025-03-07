@@ -1,4 +1,11 @@
-## `pyPLNmodels`: motivation
+# `pyPLNmodels`
+
+### Philosophy
+
+
+- `pyPLNmodels` is the equivalent python package of the R package `PLNmodels`.
+- With some hindsight
+- Emphasis is given on the optimization: simple and efficient.
 
 ---
 

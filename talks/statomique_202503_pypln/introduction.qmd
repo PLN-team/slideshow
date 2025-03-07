@@ -1,8 +1,15 @@
----
-
 # Motivation: multivariate count data
 
 ---
+
+## Overview
+
+- **Data**: single cell RNA-seq data
+- **Introduction**: PLN models
+- **Run** some examples of `pyPLNmodels`
+- Focus on **ZIPln** and **PlnAR**
+
+
 
 ### Single cell RNA-seq data.
 

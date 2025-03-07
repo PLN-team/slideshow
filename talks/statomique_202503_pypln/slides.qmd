@@ -16,7 +16,6 @@ date-format: long
 mainfont: Poppins
 format:
   inrae-revealjs:
-    incremental: true
     lang: fr
     height: 780
     margin: 0.2
@@ -25,8 +24,8 @@ execute:
     cache: true
 
     ## Uncomment if you want a footer for title slide :
-    title-slide-attributes:
-        data-footer: "<a rel='documentation' href='https://bbatardiere.pages.mia.inra.fr/pyplnmodels/'></a>."
+    # title-slide-attributes:
+        # data-footer: "<a rel='documentation' href='https://bbatardiere.pages.mia.inra.fr/pyplnmodels/'></a>."
 ---
 
 {{< include introduction.qmd >}}
@@ -103,14 +102,14 @@ with $\varphi(\mu,\sigma^2) = \mathbb E \left[ \exp(-X)\right], ~ X \sim \mathca
 
 ```{python}
 from pyPLNmodels import load_microcosm
-micro = load_microcosm(n_samples = 1200, dim = 1300)
+micro = load_microcosm(n_samples = 300, dim = 500)
 total_counts = micro['endog'].sum(axis=1)
 
 fig, axes = plt.subplots(1, 2, figsize = (12,8))
 
 # Plotting the histogram
 axes[0].hist(total_counts, bins=30)
-axes[1].hist(np.log(total_counts), bins=30)
+axes[1].hist(np.log(total_counts + 1), bins=30)
 axes[0].set_xlabel('Sum of counts')
 axes[1].set_xlabel('Log sum of counts')
 axes[0].set_ylabel('Frequency')
@@ -159,25 +158,12 @@ axes[1].set_xlabel("PCA 1", fontsize = 25)
 axes[0].set_ylabel("PCA 2", fontsize = 25)
 axes[0].set_title("ZIPLN")
 axes[1].set_title("PLN")
-axes[1].set_legend([])
+axes[1].get_legend().set_visible(False)
 plt.show()
 ```
 
 :::
 
-
-
-
-
-
-
-
-
-
-
-
-
-{{< include arpln.qmd > }}
 
 
 ## What's next?
