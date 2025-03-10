@@ -1,7 +1,11 @@
 
 # Background on <br/> the Poisson-lognormal Family <br/> Model, inference
 
+<div class="footer"></div>
+
 ---
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 :::{.fragment}
 
@@ -27,7 +31,60 @@ $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}] $$
 
 :::
 
+---
+
+# Why use PLN models?
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+::: {.panel-tabset}
+
+### LDA
+
+Suppose we aim to predict the cell type based on the scMARK dataset.
+
+
+```{python}
+#| echo: true
+from sklearn.model_selection import train_test_split
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+
+def get_classif_error(data, y):
+    data_train, data_test, y_train, y_test = train_test_split(data, y, test_size=0.33, random_state=42)
+    lda = LDA()
+    lda.fit(data_train, y_train)
+    y_pred = lda.predict(data_test)
+    return np.mean(y_pred != y_test)
+```
+
+### Classif on $\mathbf Y$
+
+```{python}
+#| echo: true
+rna = load_scrna(n_samples = 1000)
+print('Classif error:',get_classif_error(rna["endog"], rna["labels"]))
+```
+
+### Classif on $\mathbb E \left[\mathbf Z|\mathbf Y\right]$
+```{python}
+#| echo: true
+from pyPLNmodels import Pln
+latent_variables = Pln(rna["endog"]).fit().latent_variables
+print("Classif error: ", get_classif_error(latent_variables, rna["labels"]))
+```
+:::
+
+---
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+### Qualitative assessment
+
+<img src="figures/plnpca_vs_pca_french.png" width="100%">
+
 ## Natural extensions of PLN
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 #### Various tasks of multivariate analysis
 
@@ -38,6 +95,8 @@ $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}] $$
   $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 < c.$$
 
 ---
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 #### Various tasks of multivariate analysis: Classification
 
@@ -50,6 +109,8 @@ $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}] $$
 
 ---
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 #### Various tasks of multivariate analysis: Zero-inflation
 
   - **Zero-inflation**: Add a zero inflation latent variable <small>[@PLNmodels]</small>
@@ -59,14 +120,21 @@ $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}] $$
 
 ---
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 #### Various tasks of multivariate analysis: autogressive models
 
   - **Autoregressive**: Assume dependency between individuals
   $$\mathbf{Z}_{i+1} = \Phi \mathbf Z_i  + \epsilon_i $$
 
+
 # Estimation
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 ## Estimation
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 Estimate $\theta = (\mathbf{B}, {\boldsymbol\Sigma})$, predict the $\mathbf{Z}_i$, while  the model marginal likelihood is
 
@@ -82,6 +150,9 @@ p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{
 
 ## Variational Inference
 
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 Use a proxy $q_\psi$ of $p_\theta(\mathbf{Z}\,|\,\mathbf{Y})$ minimizing a divergence in a class $\mathcal{Q}$ (e.g, Küllback-Leibler)
 
 \begin{equation*}
@@ -96,6 +167,8 @@ J(\theta, \psi) = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \m
 
 ## Optimisation methods
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 - Standard approach: alternative maximization of the ELBO: VE-step and M-step.
 
 - Brute-force approach:
@@ -103,6 +176,8 @@ J(\theta, \psi) = \mathbb{E}_{\psi} [\log p_\theta(\mathbf{Y}, \mathbf{Z})] + \m
     $$(\theta^{(t+1)}, \psi^{(t+1)}) = (\theta^{(t+1)}, \psi^{(t+1)}) + \eta_t \nabla_{\theta, \psi} J(\theta^{(t)}, \psi^{(t)})$$
 
 ## Estimator properties
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 - Variance is available for the regression coefficient of PLN model (only)
   $\implies$ **confidence intervals** and **hypothesis testing**.

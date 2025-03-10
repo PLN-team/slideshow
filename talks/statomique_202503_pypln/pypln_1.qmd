@@ -1,62 +1,27 @@
-# `pyPLNmodels`
+---
 
-### Philosophy
+# $\texttt{pyPLNmodels}$
 
 
-- `pyPLNmodels` is the equivalent python package of the R package `PLNmodels`.
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+## About PLNmodels
+
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+::: {.incremental}
+- $\texttt{pyPLNmodels}$ is the equivalent python package of the R package $\texttt{PLNmodels}$ [@PLNmodels].
 - With some hindsight
 - Emphasis is given on the optimization: simple and efficient.
-
----
-
-::: {.panel-tabset}
-
-### Supervised learning
-
-Suppose we aim to predict the cell type based on the scMARK dataset.
-
-
-```{python}
-#| echo: true
-from sklearn.model_selection import train_test_split
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-
-def get_classif_error(data, y):
-    data_train, data_test, y_train, y_test = train_test_split(data, y, test_size=0.33, random_state=42)
-    lda = LDA()
-    lda.fit(data_train, y_train)
-    y_pred = lda.predict(data_test)
-    return np.mean(y_pred != y_test)
-```
-
-### Classif on $\mathbf Y$
-
-```{python}
-#| echo: true
-rna = load_scrna(n_samples = 1000)
-print('Classif error:',get_classif_error(rna["endog"], rna["labels"]))
-```
-
-### Classif on $\mathbf Z$
-```{python}
-#| echo: true
-from pyPLNmodels import Pln
-latent_variables = Pln(rna["endog"]).fit().latent_variables
-print("Classif error: ", get_classif_error(latent_variables, rna["labels"]))
-```
+- Implementation of $\texttt{PlnAR}$ and $\texttt{ZIPlnPCA}$ models
 :::
 
----
-
-### Qualitative assessment
-
-<img src="figures/plnpca_vs_pca_french.png" width="100%">
-
-
-# `pyPLNmodels`: introduction
 
 ## How to fit a model
 
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 
 
@@ -90,8 +55,10 @@ _ = pln.fit()
 
 ---
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 ### Attributes and method
-Available when calling `print(model)`:
+Available when calling $\texttt{print(model)}$`:
 ```{python}
 # | echo: true
 print(pln)
@@ -101,6 +68,8 @@ print(pln)
 ## Insights
 
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 ```{python}
 # | echo: true
 pln.show(figsize = (10, 8))
@@ -109,18 +78,24 @@ pln.show(figsize = (10, 8))
 
 ## Insights
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 ```{python}
 # | echo: true
-pln.plot_regression_forest(figsize = (10,7))
+pln.plot_regression_forest(figsize = (11,6))
 ```
 
 ---
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 :::{.panel-tabset}
 
 ###  Genes correlation
 
-- The `PlnNetwork` allows to infer genes that are highly correlated, by imposing a constraint:
+:::{.incremental}
+
+- The $\texttt{PlnNetwork}$ allows to infer genes that are highly correlated, by imposing a constraint:
 
 - $$\| \Sigma^{-1} \|_1 \leq \text{penalty}$$
 
@@ -128,11 +103,13 @@ pln.plot_regression_forest(figsize = (10,7))
 
 -  Still differentiable ELBO.
 
+:::
 
 ### Network visualization
 
-```{python}
+```{python, .incremental}
 # | echo: true
+#| output-location: slide
 from pyPLNmodels import PlnNetwork
 net = PlnNetwork(rna["endog"], penalty = 2000, compute_offsets_method = "logsum").fit()
 fig, ax = plt.subplots(1, 1, figsize = (12, 5))
@@ -143,4 +120,7 @@ net.viz_network(ax=ax)
 del(net)
 ```
 
+
+
 :::
+

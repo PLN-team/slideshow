@@ -1,17 +1,25 @@
-# Motivation: multivariate count data
 
 ---
 
 ## Overview
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 - **Data**: single cell RNA-seq data
 - **Introduction**: PLN models
-- **Run** some examples of `pyPLNmodels`
+- **Run** some examples of $\texttt{pyPLNmodels}$
 - Focus on **ZIPln** and **PlnAR**
 
+---
 
+# Motivation: multivariate count data
 
-### Single cell RNA-seq data.
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+---
+
+## Single cell RNA-seq data.
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 <img src="figures/matrix.png" width="100%">
 
@@ -20,11 +28,15 @@
 
 ## Data tables
 
- - `endog`: $\mathbf Y$,   endogenous count variables (read counts of transcripts $j$ in sample $i$)
- - `exog`: $\mathbf X$,   exogenous variables (available covariates)
- - `offsets` $\mathbf O$,  sampling effort for transcripts $j$ in sample $i$
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+ - $\texttt{endog}$: $\mathbf Y$,   endogenous count variables (read counts of transcripts $j$ in sample $i$)
+ - $\texttt{exog}$: $\mathbf X$,   exogenous variables (available covariates)
+ - $\texttt{offsets}$ $\mathbf O$,  sampling effort for transcripts $j$ in sample $i$
 
 ## Goals
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
   - understand covariates (regression, classification)
   - exhibit patterns (clustering, dimension reduction)
@@ -35,6 +47,8 @@
 
 #### Illustration: scMARK dataset [@scMARK]
 
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 
 
@@ -47,6 +61,8 @@ rna.keys()
 
 ## Data description
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
 ```{python}
 import pandas as pd
 pd.set_option('display.float_format', lambda x: '%.0f' % x)
@@ -54,6 +70,8 @@ rna["endog"].describe()
 ```
 
 ## Data description
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 ```{python}
 import pandas as pd
@@ -64,6 +82,8 @@ print(category_counts)
 
 ## Data description
 
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 ```{python}
 import matplotlib.pyplot as plt
@@ -89,6 +109,8 @@ plt.show()
 
 
 ## Data description
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 ```{python}
 import seaborn as sns

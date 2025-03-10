@@ -22,10 +22,6 @@ format:
 bibliography: ref.bib
 execute:
     cache: true
-
-    ## Uncomment if you want a footer for title slide :
-    # title-slide-attributes:
-        # data-footer: "<a rel='documentation' href='https://bbatardiere.pages.mia.inra.fr/pyplnmodels/'></a>."
 ---
 
 {{< include introduction.qmd >}}
@@ -37,188 +33,127 @@ execute:
 
 {{< include pypln_2.qmd >}}
 
-## Zero Inflated PLN
+{{< include zipln.qmd >}}
 
-Use two latent vectors $\mathbf{W}_i$ and $\mathbf{Z}_i$ to model excess of zeroes and dependence structure
-
-$$\begin{array}{rrl}
-  \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
-   \text{excess of zeros} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
-  \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
-\end{array}$$
-
-$\rightsquigarrow$ Better handling of zeros +additional interpretable parameters.
-
-Still $$\mathbb V[Y_{ij}] > \mathbb E[Y_{ij}]$$
-
-## Zero-inflation modelling
+# Autoregressive Pln: $\texttt{PlnAR}$
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 
-$$  \pi_{ij}  = \sigma( \boldsymbol X^{0}\boldsymbol B^0)_{ij}, ~ \boldsymbol X^0 \in \mathbb R^{n \times d_0}, ~ \boldsymbol B^0 \in \mathbb R^{d_0\times p}$$
+:::{.incremental}
 
-- Other modelling possibilities (one for all, one per dimension, etc. )
+  - Assume dependency between individuals $\implies$ Time series or spatial 1D:
+  $$
+  \begin{aligned}
+  \mathbf{Z}_{i+1}|\mathbf Z_i & \sim \Phi \mathbf Z_i  + \epsilon_i \\
+  \epsilon_i & \sim \mathcal{N}(\Phi \mu_i, \boldsymbol\Sigma_{\epsilon} )\\
+  \mathbf{Y}_{i+1} & \sim \mathcal{P}(\exp(\mathbf Z_{i+1}))
+  \end{aligned}
+  $$
+  - Constraint:
+    $$ \boldsymbol \Sigma_{\epsilon} = \Sigma - \Phi \boldsymbol \Sigma \Phi^\top \succ 0$$
+  - Marginal laws:
+    $$\mathbf{Z}_i \sim \mathcal{N}(\mu_i, \boldsymbol\Sigma)$$
+
+:::
+
+# Autoregressive constraints
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+$$\boldsymbol \Sigma_{\epsilon} = \boldsymbol \Sigma - \Phi\boldsymbol  \Sigma \Phi^\top \succ 0$$
+
+- "Easy" cases:
+
+    -  $\boldsymbol \Sigma$ diagonal  and $1 \succ \Phi \succ 0$ diagonal
+    -  $\boldsymbol \Sigma$ full and $1 > \Phi > 0$ scalar
+
+- Non positive definite case:
+    - $\boldsymbol \Sigma$ full and $1 \succ \Phi \succ 0$ diagonal $\implies$  $\boldsymbol \Sigma_{\epsilon}$ non definite positive
+
+- More complex case:
+
+    - $\boldsymbol \Sigma$ full and $1 \succ \Phi \succ 0$ full
+
+## Autoregressive constraints
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+$$
+\begin{array}{c|cc}
+\Phi \ \backslash \ \Sigma  & \text{Diagonal} & \text{Full} \\
+\hline
+\text{Scalar}    & \checkmark & \checkmark \\
+\text{Diagonal}  & \checkmark & \times \\
+\text{Full}      & \times & ?? \\
+\end{array}
+$$
 
 
-## Identifiabiliy
+## Motivation: crossover dataset
 
-Identifiability of the model is ensured if the covariates $X^0$ are full rank.
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
-## Distribution of $W_{ij}| Y_{ij}$
+- Data: number of exchange of genetic material between two DNA strand in a loci.
 
-$$W_{ij} | Y_{ij}  \sim \mathcal{B}\left(\frac{\pi_{ij}}{ \varphi\left(\mathbf{x}_i^\top \boldsymbol B_j, \Sigma_{jj}\right)
-\left(1 - \pi_{ij}\right) + \pi_{ij}}\right) \boldsymbol 1_{\{Y_{ij} = 0\}}$$
+- All the chromosomes placed end to end $\implies$ **500 loci**, for $\textbf{4 different species of sheep}$.
 
-with $\varphi(\mu,\sigma^2) = \mathbb E \left[ \exp(-X)\right], ~ X \sim \mathcal L \mathcal N \left( \mu, \sigma^2\right)$.
+- $\implies$ 4 time series of 500 loci. Each loci depends on the previous one.
 
-## Motivation: microcosm dataset
-
----
+## $\texttt{PlnAR}$ diagonal
 
 <div class="footer"></div>
 
+:::{.panel-tabset}
 
-- Data: sequencing of the microbiota of 45 dairy cows
-
-::: {.column width="50%" .fragment .nonincremental}
-- from 4 sites:
-  - vagina
-  - mouth
-  - nose
-  - milk
-:::
-
-::: {.column width="50%" .fragment .nonincremental}
-- at 4 time points:
-  - 1 week before calving
-  - 1 month after
-  - 3 months after
-  - 7 months after
-:::
-
-
-## Data description
-
-- After data preprocessing $\implies p = 1209$ Amplicon Sequence Variants and $96$ \% zeros.
-
-```{python}
-from pyPLNmodels import load_microcosm
-micro = load_microcosm(n_samples = 300, dim = 500)
-total_counts = micro['endog'].sum(axis=1)
-
-fig, axes = plt.subplots(1, 2, figsize = (12,8))
-
-# Plotting the histogram
-axes[0].hist(total_counts, bins=30)
-axes[1].hist(np.log(total_counts + 1), bins=30)
-axes[0].set_xlabel('Sum of counts')
-axes[1].set_xlabel('Log sum of counts')
-axes[0].set_ylabel('Frequency')
-# plt.xlim(0,0.3)
-axes[0].grid(True)
-axes[1].grid(True)
-axes[0].set_title("Histogram of sum of counts")
-axes[1].set_title("Histogram of log sum of counts")
-plt.show()
-```
-
-## `Pln` versus `ZIPln`
-
----
-
-::: {.panel-tabset}
 
 ### Fitting
 
-
 ```{python}
-# | echo : true
-# | results: hide
-zi = ZIPln.from_formula("endog ~ site + time", micro).fit()
-pln = Pln.from_formula("endog ~ site + time", micro).fit()
+# | echo: true
+from pyPLNmodels import load_crossover, PlnAR
+cross = load_crossover()
+ar = PlnAR(cross["endog"], ar_type = "diagonal").fit()
 ```
 
-### Expected vs counts
-
-
-```{python}
-fig, axes = plt.subplots(1,2, figsize = (12,8))
-zi.plot_expected_vs_true(ax = axes[0])
-pln.plot_expected_vs_true(ax = axes[1])
-plt.show()
-```
 
 ### Latent space
 
 ```{python}
-fig, axes = plt.subplots(1,2, figsize = (15,8))
-zi.viz(colors = micro["site"] + micro["time"], ax = axes[0])
-pln.viz(colors = micro["site"] + micro["time"], ax = axes[1])
-axes[0].set_xlabel("PCA 1", fontsize = 25)
-axes[1].set_xlabel("PCA 1", fontsize = 25)
-axes[0].set_ylabel("PCA 2", fontsize = 25)
-axes[0].set_title("ZIPLN")
-axes[1].set_title("PLN")
-axes[1].get_legend().set_visible(False)
-plt.show()
+ar.viz_dims(indices_of_variables = [0,1,2,3], variable_names = ["Sheep1", "Sheep2", "Sheep3", "Sheep4"])
 ```
 
+### Autoregressive structure
+
+```{python}
+fig, ax = plt.subplots(figsize = (10,7))
+ar._get_model_viz().display_autoreg(ax = ax)
+ax.set_xticklabels(["Sheep1", "Sheep2", "Sheep3", "Sheep4"], fontsize = 12)
+plt.show()
+```
 :::
 
+## Conclustion
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+:::{.incremental}
+
+- $\texttt{pyPLNmodels}$ easy to use for many statistical tasks for count data
+- Focus on optimization and scalability when possible.
+- Majority of models gives out of memory error for $n,p> 3000$ in CPU.
+
+:::
 
 ## What's next?
 
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
-- Implement a `PlnAR` with full autorgressive structure.
-- Implement a collection of `PlnNetwork` and `PlnMixture` to directly find the BIC of the best model.
+:::{.incremental}
 
-## Block quotes
+- Implement a $\texttt{PlnAR}$ with full autoregressive structure.
+- Implement a collection of $\texttt{PlnNetwork}$ and $\texttt{PlnMixture}$ to directly find the BIC of the best model.
 
-> Dorothy followed her through many of the beautiful rooms in her
-> castle.
-
-## Ordered list
-
-1.  First item
-2.  Second item
-3.  Third item
-    1.  Indented item
-    2.  Indented item
-4.  Fourth item
-
-## Unordered list
-
--   First item
--   Second item
--   Third item
--   Fourth item
-
-
-## Callouts
-
-::: {.callout-note}
-A note
 :::
-
-::: {.callout-tip}
-A tip
-:::
-
-::: {.callout-important}
-An important message
-:::
-
-## Tables
-
-+-----------+-----------+--------------------+
-| Fruit     | Price     | Advantages         |
-+===========+===========+====================+
-| Bananas   | $1.34     | - built-in         |
-|           |           | - bright color     |
-+-----------+-----------+--------------------+
-| Oranges   | $2.10     | - cures            |
-|           |           | - tasty            |
-+-----------+-----------+--------------------+
 
 
 ## References

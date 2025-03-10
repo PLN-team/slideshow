@@ -1,11 +1,18 @@
-## predict newly observed data
+## Predict newly observed data
 
-The `PlnLDA` allows to predict newly observed data. It performs LDA on the latent space.
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+The $\texttt{PlnLDA}$ allows to predict newly observed data. It performs LDA on the latent space.
+
+
+## Predict newly observed data
+
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
 ::: {.panel-tabset}
 
 ### Training
-
 ```{python}
 #| code-line-numbers: "1-4|5-6"
 #| echo: true
@@ -30,14 +37,27 @@ plot_confusion_matrix(pred_test, labels_test)
 
 :::
 
-## Zero-inflation investigation
+---
+
+<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+
+::: {.panel-tabset}
+
+### Zero-inflation investigation
 
 ```{python}
 # | echo: true
 import seaborn as sns
 from pyPLNmodels import ZIPln
 zi = ZIPln(rna["endog"], exog = rna["labels_1hot"], add_const = False).fit()
-sns.heatmap(zi.latent_prob)
+```
+
+### Output
+
+
+```{python}
+fig, ax = plt.subplots(figsize = (12,8))
+_  = sns.heatmap(zi.latent_prob, ax = ax)
 plt.show()
 ```
 
@@ -45,5 +65,6 @@ plt.show()
 del(zi)
 ```
 
+:::
 
 ---
