@@ -102,8 +102,8 @@ axes[1].set_xlabel('Log sum of counts')
 axes[0].set_ylabel('Frequency')
 axes[0].grid(True)
 axes[1].grid(True)
-axes[0].set_title("Histogram of log of non zero counts", fontsize = 25)
-axes[1].set_title("Histogram of log sum of counts", fontsize = 25)
+axes[0].set_title("Histogram of log of non zero counts", fontsize = 20)
+axes[1].set_title("Histogram of log sum of counts", fontsize = 20)
 plt.show()
 
 ```

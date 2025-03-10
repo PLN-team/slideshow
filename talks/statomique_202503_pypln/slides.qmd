@@ -132,7 +132,7 @@ plt.show()
 ```
 :::
 
-## Conclustion
+## Conclusion
 
 <div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
