@@ -102,8 +102,8 @@ axes[1].set_xlabel('Log sum of counts')
 axes[0].set_ylabel('Frequency')
 axes[0].grid(True)
 axes[1].grid(True)
-axes[0].set_title("Histogram of log of non zero counts")
-axes[1].set_title("Histogram of log sum of counts")
+axes[0].set_title("Histogram of log of non zero counts", fontsize = 25)
+axes[1].set_title("Histogram of log sum of counts", fontsize = 25)
 plt.show()
 
 ```
@@ -133,11 +133,15 @@ pln = Pln.from_formula("endog ~ site + time", micro).fit()
 
 ### Expected vs counts
 
-
 ```{python}
 fig, axes = plt.subplots(1,2, figsize = (12,7))
 zi.plot_expected_vs_true(ax = axes[0])
 pln.plot_expected_vs_true(ax = axes[1])
+axes[0].set_xlabel("Counts", fontsize = 25)
+axes[1].set_xlabel("Counts", fontsize = 25)
+axes[0].set_ylabel("Predicted counts", fontsize = 25)
+axes[0].set_title("ZIPLN")
+axes[1].set_title("PLN")
 plt.show()
 ```
 
@@ -162,8 +166,8 @@ plt.show()
 fig, axes = plt.subplots(1,2, figsize = (12,7))
 sns.heatmap(zi.covariance, ax = axes[0])
 sns.heatmap(pln.covariance, ax = axes[1])
-axes[0].set_title(r"ZIPln covariance ($\Sigma$)")
-axes[1].set_title(r"Pln covariance ($\Sigma$)")
+axes[0].set_title(r"ZIPln covariance ($\Sigma$)", fontsize = 25)
+axes[1].set_title(r"Pln covariance ($\Sigma$)", fontsize = 25)
 plt.show()
 ```
 

@@ -95,7 +95,7 @@ $$
 
 - Data: number of exchange of genetic material between two DNA strand in a loci.
 
-- All the chromosomes placed end to end $\implies$ **500 loci**, for $\textbf{4 different species of sheep}$.
+- All the 27 chromosomes placed end to end $\implies$ **500 loci**, for $\textbf{4 different species of sheep}$.
 
 - $\implies$ 4 time series of 500 loci. Each loci depends on the previous one.
 
