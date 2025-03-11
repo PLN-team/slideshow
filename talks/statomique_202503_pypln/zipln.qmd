@@ -50,7 +50,7 @@ $$W_{ij} | Y_{ij}  \sim \mathcal{B}\left(\frac{\pi_{ij}}{ \varphi\left(\mathbf{x
 
 with $\varphi(\mu,\sigma^2) = \mathbb E \left[ \exp(-X)\right], ~ X \sim \mathcal L \mathcal N \left( \mu, \sigma^2\right)$.
 
-## Motivation of $\texttt{ZIPln}$: microcosm dataset
+## Motivation of $\texttt{ZIPln}$: microcosm dataset [@microcosm]
 
 <div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
@@ -62,6 +62,7 @@ with $\varphi(\mu,\sigma^2) = \mathbb E \left[ \exp(-X)\right], ~ X \sim \mathca
 - Data: sequencing of the microbiota of 45 dairy cows
 
 ::: {.column width="50%" .fragment .nonincremental}
+
 - from 4 sites:
   - vagina
   - mouth
