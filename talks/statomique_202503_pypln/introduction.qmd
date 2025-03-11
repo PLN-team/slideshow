@@ -32,7 +32,7 @@
 
  - $\texttt{endog}$: $\mathbf Y$,   endogenous count variables (read counts of transcripts $j$ in sample $i$)
  - $\texttt{exog}$: $\mathbf X$,   exogenous variables (available covariates)
- - $\texttt{offsets}$ $\mathbf O$,  sampling effort for transcripts $j$ in sample $i$
+ - $\texttt{offsets}$: $\mathbf O$,  sampling effort for transcripts $j$ in sample $i$
 
 ## Goals
 

@@ -62,6 +62,7 @@ execute:
 
 $$\boldsymbol \Sigma_{\epsilon} = \boldsymbol \Sigma - \Phi\boldsymbol  \Sigma \Phi^\top \succ 0$$
 
+:::{.incremental}
 - "Easy" cases:
 
     -  $\boldsymbol \Sigma$ diagonal  and $1 \succ \Phi \succ 0$ diagonal
@@ -73,6 +74,8 @@ $$\boldsymbol \Sigma_{\epsilon} = \boldsymbol \Sigma - \Phi\boldsymbol  \Sigma \
 - More complex case:
 
     - $\boldsymbol \Sigma$ full and $1 \succ \Phi \succ 0$ full
+
+:::
 
 ## Autoregressive constraints
 
@@ -93,11 +96,15 @@ $$
 
 <div class="footer">$\texttt{pip install pyPLNmodels}$</div>
 
+:::{.incremental}
+
 - Data: number of exchange of genetic material between two DNA strand in a loci.
 
 - All the 27 chromosomes placed end to end $\implies$ **500 loci**, for $\textbf{4 different species of sheep}$.
 
 - $\implies$ 4 time series of 500 loci. Each loci depends on the previous one.
+
+:::
 
 ## $\texttt{PlnAR}$ diagonal
 
@@ -119,7 +126,7 @@ ar = PlnAR(cross["endog"], ar_type = "diagonal").fit()
 ### Latent space
 
 ```{python}
-ar.viz_dims(indices_of_variables = [0,1,2,3], variable_names = ["Sheep1", "Sheep2", "Sheep3", "Sheep4"])
+ar.viz_dims(indices_of_variables = [0,1,2,3], variable_names = ["Sheep 1", "Sheep 2", "Sheep 3", "Sheep 4"])
 ```
 
 ### Autoregressive structure
@@ -127,7 +134,7 @@ ar.viz_dims(indices_of_variables = [0,1,2,3], variable_names = ["Sheep1", "Sheep
 ```{python}
 fig, ax = plt.subplots(figsize = (10,7))
 ar._get_model_viz().display_autoreg(ax = ax)
-ax.set_xticklabels(["Sheep1", "Sheep2", "Sheep3", "Sheep4"], fontsize = 12)
+ax.set_xticklabels(["Sheep 1", "Sheep 2", "Sheep 3", "Sheep 4"], fontsize = 12)
 plt.show()
 ```
 :::
@@ -152,6 +159,7 @@ plt.show()
 
 - Implement a $\texttt{PlnAR}$ with full autoregressive structure.
 - Implement a collection of $\texttt{PlnNetwork}$ and $\texttt{PlnMixture}$ to directly find the BIC of the best model.
+- Make it worldwide
 
 :::
 

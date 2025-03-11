@@ -5,7 +5,7 @@
 
 ---
 
-<div class="footer">$\texttt{pip install pyPLNmodels}$</div>
+<div class="footer"></div>
 
 :::{.fragment}
 
