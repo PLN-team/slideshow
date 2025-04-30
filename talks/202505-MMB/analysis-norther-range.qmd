@@ -1,0 +1,316 @@
+---
+title: "NORTHERN RANGE DATASET"
+format: 
+  html:
+    embed-resources: true
+execute:
+  cache: true
+editor: visual
+---
+
+# Preliminaries
+
+```{r libraries}
+library(PLNmodels)
+library(Metrics)
+library(pheatmap)
+library(tidyverse)
+library(FactoMineR)
+library(factoextra)
+library(corrplot)
+library(aricode)
+library(viridisLite)
+```
+
+# Northern Range dataset
+
+```{r loading Northern Range dataset}
+load("NORTHERN_RANGE_DATASET_COUNTS.Rdata")
+NR_COUNTS <- NORTHERN_RANGE_DATASET_COUNTS %>% as_tibble()
+NR_COUNTS <- NR_COUNTS[, -21]
+
+load("NORTHERN_RANGE_DATASET_COVARIATES.Rdata")
+NR_COVARIATES <- 
+  NORTHERN_RANGE_DATASET_COVARIATES %>% as_tibble() %>% 
+  rename(latitude = LATITUDE, 
+         longitude = LONGITUDE, 
+         long_lat = LONGLAT,
+         coarse_gravel = coarse.gravel, 
+         fine_gravel = fine.gravel, 
+         leaf_litter = leaf.litter,
+         time_step = TimeStep, year = YEAR, month = MONTH, 
+         stream = STREAM, 
+         disturbance = DISTURBANCE, # human activity / binary categorical variable
+         altitude = ALTITUDE, 
+         season = SEASON) %>% 
+  mutate(
+    season = as.character(season),
+    year = as.character(year),
+    disturbance = ifelse(disturbance == 1, "yes", "no")
+  ) %>% 
+  ## flow is not reliable
+  ## time_step + month are redundant with season + year
+  ## site is redudant with disturbance + stream
+  ## long_lat is the 1st PCA axis of latitude + longitude
+  dplyr::select(-long_lat, -site, -time_step, -month, -flow) %>%
+  relocate(latitude, longitude, altitude, width, depth, volume, garbage,
+           conductivity, O2, pH, temperature, turbidity, # site features
+          coarse_gravel, fine_gravel, leaf_litter, cobble, sand, silt, boulders, canopy, # soil
+          season, year, # sampling time
+          stream, disturbance # categorical: place + human activity
+         )
+# turbidity: ordinal variable indicating the level of turbidity
+# season:-> dry-start/dry-end, wet-start/wet-end, (january-> may: dry)
+quali_ind <- seq(ncol(NR_COVARIATES) - 3, ncol(NR_COVARIATES))
+```
+
+## PCA on Covariates
+
+```{r standardizing_covariates_nr}
+nb_pc <- ncol(NR_COVARIATES) - 4
+NR_PCA <-
+  NR_COVARIATES %>%
+  PCA(quali.sup = quali_ind, ncp = nb_pc, scale.unit = TRUE, graph = FALSE)
+```
+
+```{r biplot}
+## no effect of season and year
+## strong effect of stream and disturbance
+NR_PCA %>% fviz_pca_biplot(habillage = quali_ind) + scale_color_viridis_d()
+```
+
+```{r scores}
+NR_PCA %>% fviz_eig()
+NR_PCA_SCORES <- setNames(data.frame(NR_PCA$ind$coord), paste0("PC",1:nb_pc))
+
+```
+
+```{r formatting Northern Range data for PLNmodels}
+NR_DATA <- prepare_data(
+  counts     = NR_COUNTS,
+  covariates = cbind(NR_COVARIATES, NR_PCA_SCORES)
+  )
+```
+
+## PLN: multivariate regression
+
+```{r pln}
+NR_PLN           <- PLN(Abundance ~ 1, data = NR_DATA)
+NR_PLN_Stream    <- PLN(Abundance ~ 0 + stream, data = NR_DATA)
+NR_PLN_Stream_PC <- PLN(Abundance ~ 0 + stream + PC1, data = NR_DATA)
+
+criteria <- rbind(NR_PLN$criteria, NR_PLN_Stream$criteria, NR_PLN_Stream_PC$criteria) %>% add_column(model = c("PLN ~ 1", "PLN ~ stream",  "PLN ~ stream + PC1"), .before = 1) 
+```
+
+```{r pln-coef}
+B_pln <- t(coefficients(NR_PLN_Stream_PC))
+colnames(B_pln) <- c(sort(unique(NR_DATA$stream)), "PC1")
+mu_pln <- predict(NR_PLN_Stream_PC, NR_DATA)
+
+pheatmap(B_pln)
+pheatmap(mu_pln, show_rownames = FALSE)
+```
+
+```{r pln-fit}
+counts  <- NR_DATA$Abundance  %>% as("matrix")
+fit <- as.data.frame(NR_PLN_Stream_PC$fitted) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+plot_counts <- counts %>% as_tibble(rownames = "sample") %>% 
+  pivot_longer(-sample, names_to = "species", values_to = "count")
+plot_fitted_pln <- fit %>% as_tibble(rownames = "sample") %>% 
+  pivot_longer(-sample, names_to = "species", values_to = "Y_hat") 
+
+dplot <-
+  inner_join(plot_counts, plot_fitted_pln, by = join_by(sample, species)) %>%  
+  inner_join(NR_COVARIATES %>%  as_tibble(rownames = "sample"), by = "sample")
+
+p <- dplot %>% 
+  ggplot(aes(x = count, y = Y_hat)) + 
+  geom_point(alpha = 0.25) +
+  geom_abline(slope = 1, intercept = 0, color = "grey60", linetype = "dashed") + 
+  scale_x_log10() + scale_y_log10() + 
+  labs(x = "Observed", y = "Fitted") + 
+  facet_grid(disturbance~season) + 
+  theme_bw()
+p
+```
+
+## PLNPCA: dimension reduction and vizualisation
+
+```{r PCA-nocovar}
+NR_PLNPCA_all <- PLNPCA(Abundance ~ PC1, ranks = 1:12, data = NR_DATA)
+plot(NR_PLNPCA_all)
+NR_PLNPCA <- NR_PLNPCA_all %>% getBestModel("ICL")
+NR_PLNPCA %>% fviz_pca_biplot(col.ind = NR_DATA$stream) + scale_color_viridis_d()
+NR_PLNPCA %>% fviz_pca_biplot(col.ind = NR_DATA$temperature) + scale_color_viridis_c()
+```
+
+```{r PCA-covar}
+NR_PLNPCA_Stream_all <- PLNPCA(Abundance ~ 0 + stream + PC1 , ranks = 1:10, data = NR_DATA)
+plot(NR_PLNPCA_Stream_all)
+NR_PLNPCA_Stream <- NR_PLNPCA_Stream_all %>% getBestModel("ICL") 
+NR_PLNPCA_Stream %>% fviz_pca_biplot(col.ind = NR_DATA$stream) + scale_color_viridis_d()
+```
+
+```{r pca-coef}
+B_pca <- t(coefficients(NR_PLNPCA_Stream))
+colnames(B_pca) <- c(sort(unique(NR_DATA$stream)), "PC1")
+mu_pca <- predict(NR_PLNPCA_Stream, NR_DATA)
+
+pheatmap(B_pca)
+pheatmap(mu_pca, show_rownames = FALSE)
+```
+
+```{r covariance-PCA}
+corrplot(cov2cor(sigma(NR_PLN_Stream_PC)), is.corr = FALSE, order="hclust", method = "color")
+corrplot(cov2cor(sigma(NR_PLNPCA)), is.corr = FALSE, order="hclust", method = "color")
+corrplot(cov2cor(sigma(NR_PLNPCA_Stream)), is.corr = FALSE, order="hclust", method = "color")
+```
+
+```{r plnpca-fit}
+fit_pca <- as.data.frame(NR_PLNPCA_Stream$fitted) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+plot_fitted_pca <- fit_pca %>% as_tibble(rownames = "sample") %>% 
+  pivot_longer(-sample, names_to = "species", values_to = "Y_hat") 
+
+dplot <- 
+  inner_join(plot_counts, plot_fitted_pca, by = join_by(sample, species)) %>%  
+  inner_join(NR_COVARIATES %>%  as_tibble(rownames = "sample"), by = "sample")
+
+p <- dplot %>% 
+  ggplot(aes(x = count, y = Y_hat)) + 
+  geom_point(alpha = 0.25) +
+  geom_abline(slope = 1, intercept = 0, color = "grey60", linetype = "dashed") + 
+  scale_x_log10() + scale_y_log10() + 
+  labs(x = "Observed", y = "Fitted") + 
+  facet_grid(disturbance~season) + 
+  theme_bw()
+p
+```
+
+```{r criteria-pca}
+criteria <- criteria %>% bind_rows( 
+                  data.frame(model = "PLNPCA ~ PC1", NR_PLNPCA$criteria),
+                  data.frame(model = "PLNPCA ~ stream + PC1", NR_PLNPCA_Stream$criteria))
+```
+
+## PLNLDA: Discriminant analysis + Classifier
+
+```{r LDA}
+NR_PLNLDA <- PLNLDA(Abundance ~ PC1, grouping = stream, data = NR_DATA)
+plot(NR_PLNLDA, map = "individual") + scale_color_viridis_d()
+plot(NR_PLNLDA, map = "variable") + scale_color_viridis_d()
+
+group_means <- NR_PLNLDA$group_means
+colnames(group_means) <- sort(unique(NR_DATA$stream))
+rownames(group_means) <- colnames(NR_DATA$Abundance)
+pheatmap(group_means)
+```
+
+```{r prediction-classification}
+set.seed(1969)
+train_set <- sample.int(nrow(NR_DATA), 200)
+test_set  <- setdiff(1:nrow(NR_DATA), train_set)
+NR_train <- NR_DATA[train_set, ]
+NR_test   <- NR_DATA[test_set, ]
+
+classifier <- PLNLDA(Abundance ~ 1 + PC1 + PC2 + PC3 + PC4, grouping = stream, data = NR_train) 
+pred_stream <- predict(classifier, newdata = NR_test, type = "response")
+aricode::ARI(pred_stream, NR_test$stream)
+```
+
+## Mixture models
+
+```{r mixture-model}
+NR_PLNMM_all <- PLNmixture(Abundance ~ 1 + PC1, clusters = 1:8, data = NR_DATA)
+NR_PLNMM <- NR_PLNMM_all %>% getBestModel("BIC")
+```
+
+```{r mixture-plot}
+NR_PLNMM$plot_clustering_pca()
+NR_PLNPCA %>% fviz_pca_biplot(col.ind = factor(NR_PLNMM$memberships)) + scale_colour_viridis_d()
+NR_PLNPCA %>% fviz_pca_biplot(col.ind = factor(NR_DATA$stream)) + scale_colour_viridis_d()
+ARI(NR_PLNMM$memberships, NR_DATA$stream)
+```
+
+## Association Network
+
+```{r network}
+NR_PLNNET_all <- PLNnetwork(Abundance ~ PC1, data = NR_DATA, control = PLNnetwork_param(penalize_diagonal = FALSE))
+NR_PLNNET_all$stability_selection()
+plot(NR_PLNNET_all, "stability", stability = 0.95)
+NR_PLNNET <- NR_PLNNET_all$getBestModel("StARS")
+NR_PLNNET$plot_network()
+```
+
+```{r network-stream}
+NR_PLNNET_Stream_all <- PLNnetwork(Abundance ~ PC1 + stream, data = NR_DATA, control = PLNnetwork_param(penalize_diagonal = FALSE))
+NR_PLNNET_Stream_all$stability_selection()
+plot(NR_PLNNET_Stream_all, "stability", stability = 0.95)
+NR_PLNNET_Stream <- NR_PLNNET_Stream_all$getBestModel("StARS")
+NR_PLNNET_Stream$plot_network()
+```
+
+```{r criteria-network}
+criteria <- criteria %>% bind_rows( 
+                  data.frame(model = "PLNNET ~ PC1", NR_PLNNET$criteria[, 1:4]),
+                  data.frame(model = "PLNNET ~ stream + PC1", NR_PLNNET_Stream$criteria[, 1:4]))
+```
+
+## Zero Inflation in PLN
+
+```{r ZIPLN}
+NR_ZIPLN  <- ZIPLN(Abundance ~ PC1 | 0 + stream,  data = NR_DATA)
+```
+
+```{r ZIPLNNET}
+NR_ZIPLNNET_all <- ZIPLNnetwork(Abundance ~ PC1 | 0 + stream,  data = NR_DATA, control = ZIPLNnetwork_param(penalize_diagonal = FALSE))
+NR_ZIPLNNET <- NR_ZIPLNNET_all$getBestModel("BIC")
+NR_ZIPLNNET$plot_network()
+```
+
+```{r criteria-network}
+criteria <- criteria %>% bind_rows( 
+                  data.frame(model = "ZIPLN ~ PC1 | stream", NR_ZIPLN$criteria),
+                  data.frame(model = "ZIPLNNET ~ PC1 | stream", NR_ZIPLNNET$criteria[, 1:4]))
+```
+
+```{r variable-to-analyse}
+fit_ZIPLN <- as.data.frame(NR_ZIPLN$fitted) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+latent_ZIPLN <- as.data.frame(NR_ZIPLN$latent) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+latent_pos_ZIPLN <- as.data.frame(NR_ZIPLN$latent_pos) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+B_ZIPLN <- as.data.frame(NR_ZIPLN$model_par$B) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+B0_ZIPLN <- as.data.frame(NR_ZIPLN$model_par$B0) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+prob_zi <- as.data.frame(NR_ZIPLN$var_par$R) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+
+```
+
+### Parameters analysis
+
+```{r residuals-latent}
+site <- as.data.frame(NR_COVARIATES[, c("disturbance", "season")])
+pheatmap(prob_zi, annotation_row = site)
+pheatmap(latent_ZIPLN)
+```
+
+```{r residuals-latent-pos}
+pheatmap(latent_pos_ZIPLN)
+```
+
+```{r B-B0}
+pheatmap(B_PLN0)
+pheatmap(B_PLN)
+pheatmap(B0_ZIPLN)
+```
+
+```{r PCA-features}
+prcomp(latent_ZIPLN, scale. = TRUE) %>% fviz_pca_biplot(col.ind = NR_COVARIATES$stream)
+```
+
+## 

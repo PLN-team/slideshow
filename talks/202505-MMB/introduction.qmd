@@ -1,0 +1,69 @@
+
+---
+
+## Motivation: multivariate count data
+
+### Routinely gathered in ecology/microbiology/genomics
+
+#### Data tables
+
+  - [Abundances]{.alert}: read counts of species/transcripts $j$ in sample $i$
+  - [Covariates]{.alert}: value of environmental variable $k$ in sample $i$
+  - [Offsets]{.alert}: sampling effort for species/transcripts $j$ in sample $i$
+
+#### Goals
+
+  - understand [environmental effects]{.alert} (regression, classification)
+  - exhibit [patterns of diversity]{.alert} (clustering, dimension reduction)
+  - understand [between-species interactions]{.alert} (covariance selection)
+
+#### Illustration: microcosm data set [[@microcosm]]{.small}
+
+- Study carried out at INRAE _"Domaine Expérimental du Pin"_
+- [microbiotas]{.alert} of 44 lactating cows at 4 body [site]{.alert} (mouth, nose, vagina, milk) $\times$ 4 [time points]{.alert}
+- Abundances of $\approx$ 1200 "species" (Amplicon Sequence Variants) with known taxonomy
+
+---
+
+## Table of Counts
+
+#### Retrieve microcosm data
+
+```{r load reduced microcosm, echo = TRUE}
+microcosm <- readRDS("microcosm_reduced.rds")
+microcosm$Abundance <- microcosm$Abundance[, colMeans(microcosm$Abundance > 0) > 0.05]
+microcosm <- microcosm[rowSums(microcosm$Abundance) > 0, ]
+microcosm$site_time <- droplevels(microcosm$site_time)
+sum(microcosm$Abundance == 0) / length(microcosm$Abundance)
+```
+
+Still 90% of zeros !
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+Data after total-counts normalization
+
+```{r glance counts, echo = FALSE}
+total_counts <- rowSums(microcosm$Abundance)
+log_data <- exp(sweep(log(1 + microcosm$Abundance), 1, log(total_counts), "-"))
+
+ggplot(data.frame(counts = c(log_data)), aes(counts))  + 
+  geom_histogram() + theme_bw()
+```
+
+:::
+
+::: {.column width="50%"}
+
+Log-scale
+```{r glimpse Abundance, echo = FALSE, message=FALSE}
+ggplot(data.frame(counts = c(log_data)), aes(counts))  + 
+  geom_histogram() + theme_bw()
+```
+
+:::
+
+::::
+

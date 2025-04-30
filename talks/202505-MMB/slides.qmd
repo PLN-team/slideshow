@@ -1,0 +1,61 @@
+---
+title: Poisson lognormal models for multivariate count data analysis
+subtitle: Rencontres chaire MMB
+format: 
+  clean-revealjs:
+    smaller: true
+    embed-resources: true
+author:
+  - name: Julien Chiquet
+    orcid: 0000-0002-3629-3429
+    affiliations: MIA Paris-Saclay, INRAE 
+  - name: Mahendra Mariadassou
+    orcid: 0000-0003-2986-354X
+    affiliations: MaIAGE, INRAE 
+  - name: Stéphane Robin
+    orcid: 0000-0003-1045-069X
+    affiliations: LPSM, SU
+  - name: Bastien Batardière
+    affiliations: PhD 2022 - 2024
+  - name: Jeanne Tous
+    affiliations: PhD 2024-2026
+  - name: Barbara Bricout, Julien Stoehr, Joon Kwon, François Gindraud, Julie Aubert
+date: 05-06-2025
+bibliography: PLNreferences.bib
+execute:
+  cache: true
+---
+
+```{r setup, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)  # data manipulation
+library(PLNmodels)  # PLNmodels
+```
+
+<!-- L'analyse de données de comptage à haute dimension est un défi dans divers domaines d'application (écologie et génomique notamment) et les approches basées sur des modèles statistiques fournissent un cadre adéquat et efficace qui préserve l'explicabilité. Le modèle Poisson-Log-Normal multivarié (PLN) est l'un de ces modèles : il suppose que les données de comptage sont régies par une variable gaussienne latente structurée sous-jacente, de sorte que les dépendances entre les comptages découlent uniquement des dépendances latentes.  Le modèle PLN s'avère être un cadre polyvalent, dans lequel une variété d'analyses peut être effectuée, y compris la régression multivariée, la comparaison d'échantillons, le regroupement de sites ou d'échantillons, la réduction de la dimension à des fins de visualisation, ou l'inférence de réseaux d'interaction.  En écologie, il correspond à ce qu'on appelle un JSDM (joint-species distribution models).
+
+Nous avons développé divers algorithmes et outils (en R et Python) pour ajuster efficacement cette famille de modèles, dans un cadre statistique et d'optimisation maîtrisé. Nous les présenterons lors de cet exposé sur des exemples en génomique et en écologie. Si le temps le permet, nous présenterons plus en détail la dernière extension en date qui intègre une composante de zéro inflation permettant de décrire finement l'excès de zéro, sur la base de covariables environementales ou selon les espèces. -->
+
+{{< include introduction.qmd >}}
+
+{{< include pln-background.qmd >}}
+
+<!-- {{< include zi-pln.qmd >}} -->
+
+<!-- {{< include microcosm.qmd >}} -->
+
+---
+
+## Conclusion
+
+### Take-home message
+
+- PLN = generic model for multivariate count data analysis
+- Flexible modeling of the covariance structure, allows for covariates
+- Efficient Variational EM algorithms
+
+### Advertisement 
+
+[https://computo.sfds.asso.fr](https://computo.sfds.asso.fr), a journal promoting reproducible research in ML and stat.
+
+## References
+
