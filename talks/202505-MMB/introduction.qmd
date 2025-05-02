@@ -1,56 +1,142 @@
-
----
-
 ## Motivation: multivariate count data
 
 ### Routinely gathered in ecology/microbiology/genomics
 
-#### Data tables
+<br >
+
+### Data tables
 
   - [Abundances]{.alert}: read counts of species/transcripts $j$ in sample $i$
   - [Covariates]{.alert}: value of environmental variable $k$ in sample $i$
   - [Offsets]{.alert}: sampling effort for species/transcripts $j$ in sample $i$
 
-#### Goals
+### Goals
 
   - understand [environmental effects]{.alert} (regression, classification)
   - exhibit [patterns of diversity]{.alert} (clustering, dimension reduction)
   - understand [between-species interactions]{.alert} (covariance selection)
 
-#### Illustration: microcosm data set [[@microcosm]]{.small}
+$\rightsquigarrow$ In ecology: help understanding underlying mechanisms like dispersion, abiotic/biotic effects
 
-- Study carried out at INRAE _"Domaine Expérimental du Pin"_
-- [microbiotas]{.alert} of 44 lactating cows at 4 body [site]{.alert} (mouth, nose, vagina, milk) $\times$ 4 [time points]{.alert}
-- Abundances of $\approx$ 1200 "species" (Amplicon Sequence Variants) with known taxonomy
+```{r setup, echo=FALSE, cache=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)  # data manipulation
+library(PLNmodels)  # PLNmodels
+library(Metrics)
+library(pheatmap)
+library(FactoMineR)
+library(factoextra)
+library(corrplot)
+library(aricode)
+library(ggtext)
+library(viridisLite)
+library(gt)
+```
+
+## Two illustrative examples
+
+:::: {.columns}
+
+::: {.column width="70%"}
+
+#### Microcosm [@microcosm]
+
+Study carried out at INRAE (_"Domaine Expérimental du Pin"_)
+
+- microbiotas of 44 lactating cows at 4 body site $\times$ 4 time points
+- Abundances of $\approx$ 1200 "species"   (Amplicon Sequence Variants) 
+
+::: 
+
+
+::: {.column width="30%"}
+![](figs/vache1.jpg)
+:::
+
+::::
+
+:::: {.columns}
+
+::: {.column width="70%"}
+
+#### Tropical freshwater fishes  (Trinidad Island)
+
+Collab between Jeanne Tous (PhD)  and Anne Magurran (Saint-Andrews)
+
+- 16 sites (8 streams $\times$ disturbed or not $\times$ 19 dates
+- $n=304$ measures of abundances of $p=21$ species
+
+ &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
+ ![](figs/NR_species_1.png){height="80px"} &nbsp;&nbsp;&nbsp;&nbsp;
+![](figs/NR_species_2.png){height="80px"} &nbsp;&nbsp;&nbsp;&nbsp;
+![](figs/NR_species_3.png){height="80px"}
+
+::: 
+
+::: {.column width="30%"}
+![](figs/NR_map.png)
+:::
+
+
+::::
 
 ---
 
-## Table of Counts
+## Tropical freshwater fishes in Trinidad
 
-#### Retrieve microcosm data
+```{r loading Northern Range dataset, echo = FALSE}
+load("NORTHERN_RANGE_DATASET_COUNTS.Rdata")
+NR_COUNTS <- NORTHERN_RANGE_DATASET_COUNTS %>% as_tibble()
+NR_COUNTS <- NR_COUNTS[, -21]
 
-```{r load reduced microcosm, echo = TRUE}
-microcosm <- readRDS("microcosm_reduced.rds")
-microcosm$Abundance <- microcosm$Abundance[, colMeans(microcosm$Abundance > 0) > 0.05]
-microcosm <- microcosm[rowSums(microcosm$Abundance) > 0, ]
-microcosm$site_time <- droplevels(microcosm$site_time)
-sum(microcosm$Abundance == 0) / length(microcosm$Abundance)
+load("NORTHERN_RANGE_DATASET_COVARIATES.Rdata")
+NR_COVARIATES <- 
+  NORTHERN_RANGE_DATASET_COVARIATES %>% as_tibble() %>% 
+  rename(latitude = LATITUDE, 
+         longitude = LONGITUDE, 
+         long_lat = LONGLAT,
+         coarse_gravel = coarse.gravel, 
+         fine_gravel = fine.gravel, 
+         leaf_litter = leaf.litter,
+         time_step = TimeStep, year = YEAR, month = MONTH, 
+         stream = STREAM, 
+         disturbance = DISTURBANCE, # human activity / binary categorical variable
+         altitude = ALTITUDE, 
+         season = SEASON) %>% 
+  mutate(
+    season = as.character(season),
+    year = as.character(year),
+    disturbance = ifelse(disturbance == 1, "yes", "no")
+  ) %>% 
+  ## flow is not reliable
+  ## time_step + month are redundant with season + year
+  ## site is redudant with disturbance + stream
+  ## long_lat is the 1st PCA axis of latitude + longitude
+  dplyr::select(-long_lat, -site, -time_step, -month, -flow) %>%
+  relocate(latitude, longitude, altitude, width, depth, volume, garbage,
+           conductivity, O2, pH, temperature, turbidity, # site features
+          coarse_gravel, fine_gravel, leaf_litter, cobble, sand, silt, boulders, canopy, # soil
+          season, year, # sampling time
+          stream, disturbance # categorical: place + human activity
+         )
+# turbidity: ordinal variable indicating the level of turbidity
+# season:-> dry-start/dry-end, wet-start/wet-end, (january-> may: dry)
+quali_ind <- seq(ncol(NR_COVARIATES) - 3, ncol(NR_COVARIATES))
 ```
 
-Still 90% of zeros !
+#### Table of Counts/ Abundances (first rows)
+
+```{r table-counts}
+NR_COUNTS %>% head(3) %>% gt()
+```
 
 :::: {.columns}
 
 ::: {.column width="50%"}
 
-Data after total-counts normalization
+Raw counts
 
 ```{r glance counts, echo = FALSE}
-total_counts <- rowSums(microcosm$Abundance)
-log_data <- exp(sweep(log(1 + microcosm$Abundance), 1, log(total_counts), "-"))
-
-ggplot(data.frame(counts = c(log_data)), aes(counts))  + 
-  geom_histogram() + theme_bw()
+pheatmap(NR_COUNTS, cluster_rows=FALSE, cluster_cols=FALSE, show_rownames = FALSE)
 ```
 
 :::
@@ -59,11 +145,76 @@ ggplot(data.frame(counts = c(log_data)), aes(counts))  +
 
 Log-scale
 ```{r glimpse Abundance, echo = FALSE, message=FALSE}
-ggplot(data.frame(counts = c(log_data)), aes(counts))  + 
-  geom_histogram() + theme_bw()
+pheatmap(log(1 + NR_COUNTS), cluster_rows=FALSE, cluster_cols=FALSE, show_rownames = FALSE)
 ```
 
 :::
 
 ::::
 
+---
+
+## Tropical fishes
+
+#### Table of covariates/ exogenous variables (first rows)
+
+```{r table-covariates}
+NR_COVARIATES %>% head(3) %>% gt()
+```
+
+#### PCA on covariates: no strong temporal/season effect
+
+```{r standardizing_covariates_nr, echo = FALSE}
+nb_pc <- ncol(NR_COVARIATES) - 4
+NR_PCA <-
+  NR_COVARIATES %>%
+  PCA(quali.sup = quali_ind, ncp = nb_pc, scale.unit = TRUE, graph = FALSE)
+```
+
+```{r biplot-temporel, fig.align="center"}
+## strong effect of stream and disturbance
+NR_PCA %>% fviz_pca_biplot(habillage = quali_ind[1:2]) + scale_color_viridis_d()
+```
+
+## Tropical fishes
+
+#### Table of covariates/ exogenous variables (first rows)
+
+```{r table-covariates2}
+NR_COVARIATES %>% head(3) %>% gt()
+```
+
+#### PCA on covariates: spatial effect
+
+```{r biplot-spatial, fig.align="center"}
+## no effect of season and year
+NR_PCA %>% fviz_pca_biplot(habillage = quali_ind[3:4]) + scale_color_viridis_d()
+```
+
+## Models for multivariate count data
+
+### If we were in a Gaussian world...
+
+The [general linear model]{.alert} [@MKB79] would be appropriate! For each sample $i = 1,\dots,n$, 
+
+$$\underbrace{\mathbf{Y}_i}_{\text{abundances}} =  \underbrace{\mathbf{x}_i^\top \mathbf{B}}_{\text{covariates}} + \underbrace{\mathbf{o}_i}_{\text{sampling effort}} + \boldsymbol\varepsilon_i, \quad \boldsymbol\varepsilon_i \sim \mathcal{N}(\mathbf{0}_p, \underbrace{\boldsymbol\Sigma}_{\text{between-species dependencies}})$$
+
+null covariance $\Leftrightarrow$ independence $\rightsquigarrow$ uncorrelated species/transcripts do not interact
+
+[This model gives birth to Principal Component Analysis,
+ Discriminant Analysis, Gaussian Graphical Models, Gaussian Mixture models and many others $\dots$]{.alert}
+
+### With count data...
+
+There is no generic model for multivariate counts
+
+- Data transformation (log, $\sqrt{}$): quick and dirty
+- Non-Gaussian multivariate distributions [@IYA16]: do not scale to data dimension yet
+- [Latent variable models]{.alert}: interaction occur in a latent (unobserved) layer
+
+```{r formatting Northern Range data for PLNmodels, echo = FALSE}
+NR_DATA <- prepare_data(
+  counts     = NR_COUNTS,
+  covariates = cbind(NR_COVARIATES, NR_PCA_SCORES)
+  )
+```

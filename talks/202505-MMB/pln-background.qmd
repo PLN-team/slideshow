@@ -25,7 +25,7 @@ Typically, $n\approx 10s \to 1000s$, $p\approx 10s \to 1000s$, $d \approx 1 \to 
 
 ---
 
-## Natural extensions of PLN
+## Natural extensions of PLN (1)
 
 #### Various tasks of multivariate analysis
 
@@ -43,12 +43,33 @@ Typically, $n\approx 10s \to 1000s$, $p\approx 10s \to 1000s$, $d \approx 1 \to 
 
   - [Network inference]{.alert}: sparsity constraint on inverse covariance. <small>[@PLNnetwork]</small>
 
-  
   $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \boldsymbol\Omega^{-1}), \quad \|\boldsymbol\Omega \|_1 < c.$$
 
 ---
 
+## Natural extensions of PLN (2)
+
+#### Recent/on-going extensions
+
+  - [Zero Inflation]{.alert}: an ZI version of PLN and PLN-network <small>[@batardiere2024zero]</small>
+
+$$\begin{array}{rrl}
+  \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
+   \text{excess of zeros} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
+  \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim^\text{indep} W_{ij}\delta_0 + (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
+\end{array}$$
+
+  - [Time-Series analysis]{.alert}: Vector Auto-Regressive model <small>[@pyplnmodels]</small>
+
+  $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma), \quad \mathbf{Z}_i| \mathbf{Z}_{i-1} = \boldsymbol{\Phi} + \mathcal{N}({\boldsymbol\mu}_i^\varepsilon, \boldsymbol\Sigma^\varepsilon).$$
+
+- ${\boldsymbol\mu}_i^\varepsilon = {\boldsymbol\mu}_i - \boldsymbol{\Phi}{\boldsymbol\mu}_{i-1} \boldsymbol{\Phi}$ with 
+- ${\boldsymbol\Sigma}^\varepsilon = {\boldsymbol\Sigma} - \boldsymbol{\Phi}{\boldsymbol\Sigma}_{i-1} \boldsymbol{\Phi}$
+- $\boldsymbol{\Phi}$ the positive-definite auto-correlation matrix such as ${\boldsymbol\Sigma}^\varepsilon \succeq 0$.
+  
 ## Estimation
+
+### Latent-variable models
 
 Estimate $\theta = (\mathbf{B}, {\boldsymbol\Sigma})$, predict the $\mathbf{Z}_i$, while  the model marginal likelihood is
 
@@ -69,10 +90,6 @@ p_\theta(\mathbf{Y}_i) = \int_{\mathbb{R}_p} \prod_{j=1}^p p_\theta(Y_{ij} | Z_{
 \end{equation*}
 
 EM requires to evaluate (some moments of) $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$, but there is no close form!
-
-- MCMC techniques on reduced sampling space: composite likelihood [@pln-composite], importance sampling in PLN-PCA [@plnpca-importance]
-
-<!-- - [Variational approaches]{.alert} [e.g. @blei2017variational]: use a surrogate of $p_\theta(\mathbf{Z} \,|\,  \mathbf{Y})$ -->
 
 ## Variational Inference
 
@@ -100,84 +117,72 @@ $$\theta^{(h)} = \arg\max \frac{1}{n}\sum_{i=1}^{n}J_{Y_i}(\theta, \psi_i^{(h)})
 
 ---
 
-## Implementations
+## Implementations 
 
-See <https://pln-team.github.io/repositories/>
+See <https://pln-team.github.io/repositories/>: documentation, vignettes, examples, etc.
 
 #### `PLNmodels` Medium scale problems (R/C++ package)
+
+Up to thousands of sites ( $n \approx 1000s$ ), hundreds of species ( $p\approx 100s$ )
 
 - V-EM: exact M-step + optimization for VE-stem 
 - **algorithm**: conservative convex separable approximations [@Svan02]
 - **implementation**: `NLopt` nonlinear-optimization library [@nlopt] <br/>
 
-$\rightsquigarrow$ Up to thousands of sites ( $n \approx 1000s$ ), hundreds of species ( $p\approx 100s$ )
-
 #### `pyPLNmodels` Large scale problems  (Python/Pytorch module)
+
+Up to  $n \to 100,000$ and $p\approx 10,000s$
 
 - V-EM: exact M-step + optimization for VE-stem 
 - **algorithm**: Rprop (gradient sign + adaptive variable-specific update) [@rprop]
 - **implementation**: `torch` with GPU auto-differentiation [@pytorch] <br/>
 
-$\rightsquigarrow$ Up to  $n \to 100,000$ and $p\approx 10,000s$
+---
 
+## Other optimisation approaches
+
+#### MCMC techniques on reduced sampling space
+
+- Composite likelihood [@pln-composite]
+- Importance sampling in PLN-PCA [@plnpca-importance]
+
+#### Variational Auto-Encoders and PLN-PCA
+
+![](figs/vae_scheme.png){width=90%, fig-align="center"}
+
+- The Decoder is the generative model $p_{\theta}(\mathbf{Y}_i | \mathbf{Z}_i)$
+- The Encoder approximates the posterior distribution with $q_\psi(\mu_i,\sigma^2_i)$
+- VAE maximize a lower bound of the marginal $\log p_{\theta}(\mathbf{Y}_i)$
 
 ---
 
-## PLN-PCA and Variational Auto-Encoders 
+## Variational estimator: properties
 
-![](figs/vae_scheme.png){width=100%}
+#### M-estimation framework [@van2000asymptotic]
 
-- The Decoder is the generative model $p_{\theta}(\mathbf{Y}_i | \mathbf{Z}_i)$
-- The Encoder perform performs variational by approximating the posterior distribution with $q_\psi(\mu_i,\sigma^2_i)$
-- VAE maximize a lower bound of the marginal $\log p_{\theta}(\mathbf{Y})$
-
-$$
-\log p_{\theta}(\mathbf{Y}_i) \geq \mathbb{E}_{q_{\psi}(\mathbf{Z}_i|\mathbf{X}_i)}\left[\log
-p_{\theta}(\mathbf{Y}_i | \mathbf{Z}_i)\right] - D_{KL}(q_{\psi}(\mathbf{Z}_i|\mathbf{Y}_i)||p_{\theta}(\mathbf{Z}_i))
-$$
+Let $\bar{J}_n \; : \theta \mapsto \frac{1}{n}\sum_{i=1}^{n} \arg \max_{\psi}J_i(\theta, \hat{\psi}_i) \stackrel{\Delta}{=} \frac{1}{n}\sum_{i=1}^{n} \bar{J}_i(\theta)$
 
 
-## Variational Estimator: properties
+#### Theorem [@batardiere2024evaluating]
 
-### M-estimation framework [@van2000asymptotic]
-
-Let $\hat{\psi}_i = \hat{\psi}_i(\theta, \mathbf{Y}_i) = \arg \max_{\psi} J_i(\theta, \psi)$ and consider the stochastic map $\bar{J}_n$ defined by
-
-$$\bar{J}_n \; : \quad \theta \mapsto \frac{1}{n}\sum_{i=1}^{n} J_i(\theta, \hat{\psi}_i) \stackrel{\Delta}{=} \frac{1}{n}\sum_{i=1}^{n} 
-\bar{J}_i(\theta)$$
-
-M-estimation suggests that $\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \bar{J}_{n}(\theta)$ should converge to $\bar{\theta} = \arg\max_{\theta} \bar{J}(\theta)$ where $\bar{J}(\theta) = \mathbb{E}_{\theta^\star}[\bar{J}_Y(\theta)] =  \mathbb{E}_{\theta^\star}[J_Y(\theta, \hat{\psi}(\theta, Y))]$. 
-
-### Theorem [@Westling2015]
-
-In this line, [@Westling2015] show that under regularity conditions ensuring that $\bar{J}_n$ is smooth enough (e.g. when $\theta$ and $\psi_i$ are restricted to compact sets), 
-$$
-\hat{\theta}^{\text{ve}} \xrightarrow[n \to +\infty]{a.e.} \bar{\theta}
-$$
-
-[Open question:]{.alert} $\bar{\theta} = \theta^\star$ ? No formal results as $\bar{J}$ is untractable but numerical evidence suggests so.
-
-## Variance : sandwich estimator
-
-### Theorem [@Westling2015]
-
-Under additional regularity conditions (satisfied when $\theta$ and $\psi_i$ are restricted to compact sets), we have 
+Let $\hat{\theta}^{\text{ve}} = \arg\max_{\theta} \bar{J}_{n}(\theta)$. If $\bar{J}_n$ is smooth enough (e.g. when $\theta$ and $\psi_i$ are restricted to compact sets), 
 $$
 \sqrt{n}(\hat{\theta}^{\text{ve}} - \bar{\theta})  \xrightarrow[]{d} \mathcal{N}(0, V(\bar{\theta})), \quad \text{where } V(\theta) = C(\theta)^{-1} D(\theta) C(\theta)^{-1}
 $$
 for $C(\theta) = \mathbb{E}[\nabla_{\theta\theta} \bar{J}(\theta) ]$ and $D(\theta) = \mathbb{E}\left[(\nabla_{\theta} \bar{J}(\theta)) (\nabla_{\theta} \bar{J}(\theta)^\intercal \right]$
 
-#### Practical computations (chain rule)
+<!-- #### Practical computations (chain rule)
 
 $$
 \begin{aligned}
  \hat{C}_n(\theta) & = \frac{1}{n} \sum_{i=1}^n \left[ \nabla_{\theta\theta} J_i - \nabla_{\theta\psi_i} J_i (\nabla_{\psi_i\psi_i} J_i)^{-1} \nabla_{\theta\psi_i} J_i^\intercal \right](\theta, \hat{\psi}_i) \\
  \hat{D}_n(\theta) & = \frac{1}{n} \sum_{i=1}^n \left[ \nabla_{\theta} J_i \nabla_{\theta} J_i^\intercal \right](\theta, \hat{\psi}_i)
 \end{aligned}
-$$
+$$ -->
 
 #### Caveat
 
+- [Open question:]{.alert} $\bar{\theta} = \theta^\star$ ? No formal results as $\bar{J}$ is untractable but numerical evidence suggests so.
 - For $\theta = (\mathbf{B}, \boldsymbol\Omega)$, $\hat{C}_n$ requires the inversion of $n$ matrices with $dp^3$ rows/columns... 
 - Assume blockwise diagonal matrix $\hat{C}_n$ by neglecting the cross-terms between $\mathbf{B}$ and $\boldsymbol\Sigma$.
 

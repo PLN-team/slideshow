@@ -162,9 +162,9 @@ pheatmap(mu_pca, show_rownames = FALSE)
 ```
 
 ```{r covariance-PCA}
-corrplot(cov2cor(sigma(NR_PLN_Stream_PC)), is.corr = FALSE, order="hclust", method = "color")
-corrplot(cov2cor(sigma(NR_PLNPCA)), is.corr = FALSE, order="hclust", method = "color")
-corrplot(cov2cor(sigma(NR_PLNPCA_Stream)), is.corr = FALSE, order="hclust", method = "color")
+pheatmap(cov2cor(sigma(NR_PLN_Stream_PC)))
+pheatmap(cov2cor(sigma(NR_PLNPCA)))
+pheatmap(cov2cor(sigma(NR_PLNPCA_Stream)))
 ```
 
 ```{r plnpca-fit}
@@ -269,10 +269,11 @@ NR_ZIPLNNET <- NR_ZIPLNNET_all$getBestModel("BIC")
 NR_ZIPLNNET$plot_network()
 ```
 
-```{r criteria-network}
+```{r criteria-zipln}
 criteria <- criteria %>% bind_rows( 
                   data.frame(model = "ZIPLN ~ PC1 | stream", NR_ZIPLN$criteria),
                   data.frame(model = "ZIPLNNET ~ PC1 | stream", NR_ZIPLNNET$criteria[, 1:4]))
+criteria %>% gt::gt()
 ```
 
 ```{r variable-to-analyse}
@@ -304,8 +305,8 @@ pheatmap(latent_pos_ZIPLN)
 ```
 
 ```{r B-B0}
-pheatmap(B_PLN0)
-pheatmap(B_PLN)
+pheatmap(B_pln)
+pheatmap(B_pca)
 pheatmap(B0_ZIPLN)
 ```
 

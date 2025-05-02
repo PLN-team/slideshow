@@ -16,7 +16,7 @@ PLN_site_time <- PLN(Abundance ~ 0 + site_time + offset(log(Offset)), data = mic
 
 <br/> 
 
-```{r microcosm-PLN-criteria, echo = FALSE}
+```{r microcosm-PLN-criteria, echo = TRUE}
 #| tbl-cap: Model selection criteria
 rbind(
   PLN$criteria, PLN_site$criteria, PLN_time$criteria, PLN_site_time$criteria

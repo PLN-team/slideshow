@@ -1,0 +1,256 @@
+## Multivariate regression (1)
+
+Assess environnemental/abiotic effects
+
+$$
+\quad \mathbf{Y}_i | \mathbf{Z}_i \sim^{\text{iid}} \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\underbrace{\mathbf{o}_i + \mathbf{x}_i^\top\mathbf{B}}}_{{\boldsymbol\mu}_i},\boldsymbol\Sigma).
+$$
+
+```{r pln, echo = TRUE, results="hide"}
+NR_PLN            <- PLN(Abundance ~ 1, data = NR_DATA)
+NR_PLN_Stream     <- PLN(Abundance ~ 0 + stream, data = NR_DATA)
+NR_PLN_Stream_PC  <- PLN(Abundance ~ 0 + stream + PC1, data = NR_DATA)
+NR_PLN_Stream_PC2 <- PLN(Abundance ~ 0 + stream + PC1 + PC2, data = NR_DATA)
+```
+
+<br />
+
+```{r pln-criteria, echo = FALSE}
+#| tbl-cap: Model selection criteria
+criteria <- 
+    rbind(NR_PLN$criteria, NR_PLN_Stream$criteria, NR_PLN_Stream_PC$criteria, NR_PLN_Stream_PC2$criteria) %>% 
+    add_column(model = c("PLN ~ 1", "PLN ~ stream",  "PLN ~ stream + PC1", "PLN ~ stream + PC1 + PC2"), .before = 1) 
+gt(criteria) %>%
+    data_color(
+        columns = "BIC",
+        method = "numeric",
+        palette = "viridis"
+    )
+```
+
+We continue with `NR_PLN_Stream_PC`.
+
+```{r NR_PLN_Stream_PC_sandwich, echo = FALSE, results="hide"}
+NR_PLN_Stream_PC <- PLN(Abundance ~ 0 + stream + PC1, data = NR_DATA, control = PLN_param(config_post = list(sandwich_var=TRUE)))
+#| code-fold: true
+B_pln <- t(coefficients(NR_PLN_Stream_PC))
+colnames(B_pln) <- c(sort(unique(NR_DATA$stream)), "PC1")
+VB_pln <- t(standard_error(NR_PLN_Stream_PC))
+colnames(VB_pln) <- c(sort(unique(NR_DATA$stream)), "PC1")
+mu_pln <- predict(NR_PLN_Stream_PC, NR_DATA)
+fit_pln <- as.data.frame(NR_PLN_Stream_PC$fitted) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+
+```
+
+---
+
+## Multivariate regression (2)
+
+#### Coefficients: $\hat{\mathbf{B}}$
+
+```{r pln-coef-plot}
+#| code-fold: true
+#| tbl-cap: Estimated regression coefficients
+heat_B <- pheatmap(B_pln)
+```
+
+---
+
+## Multivariate regression (2)
+
+#### Coefficients: variance $\hat{\mathbb{V}}(\hat{\mathbf{B}})$ (keep clustering on $\hat{\mathbf{B}}$)
+
+```{r pln-var-coef-plot}
+#| code-fold: true
+#| tbl-cap: Estimated variance of the regression coefficients
+pheatmap(VB_pln, cluster_rows = heat_B$tree_row, cluster_cols = heat_B$tree_col)
+```
+
+---
+
+## Multivariate regression (2)
+
+#### Coefficients: $z$-score (keep clustering on $\hat{\mathbf{B}}$)
+
+```{r pln-z-score-plot}
+#| code-fold: true
+#| tbl-cap: $z$-score
+pheatmap(B_pln/sqrt(VB_pln), cluster_rows = heat_B$tree_row, cluster_cols = heat_B$tree_col)
+```
+
+---
+
+## Multivariate regression (3)
+
+#### Mean effect: $\hat{\boldsymbol{\mu}} = \mathbf{O} + \mathbf{X} \hat{\mathbf{B}}$
+
+```{r pln-mean-plot}
+heat_mu <- pheatmap(mu_pln, show_rownames = FALSE)
+```
+
+
+## Multivariate regression (4)
+
+#### Fit: $\log \hat{\mathbb{E}}(\mathbf{Y}) = \mathbf{O} + \mathbf{X} \hat{\mathbf{B}} + \mathbf{M} + \frac 12 \mathbf{S^2}$
+
+```{r pln-fit-plot}
+pheatmap(log(1 + fit_pln), show_rownames = FALSE, cluster_rows = heat_mu$tree_row, cluster_cols = heat_mu$tree_col)
+```
+
+## Multivariate regression (4)
+
+#### Fit (per site)
+
+```{r pln-fit, echo = FALSE}
+counts  <- NR_DATA$Abundance  %>% as("matrix")
+plot_counts <- counts %>% as_tibble(rownames = "sample") %>% 
+  pivot_longer(-sample, names_to = "species", values_to = "count")
+plot_fitted_pln <- fit_pln %>% as_tibble(rownames = "sample") %>% 
+  pivot_longer(-sample, names_to = "species", values_to = "Y_hat") 
+
+dplot <-
+  inner_join(plot_counts, plot_fitted_pln, by = join_by(sample, species)) %>%  
+  inner_join(NR_COVARIATES %>%  as_tibble(rownames = "sample"), by = "sample")
+
+p <- dplot %>% 
+  ggplot(aes(x = count, y = Y_hat)) + 
+  geom_point(alpha = 0.25) +
+  geom_abline(slope = 1, intercept = 0, color = "grey60", linetype = "dashed") + 
+  scale_x_log10() + scale_y_log10() + 
+  labs(x = "Observed", y = "Fitted") + 
+  facet_grid(disturbance~season) + 
+  theme_bw()
+p
+```
+
+## Dimension reduction (1)
+
+Exhibit patterns of diversity
+
+$$\quad \mathbf{Y}_i | \mathbf{Z}_i \sim^{\text{iid}} \mathcal{P}\left(\exp\{\mathbf{Z}_i\}\right), \qquad \mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma = \mathbf{C}\mathbf{C}^\top), \quad \mathbf{C} \in \mathcal{M}_{pk} \text{ with orthogonal columns}.$$
+
+```{r PCA-nocovar, results='hide'}
+NR_PLNPCA_all <- PLNPCA(Abundance ~ PC1, ranks = 1:12, data = NR_DATA)
+NR_PLNPCA_Stream_all <- PLNPCA(Abundance ~ 0 + stream + PC1 , ranks = 1:10, data = NR_DATA)
+```
+
+:::: {.columns}
+
+#### Model selection criteria for rank (number of PC)
+
+::: {.column width="50%"}
+```{r plot-crit-pca-nocovar}
+#| tbl-cap: Without stream effect
+plot(NR_PLNPCA_all)
+```
+::: 
+
+::: {.column width="50%"}
+```{r plot-crit-pca-covar}
+#| tbl-cap: With stream effect
+plot(NR_PLNPCA_Stream_all)
+```
+:::
+
+::::
+
+```{r model-selection-pca}
+NR_PLNPCA_Stream <- NR_PLNPCA_Stream_all %>% getBestModel("ICL") 
+NR_PLNPCA <- NR_PLNPCA_all %>% getBestModel("ICL")
+```
+
+```{r criteria-pca}
+criteria <- NR_PLN_Stream_PC$criteria %>% 
+    add_column(model = c("PLN ~ stream + PC1"), .before = 1) %>% bind_rows( 
+                  data.frame(model = "PLNPCA ~ PC1", NR_PLNPCA$criteria),
+                  data.frame(model = "PLNPCA ~ stream + PC1", NR_PLNPCA_Stream$criteria))
+gt(criteria) %>%
+    data_color(
+        columns = c("BIC", "ICL"),
+        method = "numeric",
+        palette = "viridis"
+    )
+```
+
+## Dimension reduction (2)
+
+#### Visualization: do not correct for stream effect
+
+```{r biplot-nostream}
+NR_PLNPCA %>% fviz_pca_biplot(col.ind = NR_DATA$stream) + labs(color = "Stream", shape = "Stream") + scale_color_viridis_d()
+```
+
+## Dimension reduction (2)
+
+#### Visualization: do not correct for stream effect
+
+```{r biplot-nostream-temp}
+NR_PLNPCA %>% fviz_pca_biplot(col.ind = NR_DATA$temperature) + labs(color = "Temp.") + scale_color_viridis_c()
+```
+
+## Dimension reduction (3)
+
+#### Visualization: correct for stream effect
+
+```{r biplot-stream}
+NR_PLNPCA_Stream %>% fviz_pca_biplot(col.ind = NR_DATA$stream) + labs(color = "Stream", shape = "Stream") + scale_color_viridis_d()
+```
+
+```{r pca-coef}
+B_pca <- t(coefficients(NR_PLNPCA_Stream))
+colnames(B_pca) <- c(sort(unique(NR_DATA$stream)), "PC1")
+mu_pca <- predict(NR_PLNPCA_Stream, NR_DATA)
+```
+
+## Dimension reduction (4)
+
+#### Coefficients (correct for Stream): $\hat{\mathbf{B}}^\text{PLNPCA}$
+
+```{r pca-coef-plot}
+pheatmap(B_pca, cluster_rows = heat_B$tree_row, cluster_cols = heat_B$tree_col)
+```
+
+## Dimension reduction (4)
+
+#### Coefficients: $\hat{\mathbf{B}}^\text{PLN}$ 
+
+```{r pln-coef-plot-pca}
+#| code-fold: true
+#| tbl-cap: Estimated variance regression coefficients
+pheatmap(B_pln)
+```
+
+## Dimension reduction (5)
+
+#### Mean effect: $\hat{\boldsymbol{\mu}}^\text{PLNPCA}$
+
+```{r plnpca-mean-plot}
+pheatmap(mu_pca, cluster_rows = heat_mu$tree_row, cluster_cols = heat_mu$tree_col, show_rownames = FALSE)
+```
+
+## Dimension reduction (5)
+
+#### Mean effect: $\hat{\boldsymbol{\mu}}^\text{PLNPCA}$
+
+```{r pln-mean-plot-pca}
+pheatmap(mu_pln, show_rownames = FALSE)
+```
+
+## Dimension reduction (6)
+
+#### Covariance/Correlation (singular): $\hat{\boldsymbol{\Sigma}}^\text{PLNPCA}$
+
+```{r plnpca-covariance-plot, fig.height=5, fig.width=6, fig.align="center"}
+heat_covpca <- pheatmap(cov2cor(sigma(NR_PLNPCA_Stream)))
+```
+
+## Dimension reduction (6)
+
+#### Covariance/Correlation (singular): $\hat{\boldsymbol{\Sigma}}^\text{PLN}$
+
+```{r pln-covariance-plot, fig.height=5, fig.width=6, fig.align="center"}
+pheatmap(cov2cor(sigma(NR_PLN_Stream)), cluster_rows = heat_covpca$tree_row, cluster_cols = heat_covpca$tree_col)
+```
+
+
