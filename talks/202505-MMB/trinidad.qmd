@@ -33,14 +33,13 @@ We continue with `NR_PLN_Stream_PC`.
 ```{r NR_PLN_Stream_PC_sandwich, echo = FALSE, results="hide"}
 NR_PLN_Stream_PC <- PLN(Abundance ~ 0 + stream + PC1, data = NR_DATA, control = PLN_param(config_post = list(sandwich_var=TRUE)))
 #| code-fold: true
-B_pln <- t(coefficients(NR_PLN_Stream_PC))
-colnames(B_pln) <- c(sort(unique(NR_DATA$stream)), "PC1")
-VB_pln <- t(standard_error(NR_PLN_Stream_PC))
-colnames(VB_pln) <- c(sort(unique(NR_DATA$stream)), "PC1")
+B_pln <- coefficients(NR_PLN_Stream_PC)
+rownames(B_pln) <- c(sort(unique(NR_DATA$stream)), "PC1")
+VB_pln <- standard_error(NR_PLN_Stream_PC)
+rownames(VB_pln) <- c(sort(unique(NR_DATA$stream)), "PC1")
 mu_pln <- predict(NR_PLN_Stream_PC, NR_DATA)
 fit_pln <- as.data.frame(NR_PLN_Stream_PC$fitted) %>% 
   setNames(colnames(NR_DATA$Abundance))
-
 ```
 
 ---
@@ -198,8 +197,8 @@ NR_PLNPCA_Stream %>% fviz_pca_biplot(col.ind = NR_DATA$stream) + labs(color = "S
 ```
 
 ```{r pca-coef}
-B_pca <- t(coefficients(NR_PLNPCA_Stream))
-colnames(B_pca) <- c(sort(unique(NR_DATA$stream)), "PC1")
+B_pca <- coefficients(NR_PLNPCA_Stream)
+rownames(B_pca) <- c(sort(unique(NR_DATA$stream)), "PC1")
 mu_pca <- predict(NR_PLNPCA_Stream, NR_DATA)
 ```
 
@@ -217,7 +216,7 @@ pheatmap(B_pca, cluster_rows = heat_B$tree_row, cluster_cols = heat_B$tree_col)
 
 ```{r pln-coef-plot-pca}
 #| code-fold: true
-#| tbl-cap: Estimated variance regression coefficients
+#| tbl-cap: Estimated regression coefficients (PLN with Stream)
 pheatmap(B_pln)
 ```
 
@@ -231,7 +230,7 @@ pheatmap(mu_pca, cluster_rows = heat_mu$tree_row, cluster_cols = heat_mu$tree_co
 
 ## Dimension reduction (5)
 
-#### Mean effect: $\hat{\boldsymbol{\mu}}^\text{PLNPCA}$
+#### Mean effect: $\hat{\boldsymbol{\mu}}^\text{PLN}$
 
 ```{r pln-mean-plot-pca}
 pheatmap(mu_pln, show_rownames = FALSE)
@@ -253,4 +252,322 @@ heat_covpca <- pheatmap(cov2cor(sigma(NR_PLNPCA_Stream)))
 pheatmap(cov2cor(sigma(NR_PLN_Stream)), cluster_rows = heat_covpca$tree_row, cluster_cols = heat_covpca$tree_col)
 ```
 
+## Discriminant Analysis (1)
+
+Assess environnemental/abiotic effects by classification 
+
+#### Objective
+
+Maximize separation between groups with means <small>[@PLNmodels]</small>
+$$
+\quad \mathbf{Y}_i | \mathbf{Z}_i \sim^{\text{iid}}  \sim \mathcal{N}(\sum_k {\boldsymbol\mu}_k \mathbf{1}_{\{i\in k\}}, \boldsymbol\Sigma), \quad \text{for known memberships}.
+$$
+
+$\rightsquigarrow$ Find the linear combination(s) $\mathbf{Z} u$ maximizing separation between groups
+
+<br/>
+
+#### Solution
+
+Find the first eigenvectors of $\mathbf{\Sigma}_w^{-1} \mathbf{\Sigma}_b$ where
+
+- $\mathbf{\Sigma}_w$ is the _within_-group variance matrix, i.e. the unbiased estimated of ${\boldsymbol\Sigma}$:
+- $\mathbf{\Sigma}_b$ is the _between_-group variance matrix, estimated from $\boldsymbol{\mu_k}$.
+
+## Discriminant Analysis (2)
+
+PLN-LDA is a "special" PLN with a grouping variable added to the design matrix + post-treatment
+
+```{r LDA, results='hide', echo = TRUE}
+NR_PLNLDA <- PLNLDA(Abundance ~ PC1, grouping = stream, data = NR_DATA)
+```
+
+$\rightsquigarrow$ Group means are similar to PLN regression coefficients associated with `stream`
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+####  First two discriminant axes
+
+```{r plot-lda-ind, fig.width=6, fig.height=4}
+p <- plot(NR_PLNLDA, map = "individual", plot = FALSE) + scale_color_viridis_d()
+p
+```
+
+:::
+
+::: {.column width="50%"}
+
+####  Correlation with original variables
+
+```{r plot-lda-var, fig.width=6, fig.height=4}
+p <- plot(NR_PLNLDA, plot = FALSE, map = "variable") + scale_color_viridis_d()
+p
+```
+
+:::
+
+::::
+
+## Discriminant Analysis (4)
+
+### Group means (PLN-LDA vs PLN)
+
+::::{.columns}
+
+::: {.column width="50%"}
+
+```{r grp-means-LDA}
+group_means <- t(NR_PLNLDA$group_means)
+rownames(group_means) <- sort(unique(NR_DATA$stream))
+colnames(group_means) <- colnames(NR_DATA$Abundance)
+pheatmap(group_means, cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r coef-PLN-grpmeans}
+group_means <- coef(NR_PLN_Stream_PC)[-9, ]
+rownames(group_means) <- sort(unique(NR_DATA$stream))
+colnames(group_means) <- colnames(NR_DATA$Abundance)
+pheatmap(group_means, cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+:::
+
+::::
+
+### Classifier 
+
+Supervised-learning: provide a classifier to predict group newly observed site:
+
+```{r plnlda-prediction, echo = TRUE}
+set.seed(1969)
+train_set <- sample.int(nrow(NR_DATA), 200)
+test_set  <- setdiff(1:nrow(NR_DATA), train_set)
+NR_train <- NR_DATA[train_set, ]
+NR_test   <- NR_DATA[test_set, ]
+pred_stream <- predict(NR_PLNLDA, newdata = NR_test, type = "response")
+aricode::ARI(pred_stream, NR_test$stream)
+```
+
+## Association Network (1)
+
+### Inference
+
+```{r network, results="hide", echo=TRUE}
+NR_PLNNET_all <- PLNnetwork(Abundance ~ PC1, data = NR_DATA, control = PLNnetwork_param(penalize_diagonal = FALSE))
+NR_PLNNET_all$stability_selection()
+NR_PLNNET_Stream_all <- PLNnetwork(Abundance ~ PC1 + stream, data = NR_DATA, control = PLNnetwork_param(penalize_diagonal = FALSE))
+NR_PLNNET_Stream_all$stability_selection()
+```
+
+
+::::{.columns}
+
+### Chosing the network's density
+
+::: {.column width="50%"}
+
+#### Without stream as covariate
+
+```{r plot-plnnet-stream-stars, fig.width=6, fig.height=4}
+plot(NR_PLNNET_all, "stability", stability = 0.95)
+```
+
+:::
+
+::: {.column width="50%"}
+
+#### With stream as covariate
+
+```{r plot-plnnet-nostream-stars, fig.width=6, fig.height=4}
+plot(NR_PLNNET_Stream_all, "stability", stability = 0.95)
+```
+
+:::
+
+::::
+
+## Association Network (2)
+
+### Network selected **without** stream as covariate
+
+```{r plot-plnnet-nostream, crop=TRUE}
+NR_PLNNET <- NR_PLNNET_all$getBestModel("StARS")
+NR_PLNNET$plot_network()
+```
+
+## Association Network (2)
+
+### Network selected **with** stream as covariate
+
+
+```{r plot-plnnet-stream, crop=TRUE}
+NR_PLNNET_Stream <- NR_PLNNET_Stream_all$getBestModel("StARS")
+NR_PLNNET_Stream$plot_network()
+```
+
+## Association Network (2)
+
+#### Precision/Covariance matrices (**without** stream)
+
+::::{.columns}
+
+::: {.column width="50%"}
+
+```{r plot-plnnet-nostream-mat, crop=TRUE}
+corrplot(cov2cor(as.matrix(NR_PLNNET$latent_network("partial_cor"))), method = "color", type='upper', diag = FALSE, cl.pos="n")
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r plot-plnnet-nostream-mat-cov, crop=TRUE}
+corrplot(cov2cor(sigma(NR_PLNNET)), method = "color", type='upper', diag = FALSE, cl.pos="n")
+```
+
+:::
+
+::::
+
+#### Precision/Covariance matrices (**with** stream)
+
+::::{.columns}
+
+::: {.column width="50%"}
+
+```{r plot-plnnet-stream-mat, crop=TRUE}
+corrplot(cov2cor(as.matrix(NR_PLNNET_Stream$latent_network("partial_cor"))), method = "color", type='upper', diag = FALSE, cl.pos="n")
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r plot-plnnet-stream-mat-cov, crop=TRUE}
+corrplot(cov2cor(sigma(NR_PLNNET_Stream)), method = "color", type='upper', diag = FALSE, cl.pos="n")
+```
+
+:::
+
+::::
+
+## Association Network (3)
+
+### Model selection criteria
+
+```{r criteria-network}
+criteria <- criteria %>% bind_rows( 
+                  data.frame(model = "PLNNET ~ PC1", NR_PLNNET$criteria[, 1:4]),
+                  data.frame(model = "PLNNET ~ stream + PC1", NR_PLNNET_Stream$criteria[, 1:4]))
+gt(criteria) %>%
+    data_color(
+        columns = "BIC",
+        method = "numeric",
+        palette = "viridis"
+    )
+```
+
+### Fit
+
+```{r plnnet-fit, fig.align="center"}
+fit_net <- as.data.frame(NR_PLNNET_Stream$fitted) %>% 
+  setNames(colnames(NR_DATA$Abundance))
+plot_fitted_net <- fit_net %>% as_tibble(rownames = "sample") %>% 
+  pivot_longer(-sample, names_to = "species", values_to = "Y_hat") 
+
+dplot <- 
+  inner_join(plot_counts, plot_fitted_net, by = join_by(sample, species)) %>%  
+  inner_join(NR_COVARIATES %>%  as_tibble(rownames = "sample"), by = "sample")
+
+p <- dplot %>% 
+  ggplot(aes(x = count, y = Y_hat)) + 
+  geom_point(alpha = 0.25) +
+  geom_abline(slope = 1, intercept = 0, color = "grey60", linetype = "dashed") + 
+  scale_x_log10() + scale_y_log10() + 
+  labs(x = "Observed", y = "Fitted") + 
+  facet_grid(disturbance~season) + 
+  theme_bw()
+p
+```
+
+## Zero-Inflation (1)
+
+$$\begin{array}{rrl}
+  \text{PLN latent space} &  \boldsymbol{Z}_i  = (Z_{ij})_{j=1\dots p} & \sim  \mathcal{N}(\mathbf{x}_i^\top \mathbf{B}, \mathbf{\Sigma}), \\[1.5ex]
+   \text{excess of zeros} &  \boldsymbol{W}_{i} = (W_{ij})_{j=1\dots p} & \sim \otimes_{j=1}^p \cal B(\pi_{ij}),   \\[1.5ex]
+  \text{observation space} &  Y_{ij} \, | \, W_{ij}, Z_{ij} & \sim^\text{indep} W_{ij}\delta_0 + (1-W_{ij})\mathcal{P} \left(\exp\{o_{ij} + Z_{ij}\}\right),\\
+\end{array}$$
+
+<br/>
+
+### Modeling of the pure zero component 
+
+$$\begin{align*}
+\pi_{ij} & = \pi \in [0,1] & \text{(single global parameter)} \\
+\pi_{ij} & = \pi_j \in [0,1] & \text{(species dependent)} \\
+\pi_{ij} & = \pi_i \in [0,1] & \text{(site dependent)} \\
+\pi_{ij} & = \mathrm{logit}^{-1}( \boldsymbol X^{0}\boldsymbol B^0)_{ij}, ~ \boldsymbol X^0 \in \mathbb R^{n \times d_0}, ~ \boldsymbol B^0 \in \mathbb R^{d_0\times p}  &  \text{(site covariates)} \\
+\pi_{ij} & = \mathrm{logit}^{-1}(\bar{\boldsymbol{B}}^0 \bar{\boldsymbol{X}}^{0})_{ij}, ~ \bar{\boldsymbol{B}}^0 \in \mathbb R^{n \times d_0}, ~ \bar{\boldsymbol X}^0 \in \mathbb R^{d_0\times p} & \text{(species covariates)} 
+\end{align*}$$
+
+## Zero-Inflation (2)
+
+#### Fit models with covariate effect in ZI/PLN part 
+
+```{r ZIPLN-ZIPLNET, echo = TRUE, results="hide"}
+NR_ZIPLN  <- ZIPLN(Abundance ~ PC1 | 0 + stream,  data = NR_DATA)
+NR_ZIPLNNET_all <- ZIPLNnetwork(Abundance ~ PC1 | 0 + stream,  data = NR_DATA, control=ZIPLNnetwork_param(penalize_diagonal=FALSE))
+NR_ZIPLNNET <- NR_ZIPLNNET_all$getBestModel("BIC")
+```
+
+$\rightsquigarrow$ Stream effect now caught by the ZI component
+
+#### Model selection criteria
+
+```{r criteria-zipln}
+criteria <- criteria %>% bind_rows( 
+                  data.frame(model = "ZIPLN ~ PC1 | stream", NR_ZIPLN$criteria),
+                  data.frame(model = "ZIPLNNET ~ PC1 | stream", NR_ZIPLNNET$criteria[, 1:4]))
+gt(criteria) %>%
+    data_color(
+        columns = "BIC",
+        method = "numeric",
+        palette = "viridis"
+    )
+```
+
+## Zero-Inflation (2)
+
+```{r variable-to-analyse}
+B0_zipln <- coefficients(NR_ZIPLNNET, "zero")
+rownames(B0_zipln) <- sort(unique(NR_DATA$stream))
+prob_zi <- NR_ZIPLNNET$var_par$R 
+colnames(prob_zi) <- colnames(NR_DATA$Abundance)
+```
+
+#### Fitted probability of zero-inflation: $\hat{\boldsymbol{\pi}}$
+
+```{r zipln-coef-plot}
+#| code-fold: true
+#| tbl-cap: Estimated probabilities of being zero inflated
+site <- as.data.frame(NR_COVARIATES[, c("stream")])
+heat_zi <- pheatmap(prob_zi, annotation_row = site, show_rownames = FALSE)
+```
+
+$\rightsquigarrow$ The ZI component can be used as a model for presence/absence (large part explained by the stream)
+
+## Zero-Inflation (2)
+
+#### Coefficient in ZI part (Stream)
+
+```{r zipln-coef-plot-zipart}
+#| tbl-cap: Estimated regression coefficients in ZIPLN (ZI component with Stream)
+pheatmap(B0_zipln, cluster_cols = heat_zi$tree_col)
+```
 

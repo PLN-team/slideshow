@@ -204,7 +204,7 @@ plot(NR_PLNLDA, map = "variable") + scale_color_viridis_d()
 group_means <- NR_PLNLDA$group_means
 colnames(group_means) <- sort(unique(NR_DATA$stream))
 rownames(group_means) <- colnames(NR_DATA$Abundance)
-pheatmap(group_means)
+pheatmap(group_means, cluster_rows = FALSE, cluster_cols = FALSE)
 ```
 
 ```{r prediction-classification}
@@ -264,7 +264,7 @@ NR_ZIPLN  <- ZIPLN(Abundance ~ PC1 | 0 + stream,  data = NR_DATA)
 ```
 
 ```{r ZIPLNNET}
-NR_ZIPLNNET_all <- ZIPLNnetwork(Abundance ~ PC1 | 0 + stream,  data = NR_DATA, control = ZIPLNnetwork_param(penalize_diagonal = FALSE))
+NR_ZIPLNNET_all <- ZIPLNnetwork(Abundance ~ 0 + stream + PC1 | 0 + stream,  data = NR_DATA, control = ZIPLNnetwork_param(penalize_diagonal = FALSE))
 NR_ZIPLNNET <- NR_ZIPLNNET_all$getBestModel("BIC")
 NR_ZIPLNNET$plot_network()
 ```
@@ -277,28 +277,32 @@ criteria %>% gt::gt()
 ```
 
 ```{r variable-to-analyse}
-fit_ZIPLN <- as.data.frame(NR_ZIPLN$fitted) %>% 
+fit_ZIPLN <- as.data.frame(NR_ZIPLNNET$fitted) %>% 
   setNames(colnames(NR_DATA$Abundance))
-latent_ZIPLN <- as.data.frame(NR_ZIPLN$latent) %>% 
+latent_ZIPLN <- as.data.frame(NR_ZIPLNNET$latent) %>% 
   setNames(colnames(NR_DATA$Abundance))
-latent_pos_ZIPLN <- as.data.frame(NR_ZIPLN$latent_pos) %>% 
+latent_pos_ZIPLN <- as.data.frame(NR_ZIPLNNET$latent_pos) %>% 
   setNames(colnames(NR_DATA$Abundance))
-B_ZIPLN <- as.data.frame(NR_ZIPLN$model_par$B) %>% 
+B_ZIPLN <- as.data.frame(NR_ZIPLNNET$model_par$B) %>% 
   setNames(colnames(NR_DATA$Abundance))
-B0_ZIPLN <- as.data.frame(NR_ZIPLN$model_par$B0) %>% 
+B0_ZIPLN <- as.data.frame(NR_ZIPLNNET$model_par$B0) %>% 
   setNames(colnames(NR_DATA$Abundance))
-prob_zi <- as.data.frame(NR_ZIPLN$var_par$R) %>% 
+prob_zi <- as.data.frame(NR_ZIPLNNET$var_par$R) %>% 
   setNames(colnames(NR_DATA$Abundance))
-
 ```
 
 ### Parameters analysis
 
-```{r residuals-latent}
-site <- as.data.frame(NR_COVARIATES[, c("disturbance", "season")])
-pheatmap(prob_zi, annotation_row = site)
-pheatmap(latent_ZIPLN)
+```{r prob-zi}
+site <- as.data.frame(NR_COVARIATES[, c("stream")])
+pheatmap(prob_zi, annotation_row = site, show_rownames = FALSE)
 ```
+
+```{r B0}
+pheatmap(B0_ZIPLN, show_rownames = FALSE)
+```
+
+)
 
 ```{r residuals-latent-pos}
 pheatmap(latent_pos_ZIPLN)

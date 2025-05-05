@@ -77,6 +77,7 @@ NR_PCA %>% fviz_pca_biplot(habillage = quali_ind[3:4]) + scale_color_viridis_d()
 - PLN = generic model for multivariate count data analysis
 - Flexible modeling of the covariance structure, allows for covariates
 - Efficient Variational EM algorithms
+- Hopefully user-friendly tools available
 
 ### Advertisement 
 

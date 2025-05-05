@@ -1,4 +1,4 @@
-## Motivation: multivariate count data
+## Multivariate count data
 
 ### Routinely gathered in ecology/microbiology/genomics
 
@@ -30,6 +30,7 @@ library(aricode)
 library(ggtext)
 library(viridisLite)
 library(gt)
+library(magick)
 ```
 
 ## Two illustrative examples
@@ -213,6 +214,7 @@ There is no generic model for multivariate counts
 - [Latent variable models]{.alert}: interaction occur in a latent (unobserved) layer
 
 ```{r formatting Northern Range data for PLNmodels, echo = FALSE}
+NR_PCA_SCORES <- setNames(data.frame(NR_PCA$ind$coord), paste0("PC",1:nb_pc))
 NR_DATA <- prepare_data(
   counts     = NR_COUNTS,
   covariates = cbind(NR_COVARIATES, NR_PCA_SCORES)
