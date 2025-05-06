@@ -61,7 +61,7 @@ $$\begin{array}{rrl}
 
   - [Time-Series analysis]{.alert}: Vector Auto-Regressive model <small>[@pyplnmodels]</small>
 
-  $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma), \quad \mathbf{Z}_i| \mathbf{Z}_{i-1} = \boldsymbol{\Phi} + \mathcal{N}({\boldsymbol\mu}_i^\varepsilon, \boldsymbol\Sigma^\varepsilon).$$
+  $$\mathbf{Z}_i \sim \mathcal{N}({\boldsymbol\mu}_i, \boldsymbol\Sigma), \quad \mathbf{Z}_i| \mathbf{Z}_{i-1} = \boldsymbol{\Phi}\mathbf{Z}_{i-1} + \mathcal{N}({\boldsymbol\mu}_i^\varepsilon, \boldsymbol\Sigma^\varepsilon).$$
 
 - ${\boldsymbol\mu}_i^\varepsilon = {\boldsymbol\mu}_i - \boldsymbol{\Phi}{\boldsymbol\mu}_{i-1} \boldsymbol{\Phi}$ with 
 - ${\boldsymbol\Sigma}^\varepsilon = {\boldsymbol\Sigma} - \boldsymbol{\Phi}{\boldsymbol\Sigma}_{i-1} \boldsymbol{\Phi}$
